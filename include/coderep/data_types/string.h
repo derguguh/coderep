@@ -15,9 +15,9 @@
  *  I recommend making all not used chars null terminated, but is just a recommendation.
  */
 struct string {
-    char  *chars;
-    size_t capacity;
-    size_t length;
+	char  *chars;
+	size_t capacity;
+	size_t length;
 };
 
 struct string *string_new();
@@ -27,11 +27,12 @@ void string_trim(struct string *self);
 
 void string_push(struct string *self, char char_);
 
-void string_append_cstr(struct string *self, const char *const cstr);
 void string_append(struct string *self, const struct string *str);
+void string_append_cstr(struct string *self, const char *const cstr);
 
 bool string_is_equals(struct string *self, struct string *str);
 
 void string_drop(struct string **self);
 
 #endif
+
