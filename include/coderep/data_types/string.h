@@ -3,16 +3,15 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 /*
- * This string struct is supposed to be possible to be used:
+ * This string struct is NOT supposed to be used in/as:
  *  - C POSIX str* functions
  *  - %s in format functions
  *  - to be used like a normal null terminated C string
  *
- *  For these reasons, length should NOT be equals or greater than the capacity,
- * because this will leave at least one character to be null terminated.
- *  I recommend making all not used chars null terminated, but is just a recommendation.
+ *  It CAN be used as C string with a conversion with string_to_cstr, but only after this
  */
 struct string {
 	char  *chars;
@@ -23,14 +22,22 @@ struct string {
 struct string *string_new();
 
 void string_resize(struct string *self, size_t new_size);
-void string_trim(struct string *self);
+static inline void string_expand(struct string *self);
+static inline void string_trim(struct string *self);
 
+char string_pop(struct string *self);
 void string_push(struct string *self, char char_);
-
 void string_append(struct string *self, const struct string *str);
 void string_append_cstr(struct string *self, const char *const cstr);
 
 bool string_is_equals(struct string *self, struct string *str);
+
+char *string_to_cstr(struct string *self);
+
+static inline void string_print(struct string *self)
+{
+	for (int i = 0; i < self->length; i++) putchar(self->chars[i]);
+}
 
 void string_drop(struct string **self);
 
