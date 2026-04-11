@@ -10,7 +10,7 @@ struct brute {
 
 struct brute *brute_new(struct string **name, struct string **value);
 
-void brute_print(struct brute *self);
+void brute_print(const struct brute *self);
 
 void brute_drop(struct brute **self);
 

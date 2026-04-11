@@ -32,8 +32,11 @@ void string_resize(struct string *self, size_t new_size)
 {
 	char *tmp = realloc(self->chars, new_size);
 	if (!tmp) {
+		string_drop(&self);
+
 		fprintf(stderr, ANSI_ERR "Couldn't reallocate memory for resizig struct string\n");
 		exit(ERROR_CODE_MEMORY_ALLOCATION);
+		return;
 	}
 	
 	if (self->length > new_size) self->length = new_size;
@@ -41,12 +44,12 @@ void string_resize(struct string *self, size_t new_size)
 	self->chars = tmp;
 }
 
-static inline void string_expand(struct string *self)
+void string_expand(struct string *self)
 {
 	string_resize(self, self->capacity * 2);
 }
 
-static inline void string_trim(struct string *self)
+void string_trim(struct string *self)
 {
 	string_resize(self, self->length);
 }
@@ -61,10 +64,10 @@ char string_pop(struct string *self)
 
 void string_push(struct string *self, char char_)
 {
-	self->length++;
-	if (self->length > self->capacity) string_expand(self);
+	if (self->length >= self->capacity) string_expand(self);
 
 	self->chars[self->length] = char_;
+	self->length++;
 }
 
 void string_append(struct string *self, const struct string *str)
@@ -87,16 +90,29 @@ void string_append_cstr(struct string *self, const char *const cstr)
 	string_append(self, &str);
 }
 
-bool string_is_equals(struct string *self, struct string *str)
+bool string_is_equals(const struct string *self, const struct string *str)
 {
 	if (self->length == str->length) return memcmp(self->chars, str->chars, self->length) == 0;
 	else return false;
+}
+
+unsigned long string_hash(const struct string *self)
+{
+	unsigned long hash = 5381;
+	for (size_t i = 0; i < self->length; i++)
+		hash = ((hash << 5) + hash) + self->chars[i];
+	return hash;
 }
 
 char *string_to_cstr(struct string *self)
 {
 	if (self->chars[self->length - 1] != '\0') string_push(self, '\0');
 	return self->chars;
+}
+
+void string_print(const struct string *self)
+{
+	for (int i = 0; i < self->length; i++) putchar(self->chars[i]);
 }
 
 void string_drop(struct string **self)

@@ -7,20 +7,24 @@ struct brute *brute_new(struct string **name, struct string **value)
 {
 	struct brute *brute = malloc(sizeof(struct brute));
 	if (!brute) {
+		string_drop(name);
+		string_drop(value);
 
 		fprintf(stderr, ANSI_ERR "Couldn't allocate memory for a struct brute\n");
 		exit(ERROR_CODE_MEMORY_ALLOCATION);
 		return NULL;
-	}
+	} else {
+		brute->name = *name;
+		brute->value = *value;
 
-	brute->name = *name;
-	brute->value = *value;
-	*name = NULL;
-	*value = NULL;
-	return brute;
+		*name = NULL;
+		*value = NULL;
+
+		return brute;
+	}
 }
 
-void brute_print(struct brute *self)
+void brute_print(const struct brute *self)
 {
 	string_print(self->name);
 	putchar(':');
