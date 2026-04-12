@@ -37,9 +37,9 @@ void brute_drop(struct brute **self)
 {
 	if (!self || !(*self)) return;
 
-	string_drop(&((*self)->name));
-	string_drop(&((*self)->value));
-	free((*self));
+	string_drop(&(*self)->name);
+	string_drop(&(*self)->value);
+	free(*self);
 	*self = NULL;
 }
 

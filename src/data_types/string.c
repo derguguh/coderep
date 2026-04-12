@@ -119,7 +119,7 @@ void string_drop(struct string **self)
 	if (!self || !(*self)) return;
 
 	free((*self)->chars);
-	free((*self));
+	free(*self);
 	(*self) = NULL;
 }
 

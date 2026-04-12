@@ -1,22 +1,29 @@
 CC = clang
 CFLAGS = -I include/
-EXECUTABLE_FILE = coderep
 
-make: main.o string.o brute.o distributive.o
-	$(CC) $(CFLAGS) main.o string.o brute.o distributive.o -o build/$(EXECUTABLE_FILE)
+build_dir := build/
+sources_dir := src/
+objects_dir := $(build_dir)objects/
 
-main.o: src/main.c
-	$(CC) $(CFLAGS) -c src/main.c
+sources := $(shell find $(sources_dir) -name '*.c')
+objects := $(addprefix $(objects_dir),$(sources:.c=.o))
+target := coderep
+commands := compile_commands.json
 
-string.o: src/data_types/string.c
-	$(CC) $(CFLAGS) -c src/data_types/string.c
+all: $(build_dir)$(target)
 
-brute.o: src/data_types/string.c
-	$(CC) $(CFLAGS) -c src/data_types/brute.c
+bear:
+	bear -o $(build_dir)$(commands) -- make
 
-distributive.o: src/data_types/distributive.c
-	$(CC) $(CFLAGS) -c src/data_types/distributive.c
+$(build_dir)$(target): $(objects)
+	$(CC) $(CFLAGS) $(objects) -o $@
+
+$(objects_dir)%.o: %.c
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o build/$(EXECUTABLE_FILE)
+	rm -rf $(build_dir)*
+
+.PHONY: all bear clean
 

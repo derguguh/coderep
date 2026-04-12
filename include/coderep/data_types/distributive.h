@@ -3,19 +3,13 @@
 
 #include "coderep/data_types/string.h"
 
-struct node {
-	struct node *next;
-	struct string *value;
-	int count;
-};
-
 struct distributive {
 	struct string *name;
 	struct node **buckets;
 	size_t buckets_count;
 };
 
-struct distributive *distributive_new(struct string **name, size_t bucket_count);
+struct distributive *distributive_new(struct string **name, size_t initial_capacity);
 
 void distributive_push(struct distributive *self, struct string **value);
 

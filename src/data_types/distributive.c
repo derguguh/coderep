@@ -1,4 +1,5 @@
 #include "coderep/data_types/distributive.h"
+#include "coderep/data_types/node.h"
 #include "coderep/consts.h"
 
 #include <stdbool.h>
@@ -6,56 +7,14 @@
 
 #define DEFAULT_SIZE 16
 
-struct node *node_new(struct string **value)
+struct distributive *distributive_new(struct string **name, size_t initial_capacity)
 {
-	struct node *node = malloc(sizeof(struct node));
-	if (!node) {
-		fprintf(stderr, ANSI_ERR "Couldn't alloc memory for a struct node");
-		exit(ERROR_CODE_MEMORY_ALLOCATION);
-		return NULL;
-	} else {
-		node->value = *value;
-		node->count = 1;
-
-		*value = NULL;
-
-		return node;
-	}
-}
-
-int node_push(struct node *self, struct string **value)
-{
-	int deep_level = 1;
-	if (string_is_equals(self->value, *value)) {
-		self->count++;
-		string_drop(value);
-	} else {
-		if (self->next == NULL) self->next = node_new(value);
-		else deep_level = node_push(self->next, value) + 1;
-	}
-
-	return deep_level;
-}
-
-void node_drop(struct node **self)
-{
-	if(!self || !(*self)) return;
-
-	node_drop(&(*self)->next);
-	string_drop(&(*self)->value);
-	free(*self);
-
-	*self = NULL;
-}
-
-struct distributive *distributive_new(struct string **name, size_t bucket_size)
-{
-	if (bucket_size == 0) bucket_size = DEFAULT_SIZE;
+	if (initial_capacity == 0) initial_capacity = DEFAULT_SIZE;
 	struct distributive *distributive = malloc(sizeof(struct distributive));
-	struct node **nodes = calloc(sizeof(struct node*), bucket_size);
+	struct node **nodes = calloc(sizeof(struct node*), initial_capacity);
 
 	if (distributive && nodes) {
-		distributive->buckets_count = bucket_size;
+		distributive->buckets_count = initial_capacity;
 		distributive->buckets = nodes;
 		distributive->name = *name;
 
@@ -119,7 +78,7 @@ void distributive_drop(struct distributive **self)
 	(*self)->buckets = NULL;
 
 	string_drop(&(*self)->name);
-	free((*self));
+	free(*self);
 	*self = NULL;
 }
 
