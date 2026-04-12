@@ -72,10 +72,10 @@ void string_push(struct string *self, char char_)
 
 void string_append(struct string *self, const struct string *str)
 {
-	self->length = self->length + str->length;
-	if (self->length > self->capacity) string_resize(self, self->length + str->length);
+	if (self->length + str->length > self->capacity) string_resize(self, self->length + str->length);
 
-	memcpy(self->chars, str->chars, str->length);
+	memcpy(self->chars + self->length, str->chars, str->length);
+	self->length += str->length;
 }
 
 void string_append_cstr(struct string *self, const char *const cstr)
@@ -84,8 +84,7 @@ void string_append_cstr(struct string *self, const char *const cstr)
 	const struct string str = {
 		.chars	  = (char *const) cstr,
 		.length	 = cstr_s,
-		.capacity   = cstr_s,
-	};
+		.capacity   = cstr_s, };
 
 	string_append(self, &str);
 }

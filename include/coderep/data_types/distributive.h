@@ -15,12 +15,11 @@ struct distributive {
 	size_t buckets_count;
 };
 
-struct node *node_new(struct string **value);
-void node_drop(struct node **self);
-
 struct distributive *distributive_new(struct string **name, size_t bucket_count);
 
 void distributive_push(struct distributive *self, struct string **value);
+
+void distributive_print(struct distributive *self);
 
 void distributive_drop(struct distributive **self);
 
