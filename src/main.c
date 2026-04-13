@@ -4,7 +4,7 @@ int main(int argc, char **argv)
 {
 	struct args *args = args_new(argv, argc);
 
-	printf("language: ");
+	printf("Language: ");
 	string_print(args->lang);
 	putchar('\n');
 	printf("Filter: ");

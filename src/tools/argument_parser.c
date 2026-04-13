@@ -1,36 +1,41 @@
 #include "coderep/tools/argument_parser.h"
 #include "coderep/consts.h"
+#include "coderep/tools/data.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define IS_EQUALS_TO_ARGS(arg, short_name, long_name) strcmp(arg, short_name) == 0 || strcmp(arg, long_name) == 0
+#define IS_EQUALS_TO(arg, short_name, long_name) strcmp(arg, short_name) == 0 || strcmp(arg, long_name) == 0
+
+void args_parse_data(struct args *self, char **argv, int argc, int *i)
+{
+	(*i)++;
+	char *data = argv[(*i)];
+
+	if	(strcmp(data, "brute.none") == 0)		self->brute	= NONE;
+	else if	(strcmp(data, "brute.raw") == 0)		self->list	|= LIST_RAW;
+	else if	(strcmp(data, "list.none") == 0)		self->list	= NONE;
+	else if	(strcmp(data, "list.raw") == 0)			self->list	|= LIST_RAW;
+	else if (strcmp(data, "distributive.none") == 0)	self->distributive = NONE;
+	else if (strcmp(data, "distributive.raw") == 0)		self->distributive |= DISTRIBUTIVE_RAW;
+	else if (strcmp(data, "distributive.min") == 0)		self->distributive |= DISTRIBUTIVE_MIN;
+	else if (strcmp(data, "distributive.max") == 0)		self->distributive |= DISTRIBUTIVE_MAX;
+	else if (strcmp(data, "distributive.avg") == 0)		self->distributive |= DISTRIBUTIVE_AVG;
+	else if (strcmp(data, "distributive.moda") == 0)	self->distributive |= DISTRIBUTIVE_MODA;
+	else if (strcmp(data, "distributive.median") == 0)	self->distributive |= DISTRIBUTIVE_MEDIAN;
+	else if (strcmp(data, "distributive.frequency") == 0)	self->distributive |= DISTRIBUTIVE_FREQUENCY;
+	else if (strcmp(data, "distributive.value") == 0)	self->distributive |= DISTRIBUTIVE_VALUE;
+	else fprintf(stderr, ANSI_ERR "'%s' is not a valid --data argument\n", data);
+}
 
 void args_parse(struct args *self, char **argv, int argc)
 {
-	for (int i = 1; i < argc; i++) {
+	for (int i = 1; i + 1 < argc; i += 2) {
 		char *arg = argv[i];
-		int o = i + 1;
-		
-		if (arg[0] != '-' || o >= argc) {
 
-			fprintf(stderr, ANSI_ERR "Unknown or invalid argument '%s' passed to coderep\n", arg);
-			exit(ERROR_UNKOWN_ARGUMENT);
-			break;
-		}
-
-		struct string *next_arg = string_new();
-		string_append_cstr(next_arg, argv[o]);
-
-		if	(IS_EQUALS_TO_ARGS(arg, "-l", "--language")) string_append(self->lang, next_arg);
-		else if (IS_EQUALS_TO_ARGS(arg, "-f", "--filter")) string_append(self->filter, next_arg);
-		else if (IS_EQUALS_TO_ARGS(arg, "-s", "--source")) list_push(self->sources, &next_arg);
-		else if (IS_EQUALS_TO_ARGS(arg, "-i", "--input")) list_push(self->inputs, &next_arg);
-		else fprintf(stderr, ANSI_ERR "Unknown argument '%s'\n", arg);
-
-		string_drop(&next_arg);
-		i++;
+		if	(IS_EQUALS_TO(arg, "-d", "--data")) args_parse_data(self, argv, argc, &i);
+		else fprintf(stderr, ANSI_ERR "'%s' is not a valid argument\n", arg);
 	}
 }
 
@@ -43,15 +48,17 @@ struct args *args_new(char **argv, int argc)
 		exit(ERROR_CODE_MEMORY_ALLOCATION);
 		return NULL;
 	} else {
-		struct string *string = string_new();
-		string_append_cstr(string, "Sources");
+		struct string *string = string_from_cstr("Sources");
 		args->sources = list_new(&string, 2);
-		string = string_new();
-		string_append_cstr(string, "Inputs");
+		string = string_from_cstr("Inputs");
 		args->inputs = list_new(&string, 4);
 
 		args->lang = string_new();
 		args->filter = string_new();
+		
+		args->brute = BRUTE_DEFAULT;
+		args->list = LIST_DEFAULT;
+		args->distributive = DISTRIBUTIVE_DEFAULT;
 
 		args_parse(args, argv, argc);
 		

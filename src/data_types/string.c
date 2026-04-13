@@ -28,6 +28,22 @@ struct string *string_new()
 	}
 }
 
+struct string *string_from_cstr(const char *const cstr)
+{
+	struct string *string = string_new();
+	string_append_cstr(string, cstr);
+
+	return string;
+}
+
+struct string *string_clone(const struct string *self)
+{
+	struct string *string = string_new();
+	string_append(string, self);
+
+	return string;
+}
+
 void string_resize(struct string *self, size_t new_size)
 {
 	char *tmp = realloc(self->chars, new_size);
@@ -89,6 +105,11 @@ void string_append_cstr(struct string *self, const char *const cstr)
 	string_append(self, &str);
 }
 
+bool string_is_empty(const struct string *self)
+{
+	return self->length == 0;
+}
+
 bool string_is_equals(const struct string *self, const struct string *str)
 {
 	if (self->length == str->length) return memcmp(self->chars, str->chars, self->length) == 0;
@@ -103,10 +124,21 @@ unsigned long string_hash(const struct string *self)
 	return hash;
 }
 
+char string_get(const struct string *self, size_t index)
+{
+	if (self->length > index) return self->chars[index];
+	else return '\n';
+}
+
 char *string_to_cstr(struct string *self)
 {
 	if (self->chars[self->length - 1] != '\0') string_push(self, '\0');
 	return self->chars;
+}
+
+void string_clear(struct string *self)
+{
+	self->length = 0;
 }
 
 void string_print(const struct string *self)

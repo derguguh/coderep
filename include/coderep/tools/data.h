@@ -22,6 +22,8 @@ enum data {
 	DISTRIBUTIVE_FREQUENCY	= 0x04000040,
 	DISTRIBUTIVE_VALUE	= 0x04000080,
 	// Mixs
+	BRUTE_DEFAULT		= 0x01000000, // min, max and avg
+	LIST_DEFAULT		= 0x02000000, // min, max and avg
 	DISTRIBUTIVE_DEFAULT	= 0x0400000E, // min, max and avg
 	DISTRIBUTIVE_STATS	= 0x0400003E, // min, max, avg, moda and median
 	DISTRIBUTIVE_LIST	= 0x040000C0, // frequency and value
