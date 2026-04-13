@@ -40,7 +40,7 @@ struct list *list_new(struct string **name, size_t initial_capacity)
 		free(list);
 		free(nodes);
 
-		fprintf(stderr, ANSI_ERR "Couldn't allocate memory for a struct list");
+		fprintf(stderr, ANSI_ERR "Couldn't allocate memory for a struct list\n");
 		exit(ERROR_CODE_MEMORY_ALLOCATION);
 		return NULL;
 	}
@@ -48,10 +48,7 @@ struct list *list_new(struct string **name, size_t initial_capacity)
 
 int list_push(struct list *self, struct string **value)
 {
-	self->element_count++;
 	size_t index = string_hash(*value) % self->buckets_count;
-	printf("hash: %lu\n", string_hash(*value));
-	printf("bucket index: %lu\n", index);
 	struct node *node = self->buckets[index];
 
 	if (node == NULL) {
@@ -61,7 +58,8 @@ int list_push(struct list *self, struct string **value)
 
 	*value = NULL;
 
-	return self->element_count;
+	self->element_count++;
+	return self->element_count - 1;
 }
 
 const struct string *list_peek(struct list *self, size_t index)

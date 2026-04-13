@@ -26,7 +26,7 @@ struct distributive *distributive_new(struct string **name, size_t initial_capac
 		free(distributive);
 		free(nodes);
 
-		fprintf(stderr, ANSI_ERR "Couldn't allocate memory for a struct distributive");
+		fprintf(stderr, ANSI_ERR "Couldn't allocate memory for a struct distributive\n");
 		exit(ERROR_CODE_MEMORY_ALLOCATION);
 		return NULL;
 	}
@@ -35,8 +35,6 @@ struct distributive *distributive_new(struct string **name, size_t initial_capac
 void distributive_push(struct distributive *self, struct string **value)
 {
 	size_t index = string_hash(*value) % self->buckets_count;
-	printf("hash: %lu\n", string_hash(*value));
-	printf("bucket index: %lu\n", index);
 	struct node *node = self->buckets[index];
 
 	if (node == NULL) {
