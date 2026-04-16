@@ -4,8 +4,11 @@
 #define DATA_TYPE(d) ((d) & 0xFF000000)
 #define DATA_FLAGS(d) ((d) & 0x00FFFFFF)
 
+struct data {
+
+};
 // This define WHAT to show
-enum data {
+enum flags {
 	// Flags
 	NONE			= 0x00000000,
 	RAW			= 0x00000001,
