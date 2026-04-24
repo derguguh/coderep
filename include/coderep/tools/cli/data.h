@@ -1,12 +1,6 @@
 #ifndef CODEREP_TOOLS_DATA_H
 #define CODEREP_TOOLS_DATA_H
 
-#define DATA_TYPE(d) ((d) & 0xFF000000)
-#define DATA_FLAGS(d) ((d) & 0x00FFFFFF)
-
-struct data {
-
-};
 // This define WHAT to show
 enum flags {
 	// Flags
@@ -23,9 +17,20 @@ enum flags {
 	// Flag mixes
 	DEFAULT_BRUTE		= 0x00000040,
 	DEFAULT_LIST		= 0x00000040,
-	DEFAULT_DISTRIBUTIVE	= 0x000000CE,
-	DISTRIBUTION		= 0x000001C0,
+	DEFAULT_DISTRIBUTIVE	= 0x0000000E,
+	DISTRIBUTION		= 0x000000C0,
 	STATS			= 0x0000003E,
+	ALL			= 0xFFFFFFFF,
 };
+
+struct data {
+	enum flags distributive;
+	enum flags brute;
+	enum flags list;
+};
+
+struct data data_create();
+
+int data_parse(struct data *self, char **argv, int argc, int index);
 
 #endif
