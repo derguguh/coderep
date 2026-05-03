@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS = -I include/
+CFLAGS = -I include/ -g
 
 build_dir := build/
 sources_dir := src/
@@ -13,7 +13,7 @@ commands := compile_commands.json
 all: $(build_dir)$(target)
 
 bear:
-	bear -o $(build_dir)$(commands) -- make
+	bear -o $(build_dir)$(commands) -- make all
 
 $(build_dir)$(target): $(objects)
 	$(CC) $(CFLAGS) $(objects) -o $@

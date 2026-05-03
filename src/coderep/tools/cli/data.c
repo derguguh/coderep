@@ -30,19 +30,13 @@ const size_t flag_opts_l = sizeof(flag_opts) / sizeof(struct flag_opt);
 
 enum flags parse_flag(const struct string_slice slice)
 {
-	for (int i = 0; i < flag_opts_l; i++) if (strncasecmp(slice.chars, flag_opts[i].cstr, slice.length) == 0) {
-		printf("\t\tsubflag got: %s\n", flag_opts[i].cstr);
-		return flag_opts[i].flag;
-	}
-
-	fprintf(stderr, ANSI_ERR);
+	for (int i = 0; i < flag_opts_l; i++) if (strncasecmp(slice.chars, flag_opts[i].cstr, slice.length) == 0) return flag_opts[i].flag;
+	fprintf(stderr, ANSI_ERR "\"");
 	for (int i = 0; i < slice.length ; i++) putc(slice.chars[i], stderr);
-	fprintf(stderr, "is not a valid '--data' flag\n");
+	fprintf(stderr, "\" is not a valid '--data' subflag\n" ANSI_ESC ANSI_RESET);
 	return NONE;
 }
 
-// This will split the ';' to mix flags, only this
-// just see where the next ';' is, and set this to be the flag
 enum flags parse_flags(const struct string_slice flags)
 {
 	enum flags flag = NONE;
@@ -58,7 +52,7 @@ enum flags parse_flags(const struct string_slice flags)
 		}
 	}
 
-	struct string_slice slice = { flags.chars + last_colon_loc, flags.length + last_colon_loc, last_colon_loc};
+	struct string_slice slice = { flags.chars + last_colon_loc, flags.length - last_colon_loc, last_colon_loc};
 	flag |= parse_flag(slice);
 
 	return flag;
@@ -75,13 +69,33 @@ struct data data_create()
 	return data;
 }
 
+// type is a cstr, so no risk with these strncasecmp iirc the C standard
+void data_put_in(struct data *self, enum flags flag, const struct string_slice type)
+{
+	enum flags *f = NULL;
+	if	(strncasecmp("distributive", type.chars, 12) == 0) f = &self->distributive;
+	else if (strncasecmp("brute", type.chars, 5) == 0) f = &self->brute;
+	else if (strncasecmp("list", type.chars, 4) == 0) f = &self->list;
+	else {
+		fprintf(stderr, ANSI_ERR "\"");
+		for (int i = 0; i < type.length ; i++) putc(type.chars[i], stderr);
+		fprintf(stderr, "\"" ANSI_ESC ANSI_RESET "\n");
+		return;
+	}
+
+	*f = flag;
+}
+
 int data_parse(struct data *self, const char **argv, int argc, int index)
 {
 	if (index + 1 > argc) {
 
-		fprintf(stderr, ANSI_ERR "'--data' option expects at least one flag\n");
+		PRINT_ERR("'--data' option expects at least one flag\n");
 		return index;
 	}
+	self->distributive = NONE;
+	self->brute = NONE;
+	self->list = NONE;
 
 	struct string *arg = string_new();
 	while (index < argc) {
@@ -91,26 +105,18 @@ int data_parse(struct data *self, const char **argv, int argc, int index)
 		int dot_loc = string_find(arg, '.');
 		char *arg_cstr = string_to_cstr(arg);
 
-		if (dot_loc == -1) fprintf(stderr, ANSI_ERR "flag '%s' don't have a subflag, indicated by '.'\n", arg_cstr);
+		if (dot_loc == -1) PRINTF_ERR("flag '%s' don't have a subflag, indicated by '.'\n", arg_cstr);
 		else {
-			struct string_slice slice = string_slice(arg, dot_loc + 1, arg->length);
+			struct string_slice flags_slice = string_slice(arg, dot_loc + 1, arg->length);
+			struct string_slice type_slice = string_slice(arg, 0, dot_loc);
 
-			enum flags flag = parse_flags(slice);
-
-			printf("Brute string: ");
-			string_print(arg);
-			printf("\nWithout the dot: %s", slice.chars);
-			printf("\n\tFrom: %lu", slice.offset);
-			printf("\n\tLength: %lu", slice.length);
-			printf("\n\tFlag got from: %x", flag);
-			puts("\n");
+			data_put_in(self, parse_flags(flags_slice), type_slice);
 		}
 
 		string_clear(arg);
 		index++;
 	}
 	string_drop(&arg);
-
 	return index - 1;
 }
 

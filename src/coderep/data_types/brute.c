@@ -10,7 +10,7 @@ struct brute *brute_new(struct string **name, struct string **value)
 		string_drop(name);
 		string_drop(value);
 
-		fprintf(stderr, ANSI_ERR "Couldn't allocate memory for a struct brute\n");
+		PRINT_ERR("Couldn't allocate memory for a struct brute\n");
 		exit(ERROR_CODE_MEMORY_ALLOCATION);
 		return NULL;
 	} else {

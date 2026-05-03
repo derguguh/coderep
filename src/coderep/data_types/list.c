@@ -40,7 +40,7 @@ struct list *list_new(struct string **name, size_t initial_capacity)
 		free(list);
 		free(nodes);
 
-		fprintf(stderr, ANSI_ERR "Couldn't allocate memory for a struct list\n");
+		PRINT_ERR("Couldn't allocate memory for a struct list\n");
 		exit(ERROR_CODE_MEMORY_ALLOCATION);
 		return NULL;
 	}

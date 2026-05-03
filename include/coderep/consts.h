@@ -17,7 +17,11 @@
 #define ANSI_WHITE	"37m"
 #define ANSI_DEFAULT	"39m"
 
-#define ANSI_ERR	ANSI_ESC ANSI_RED ANSI_ESC ANSI_BOLD "[Error]: " ANSI_ESC ANSI_WHITE
+#define ANSI_RESET	"0m"
+
+#define ANSI_ERR		ANSI_ESC ANSI_RED ANSI_ESC ANSI_BOLD "[Error]: " ANSI_ESC ANSI_WHITE
+#define PRINT_ERR(err)		fprintf(stderr, ANSI_ERR err ANSI_ESC ANSI_RESET "\n")
+#define PRINTF_ERR(err, ...)	fprintf(stderr, ANSI_ERR err ANSI_ESC ANSI_RESET "\n", __VA_ARGS__)
 
 enum error_code {
 	ERROR_CODE_SUCCESS,

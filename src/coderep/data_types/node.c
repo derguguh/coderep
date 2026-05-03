@@ -2,14 +2,13 @@
 #include "coderep/data_types/string.h"
 #include "coderep/consts.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 
 struct node *node_new(struct string **value)
 {
 	struct node *node = malloc(sizeof(struct node));
 	if (!node) {
-		fprintf(stderr, ANSI_ERR "Couldn't alloc memory for a struct node\n");
+		PRINT_ERR("Couldn't alloc memory for a struct node\n");
 		exit(ERROR_CODE_MEMORY_ALLOCATION);
 		return NULL;
 	} else {

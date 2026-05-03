@@ -22,7 +22,7 @@ struct string *string_new()
 		free(string);
 		free(chars);
 
-		fprintf(stderr, ANSI_ERR "Couldn't allocate memory for struct string\n");
+		PRINT_ERR("Couldn't allocate memory for struct string");
 		exit(ERROR_CODE_MEMORY_ALLOCATION);
 		return NULL;
 	}
@@ -50,7 +50,7 @@ void string_resize(struct string *self, size_t new_capacity)
 	if (!tmp) {
 		string_drop(&self);
 
-		fprintf(stderr, ANSI_ERR "Couldn't reallocate memory for resizig struct string\n");
+		PRINT_ERR("Couldn't reallocate memory for resizig struct string");
 		exit(ERROR_CODE_MEMORY_ALLOCATION);
 		return;
 	}
