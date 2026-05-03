@@ -44,9 +44,9 @@ struct string *string_clone(const struct string *self)
 	return string;
 }
 
-void string_resize(struct string *self, size_t new_size)
+void string_resize(struct string *self, size_t new_capacity)
 {
-	char *tmp = realloc(self->chars, new_size);
+	char *tmp = realloc(self->chars, new_capacity);
 	if (!tmp) {
 		string_drop(&self);
 
@@ -55,8 +55,8 @@ void string_resize(struct string *self, size_t new_size)
 		return;
 	}
 	
-	if (self->length > new_size) self->length = new_size;
-	self->capacity = new_size;
+	if (self->length > new_capacity) self->length = new_capacity;
+	self->capacity = new_capacity;
 	self->chars = tmp;
 }
 
@@ -110,7 +110,7 @@ bool string_is_empty(const struct string *self)
 	return self->length == 0;
 }
 
-bool string_is_equals(const struct string *self, const struct string *str)
+bool string_is_equal(const struct string *self, const struct string *str)
 {
 	if (self->length == str->length) return memcmp(self->chars, str->chars, self->length) == 0;
 	else return false;
@@ -122,6 +122,28 @@ unsigned long string_hash(const struct string *self)
 	for (size_t i = 0; i < self->length; i++)
 		hash = ((hash << 5) + hash) + self->chars[i];
 	return hash;
+}
+
+int string_count(const struct string *self, char char_)
+{
+	int count = 0;
+	for (size_t i = 0; i < self->length; i++) if (self->chars[i] == char_) count++;
+	
+	return count;
+}
+
+size_t string_find(const struct string *self, char char_)
+{
+	for (size_t i = 0; i < self->length; i++) if (self->chars[i] == char_) return i;
+	return -1;
+}
+
+struct string_slice string_slice(const struct string *self, size_t from, size_t to)
+{
+	if (from > to || from > self->length) return (struct string_slice) { self->chars, 0, 0 };
+	if (to > self->length) to = self->length;
+
+	return (struct string_slice) { (self->chars) + from, to - from, from };
 }
 
 char string_get(const struct string *self, size_t index)

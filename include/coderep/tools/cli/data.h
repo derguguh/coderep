@@ -31,6 +31,6 @@ struct data {
 
 struct data data_create();
 
-int data_parse(struct data *self, char **argv, int argc, int index);
+int data_parse(struct data *self, const char **argv, int argc, int index);
 
 #endif

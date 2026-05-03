@@ -9,7 +9,7 @@
 int node_push_index(struct node *self, struct string **value, size_t element_index)
 {
 	int deep_level = 1;
-	if (string_is_equals(self->value, *value)) string_drop(value);
+	if (string_is_equal(self->value, *value)) string_drop(value);
 	else {
 		if (self->next == NULL) {
 			self->next = node_new(value);

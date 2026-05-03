@@ -25,7 +25,7 @@ struct node *node_new(struct string **value)
 int node_push(struct node *self, struct string **value)
 {
 	int deep_level = 1;
-	if (string_is_equals(self->value, *value)) {
+	if (string_is_equal(self->value, *value)) {
 		self->count++;
 		string_drop(value);
 	} else {
