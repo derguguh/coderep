@@ -7,7 +7,7 @@
 
 #define DEFAULT_SIZE 16
 
-struct distributive *distributive_new(struct string **name, size_t initial_capacity)
+struct distributive *distributive_alloc(struct string **name, size_t initial_capacity)
 {
 	if (initial_capacity == 0) initial_capacity = DEFAULT_SIZE;
 	struct distributive *distributive = malloc(sizeof(struct distributive));
@@ -38,7 +38,7 @@ void distributive_push(struct distributive *self, struct string **value)
 	struct node *node = self->buckets[index];
 
 	if (node == NULL) {
-		node = node_new(value);
+		node = node_alloc(value);
 		self->buckets[index] = node;
 	} else node_push(node, value);
 

@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 
-struct node *node_new(struct string **value)
+struct node *node_alloc(struct string **value)
 {
 	struct node *node = malloc(sizeof(struct node));
 	if (!node) {
@@ -28,7 +28,7 @@ int node_push(struct node *self, struct string **value)
 		self->count++;
 		string_drop(value);
 	} else {
-		if (self->next == NULL) self->next = node_new(value);
+		if (self->next == NULL) self->next = node_alloc(value);
 		else deep_level = node_push(self->next, value) + 1;
 	}
 

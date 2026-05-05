@@ -97,7 +97,7 @@ int data_parse(struct data *self, const char **argv, int argc, int index)
 	self->brute = NONE;
 	self->list = NONE;
 
-	struct string *arg = string_new();
+	struct string *arg = string_alloc();
 	while (index < argc) {
 
 		string_append_cstr(arg, argv[index]);

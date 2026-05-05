@@ -7,7 +7,7 @@ struct node {
 	int count;
 };
 
-struct node *node_new(struct string **value);
+struct node *node_alloc(struct string **value);
 
 int node_push(struct node *self, struct string **value);
 

@@ -13,7 +13,7 @@ struct list {
 	size_t element_count;
 };
 
-struct list *list_new(struct string **name, size_t initial_capacity);
+struct list *list_alloc(struct string **name, size_t initial_capacity);
 
 int list_push(struct list *self, struct string **value);
 

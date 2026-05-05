@@ -12,7 +12,7 @@ int node_push_index(struct node *self, struct string **value, size_t element_ind
 	if (string_is_equal(self->value, *value)) string_drop(value);
 	else {
 		if (self->next == NULL) {
-			self->next = node_new(value);
+			self->next = node_alloc(value);
 			self->next->count = element_index;
 		} else deep_level = node_push(self->next, value) + 1;
 	}
@@ -20,7 +20,7 @@ int node_push_index(struct node *self, struct string **value, size_t element_ind
 	return deep_level;
 }
 
-struct list *list_new(struct string **name, size_t initial_capacity)
+struct list *list_alloc(struct string **name, size_t initial_capacity)
 {
 	if (initial_capacity == 0) initial_capacity = DEFAULT_SIZE;
 	struct list *list = malloc(sizeof(struct list));
@@ -52,7 +52,7 @@ int list_push(struct list *self, struct string **value)
 	struct node *node = self->buckets[index];
 
 	if (node == NULL) {
-		node = node_new(value);
+		node = node_alloc(value);
 		self->buckets[index] = node;
 	} else node_push_index(node, value, self->element_count);
 

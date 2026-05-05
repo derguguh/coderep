@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-struct brute *brute_new(struct string **name, struct string **value)
+struct brute *brute_alloc(struct string **name, struct string **value)
 {
 	struct brute *brute = malloc(sizeof(struct brute));
 	if (!brute) {
