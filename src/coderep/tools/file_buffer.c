@@ -29,8 +29,8 @@ struct file_buffer *file_buffer_alloc(struct string *file_path)
 
 	self->file = file;
 
-	self->char_ = self->buffer[0];
-	self->buffer_cursor = 0;
+	self->char_ = SOF;
+	self->buffer_cursor = -1;
 	self->block = 0;
 
 	return self;
@@ -83,16 +83,16 @@ unsigned char file_buffer_peek_next(const struct file_buffer *self)
 
 void file_buffer_print(const struct file_buffer *self, bool trim_spaces)
 {
-	puts("File Buffer:");
+	puts("File Buffer: {");
 	printf("\tCursor: %lu\n", self->buffer_cursor);
 	printf("\tLength: %lu\n", self->buffer_length);
 	printf("\tBlock: %lu\n", self->block);
-	printf("\tBuffer (4096, trimed: %d): {\n", trim_spaces);
+	printf("\tBuffer (4096, trimed: %d): [\n", trim_spaces);
 
 	if (trim_spaces) for (size_t i = 0; i < self->buffer_length; i++) putchar(self->buffer[i]);
 	else printf("%4096s", self->buffer);
 
-	puts("}\n");
+	puts("]}\n");
 }
 
 void file_buffer_drop(struct file_buffer **self)
@@ -100,5 +100,8 @@ void file_buffer_drop(struct file_buffer **self)
 	if (!self || !(*self)) return;
 
 	if ((*self)->file != NULL) fclose((*self)->file);
+	(*self)->file = NULL;
+
 	free(*self);
+	*self = NULL;
 }

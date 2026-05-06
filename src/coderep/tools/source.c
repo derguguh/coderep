@@ -20,7 +20,21 @@ struct source *source_alloc(struct string *file_path)
 	return self;
 }
 
-void source_print_error(struct source *self, const char *const error_text, int error_length)
+void source_advance(struct source *self)
+{
+	file_buffer_advance(self->file_buffer);
+
+	if (self->file_buffer->char_ == '\n') {
+		string_clear(self->line_buffer);
+		self->line++;
+		self->column = 0;
+	} else {
+		string_push(self->line_buffer, self->file_buffer->char_);
+		self->column++;
+	}
+}
+
+void source_print_error(const struct source *self, const char *const error_text, int error_length)
 {
 	if (error_length > self->column) {
 		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %d passed to 'source_print_error' is bigger than 'source->column' %lu. Will be truncated",
@@ -29,12 +43,35 @@ void source_print_error(struct source *self, const char *const error_text, int e
 		error_length = self->column;
 	}
 
-	printf(ANSI_ERR "File buffer: %s\n\t", error_text);
+	printf(ANSI_ERR "File buffer: %s\n\t~:", error_text);
 	string_print(self->line_buffer);
-	printf("\n\t");
+	printf("\n\t  ");
 
 	for (int i = 0; i < self->column - error_length; i++) putchar(' ');
 	putchar('^');
 	for (int i = 0; i < error_length - 1; i++) putchar('~');
+}
+
+void source_print(const struct source *self, bool trim_spaces)
+{
+	puts("Source: {");
+	putchar('\t');
+	file_buffer_print(self->file_buffer, trim_spaces);
+	printf("\tLine Buffer: ");
+	string_print(self->line_buffer);
+	printf("\n\tLine: %lu\n", self->line);
+	printf("\tColumn: %lu\n", self->column);
+	puts("}\n");
+}
+
+void source_drop(struct source **self)
+{
+	if (!self || !(*self)) return;
+
+	file_buffer_drop(&(*self)->file_buffer);
+	string_drop(&(*self)->line_buffer);
+
+	free(*self);
+	*self = NULL;
 }
 

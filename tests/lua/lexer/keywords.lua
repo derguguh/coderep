@@ -1,21 +1,4 @@
-if asdfasdfasdfasdf
-then 
-elseif
-else
-for
-do
-while
-repeat
-until
-end
-in
-local
-function
-return
-and
-or
-not
-true
-false
-nil
-goto
+and       break     do        else      elseif    end
+false     for       function  global    goto      if
+in        local     nil       not       or        repeat
+return    then      true      until     while
