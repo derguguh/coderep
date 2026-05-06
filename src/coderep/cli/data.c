@@ -1,4 +1,4 @@
-#include "coderep/tools/cli/data.h"
+#include "coderep/cli/data.h"
 #include "coderep/consts.h"
 #include "coderep/data_types/string.h"
 
@@ -105,7 +105,7 @@ int data_parse(struct data *self, const char **argv, int argc, int index)
 		int dot_loc = string_find(arg, '.');
 		char *arg_cstr = string_to_cstr(arg);
 
-		if (dot_loc == -1) PRINTF_ERR("flag '%s' don't have a subflag, indicated by '.'\n", arg_cstr);
+		if (dot_loc == -1) PRINTF_ERR("flag \"%s\" don't have a subflag, indicated by '.'\n", arg_cstr);
 		else {
 			struct string_slice flags_slice = string_slice(arg, dot_loc + 1, arg->length);
 			struct string_slice type_slice = string_slice(arg, 0, dot_loc);

@@ -1,6 +1,6 @@
 #include "coderep/data_types/string.h"
 
-#include "coderep/consts.h"
+#include "coderep/macros.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -22,9 +22,7 @@ struct string *string_alloc()
 		free(string);
 		free(chars);
 
-		PRINT_ERR("Couldn't allocate memory for struct string");
-		exit(ERROR_CODE_MEMORY_ALLOCATION);
-		return NULL;
+		MALLOC_ERR_EXIT("struct string");
 	}
 }
 

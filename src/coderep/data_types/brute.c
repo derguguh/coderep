@@ -1,5 +1,5 @@
 #include "coderep/data_types/brute.h"
-#include "coderep/consts.h"
+#include "coderep/macros.h"
 
 #include <stdlib.h>
 
@@ -10,9 +10,7 @@ struct brute *brute_alloc(struct string **name, struct string **value)
 		string_drop(name);
 		string_drop(value);
 
-		PRINT_ERR("Couldn't allocate memory for a struct brute\n");
-		exit(ERROR_CODE_MEMORY_ALLOCATION);
-		return NULL;
+		MALLOC_ERR_EXIT("struct brute");
 	} else {
 		brute->name = *name;
 		brute->value = *value;

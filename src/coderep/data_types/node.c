@@ -1,6 +1,6 @@
 #include "coderep/data_types/node.h"
 #include "coderep/data_types/string.h"
-#include "coderep/consts.h"
+#include "coderep/macros.h"
 
 #include <stdlib.h>
 
@@ -8,9 +8,7 @@ struct node *node_alloc(struct string **value)
 {
 	struct node *node = malloc(sizeof(struct node));
 	if (!node) {
-		PRINT_ERR("Couldn't alloc memory for a struct node\n");
-		exit(ERROR_CODE_MEMORY_ALLOCATION);
-		return NULL;
+		MALLOC_ERR_EXIT("struct node");
 	} else {
 		node->value = *value;
 		node->count = 1;

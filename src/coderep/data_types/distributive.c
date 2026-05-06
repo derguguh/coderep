@@ -1,6 +1,6 @@
 #include "coderep/data_types/distributive.h"
 #include "coderep/data_types/node.h"
-#include "coderep/consts.h"
+#include "coderep/macros.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -26,9 +26,7 @@ struct distributive *distributive_alloc(struct string **name, size_t initial_cap
 		free(distributive);
 		free(nodes);
 
-		PRINT_ERR("Couldn't allocate memory for a struct distributive\n");
-		exit(ERROR_CODE_MEMORY_ALLOCATION);
-		return NULL;
+		MALLOC_ERR_EXIT("struct distributive");
 	}
 }
 

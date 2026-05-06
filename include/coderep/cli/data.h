@@ -1,5 +1,5 @@
-#ifndef CODEREP_TOOLS_DATA_H
-#define CODEREP_TOOLS_DATA_H
+#ifndef CODEREP_DATA_H
+#define CODEREP_DATA_H
 
 // This define WHAT to show
 enum flags {

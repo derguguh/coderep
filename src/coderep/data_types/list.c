@@ -1,5 +1,5 @@
 #include "coderep/data_types/list.h"
-#include "coderep/consts.h"
+#include "coderep/macros.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,9 +40,7 @@ struct list *list_alloc(struct string **name, size_t initial_capacity)
 		free(list);
 		free(nodes);
 
-		PRINT_ERR("Couldn't allocate memory for a struct list\n");
-		exit(ERROR_CODE_MEMORY_ALLOCATION);
-		return NULL;
+		MALLOC_ERR_EXIT("struct list");
 	}
 }
 
