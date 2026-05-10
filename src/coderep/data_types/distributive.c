@@ -69,7 +69,8 @@ void distributive_drop(struct distributive **self)
 {
 	if (!self || !(*self)) return;
 
-	for (int i = 0; i < (*self)->buckets_count; i++) node_drop(&(*self)->buckets[i]);
+	for (int i = 0; i < (*self)->buckets_count; i++) node_drop(&((*self)->buckets[i]));
+
 	free((*self)->buckets);
 	(*self)->buckets = NULL;
 

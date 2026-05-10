@@ -10,13 +10,19 @@ int main(int argc, const char **argv)
 	//
 	// data_parse(&data, argv, argc, 1);
 
-	struct string *file_path = string_from_cstr("../tests/lua/lexer/keywords.lua");
+	struct string *file_path = string_from_cstr("../tests/lua/lexer/numbers.lua");
 	struct lua_lexer *lexer = lua_lexer_alloc(file_path);
 
-	for (int i = 0; i < 50; i++) {
-		struct token token = lua_lexer_next(lexer);
-		if (token.type != TOKEN_TYPE_UNKNOWN) token_print(token);
+	struct token token = lua_lexer_next(lexer);
+	while (token.type != TOKEN_TYPE_EOF) {
+
+		token = lua_lexer_next(lexer);
 	}
+
+	printf("Symbol Table elements count: %lu\n", lexer->symbol_table->element_count);
+	distributive_print(lexer->words);
+	distributive_print(lexer->numbers);
+	distributive_print(lexer->strings);
 
 	lua_lexer_drop(&lexer);
 	string_drop(&file_path);

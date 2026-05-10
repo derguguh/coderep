@@ -11,15 +11,17 @@
 struct lua_lexer {
 	struct source *source;
 	struct list *symbol_table;
-	struct distributive *lua_words;
+	struct distributive *words;
+	struct distributive *strings;
+	struct distributive *numbers;
 	unsigned char char_;
 };
 
 struct lua_lexer *lua_lexer_alloc(struct string *file_path);
 
-struct token lua_lexer_next(struct lua_lexer *self);
+enum token_type lua_lexer_identifier_word(const struct lua_lexer *self, struct string *word);
 
-struct token lua_lexer_word(struct lua_lexer *self);
+struct token lua_lexer_next(struct lua_lexer *self);
 
 void lua_lexer_drop(struct lua_lexer **self);
 

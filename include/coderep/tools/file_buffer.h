@@ -6,7 +6,6 @@
 #include <stddef.h>
 
 #define BUFFER_SIZE 4096
-#define SOF EOF - 1
 
 struct file_buffer {
 	FILE *file;

@@ -29,8 +29,8 @@ struct file_buffer *file_buffer_alloc(struct string *file_path)
 
 	self->file = file;
 
-	self->char_ = SOF;
-	self->buffer_cursor = -1;
+	self->buffer_cursor = 0;
+	self->char_ = self->buffer[0];
 	self->block = 0;
 
 	return self;
@@ -52,8 +52,11 @@ void file_buffer_advance(struct file_buffer *self)
 			self->block++;
 		}
 	} else {
-		LOGF("Attemp to advance in a overflow buffer. Current cursor is %lu, and the buffer length is %lu",
-				self->buffer_cursor, self->buffer_length);
+		if (self->buffer_cursor > self->buffer_length) {
+			LOGF("Attemp to advance in a overflow buffer. Current cursor is %lu, and the buffer length is %lu",
+					self->buffer_cursor, self->buffer_length);
+		}
+
 		self->char_ = EOF;
 	}
 }
