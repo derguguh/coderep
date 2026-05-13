@@ -10,7 +10,7 @@ int main(int argc, const char **argv)
 	//
 	// data_parse(&data, argv, argc, 1);
 
-	struct string *file_path = string_from_cstr("../tests/lua/lexer/numbers.lua");
+	struct string *file_path = string_from_cstr("../tests/lua/lexer/strings.lua");
 	struct lua_lexer *lexer = lua_lexer_alloc(file_path);
 
 	struct token token = lua_lexer_next(lexer);

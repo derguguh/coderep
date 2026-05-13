@@ -67,22 +67,55 @@ enum token_type lua_lexer_identifier_word(const struct lua_lexer *self, struct s
 	else						return TOKEN_TYPE_IDENTIFIER;
 }
 
+void lua_lexer_advance_and_push(struct lua_lexer *self, struct string *string)
+{
+	string_push(string, self->char_);
+
+	source_advance(self->source);
+	self->char_ = file_buffer_peek(self->source->file_buffer);
+}
+
 struct token lua_lexer_word(struct lua_lexer *self)
 {
 	struct string *word = string_alloc();
 	struct token token = { 0 };
 
-	while (isalnum(self->char_)) {
-		string_push(word, self->char_);
+	while (isalnum(self->char_) || self->char_ == '_') {
 
-		source_advance(self->source);
-		self->char_ = file_buffer_peek(self->source->file_buffer);
+		lua_lexer_advance_and_push(self, word);
 	}
 
 	token.type = lua_lexer_identifier_word(self, word);
 	struct string *temp = string_clone(word);
 	token.id = list_push(self->symbol_table, &temp);
 	distributive_push(self->words, &word);
+
+	return token;
+}
+
+struct token lua_lexer_string(struct lua_lexer *self, bool double_quotes)
+{
+	struct string *string = string_alloc();
+	struct token token = { .type=TOKEN_TYPE_STRING };
+	bool continue_ = false;
+	
+	do {
+		if (double_quotes) {
+			if (self->char_ == '"') continue_ = !continue_;
+		} else if (self->char_ == '\'') continue_ = !continue_;
+		if (self->char_ == EOF) break;
+
+		if (self->char_ == '\\') {
+			char peek = file_buffer_peek_next(self->source->file_buffer);
+			if (peek == '\'' || peek == '"' || peek == '\\') lua_lexer_advance_and_push(self, string);
+		}
+
+		lua_lexer_advance_and_push(self, string);
+	} while (continue_);
+
+	struct string *temp = string_clone(string);
+	token.id = list_push(self->symbol_table, &temp);
+	distributive_push(self->strings, &string);
 
 	return token;
 }
@@ -96,10 +129,8 @@ struct token lua_lexer_hex(struct lua_lexer *self)
 	source_advance(self->source);
 
 	while (isdigit(self->char_) || (self->char_ >= 'a' && self->char_ <= 'f') || (self->char_ >= 'A' && self->char_ <= 'F')) {
-		string_push(number, self->char_);
 
-		source_advance(self->source);
-		self->char_ = file_buffer_peek(self->source->file_buffer);
+		lua_lexer_advance_and_push(self, number);
 	}
 
 	struct string *temp = string_clone(number);
@@ -109,22 +140,34 @@ struct token lua_lexer_hex(struct lua_lexer *self)
 	return token;
 }
 
+void lua_lexer_scientific_suffix(struct lua_lexer *self, struct string *number)
+{
+	lua_lexer_advance_and_push(self, number);
+
+	while (isdigit(self->char_)) lua_lexer_advance_and_push(self, number);
+}
+
 struct token lua_lexer_number(struct lua_lexer *self)
 {
 	struct string *number = string_alloc();
 	struct token token = { .type=TOKEN_TYPE_INTEGER };
 	bool can_have_dot = true;
+	bool is_scientific = false;
 
-	while (isdigit(self->char_) || (self->char_ == '.' && can_have_dot)) {
+	while (isdigit(self->char_) || (can_have_dot && self->char_ == '.')) {
 		if (self->char_ == '.') {
 			can_have_dot = false;
 			token.type = TOKEN_TYPE_DECIMAL;
 		}
+		
+		lua_lexer_advance_and_push(self, number);
+	}
 
-		string_push(number, self->char_);
+	if (self->char_ == 'e' || self->char_ == 'E') {
 
-		source_advance(self->source);
-		self->char_ = file_buffer_peek(self->source->file_buffer);
+		lua_lexer_scientific_suffix(self, number);
+
+		token.type = TOKEN_TYPE_SCIENTIFIC_NUMBER;
 	}
 
 	struct string *temp = string_clone(number);
@@ -136,30 +179,35 @@ struct token lua_lexer_number(struct lua_lexer *self)
 
 void lua_lexer_skip_whitespaces(struct lua_lexer *self)
 {
-	while (isblank(self->char_) && self->char_ != (unsigned char)EOF) {
+	while (isblank(self->char_) && self->char_ != EOF) {
 		source_advance(self->source);
 		self->char_ = file_buffer_peek(self->source->file_buffer);
 	}
 }
 
+struct token lua_lexer_symbols(struct lua_lexer *self)
+{
+	source_advance(self->source);
+	self->char_ = file_buffer_peek(self->source->file_buffer);
+	return (struct token) { .type=TOKEN_TYPE_UNKNOWN, .id=0 };
+}
+
 struct token lua_lexer_next(struct lua_lexer *self)
 {
 	lua_lexer_skip_whitespaces(self);
-	char current = self->char_;
 
-	if	(current == EOF)				return (struct token) { .type=TOKEN_TYPE_EOF, .id=0 };
-	else if (isalpha(current))				return lua_lexer_word(self);
-	// else if (current == '\'' || current == '"')		return lua_lexer_string(self);
-	else if (current == '0') {
+	if	(self->char_ == EOF)	return (struct token) { .type=TOKEN_TYPE_EOF, .id=0 };
+	else if (isalpha(self->char_))	return lua_lexer_word(self);
+	else if (self->char_ == '\'')	return lua_lexer_string(self, false);
+	else if (self->char_ == '"')	return lua_lexer_string(self, true);
+	else if (self->char_ == '0') {
+
 		char peek = file_buffer_peek_next(self->source->file_buffer);
 		if (peek == 'x' || peek == 'X') return lua_lexer_hex(self);
+
 		return lua_lexer_number(self);
-	} else if (isdigit(current))				return lua_lexer_number(self);
-	else {
-		source_advance(self->source);
-		self->char_ = file_buffer_peek(self->source->file_buffer);
-		return (struct token) { .type=TOKEN_TYPE_UNKNOWN, .id=0 };
-	}
+	} else if (isdigit(self->char_))	return lua_lexer_number(self);
+	else				return lua_lexer_symbols(self);
 }
 
 void lua_lexer_drop(struct lua_lexer **self)

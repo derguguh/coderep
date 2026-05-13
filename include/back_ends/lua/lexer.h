@@ -14,7 +14,7 @@ struct lua_lexer {
 	struct distributive *words;
 	struct distributive *strings;
 	struct distributive *numbers;
-	unsigned char char_;
+	char char_;
 };
 
 struct lua_lexer *lua_lexer_alloc(struct string *file_path);
