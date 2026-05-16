@@ -61,12 +61,12 @@ void file_buffer_advance(struct file_buffer *self)
 	}
 }
 
-unsigned char file_buffer_peek(const struct file_buffer *self)
+char file_buffer_peek(const struct file_buffer *self)
 {
 	return self->char_;
 }
 
-unsigned char file_buffer_peek_next(const struct file_buffer *self)
+char file_buffer_peek_next(const struct file_buffer *self)
 {
 	if (self->buffer_cursor + 1 < self->buffer_length) return self->buffer[self->buffer_cursor + 1];
 	else if (self->buffer_cursor + 1 == BUFFER_SIZE && !feof(self->file)) {

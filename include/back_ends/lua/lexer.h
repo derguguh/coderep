@@ -11,9 +11,11 @@
 struct lua_lexer {
 	struct source *source;
 	struct list *symbol_table;
-	struct distributive *words;
-	struct distributive *strings;
-	struct distributive *numbers;
+	struct distributive *word;
+	struct distributive *number;
+	struct distributive *string;
+	struct distributive *multi_line_string;
+	struct distributive *character;
 	char char_;
 };
 

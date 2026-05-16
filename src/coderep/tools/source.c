@@ -14,24 +14,24 @@ struct source *source_alloc(struct string *file_path)
 
 	self->file_buffer = file_buffer;
 	self->line_buffer = line_buffer;
-	self->column = 0;
-	self->line = 0;
+	self->column = 1;
+	self->line = 1;
 
 	return self;
 }
 
 void source_advance(struct source *self)
 {
-	file_buffer_advance(self->file_buffer);
-
 	if (self->file_buffer->char_ == '\n') {
 		string_clear(self->line_buffer);
 		self->line++;
-		self->column = 0;
+		self->column = 1;
 	} else {
 		string_push(self->line_buffer, self->file_buffer->char_);
 		self->column++;
 	}
+
+	file_buffer_advance(self->file_buffer);
 }
 
 void source_print_error(const struct source *self, const char *const error_text, int error_length)
@@ -43,13 +43,14 @@ void source_print_error(const struct source *self, const char *const error_text,
 		error_length = self->column;
 	}
 
-	printf(ANSI_ERR "File buffer: %s\n\t~:", error_text);
+	printf(ANSI_ERR "(on lexing process) %s;\n\t%lu;%lu\t|", error_text, self->line, self->column);
 	string_print(self->line_buffer);
-	printf("\n\t  ");
+	printf("\n\t\t ");
 
 	for (int i = 0; i < self->column - error_length; i++) putchar(' ');
-	putchar('^');
 	for (int i = 0; i < error_length - 1; i++) putchar('~');
+	putchar('^');
+	putchar('\n');
 }
 
 void source_print(const struct source *self, bool trim_spaces)
