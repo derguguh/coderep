@@ -57,7 +57,7 @@ void distributive_print(struct distributive *self)
 			string_print(node->value);
 			printf("(%d)", node->count);
 
-			node = node->next;
+			node = node->_next;
 			first = false;
 		}
 	}

@@ -26,14 +26,16 @@ void source_advance(struct source *self)
 		string_clear(self->line_buffer);
 		self->line++;
 		self->column = 1;
-	} else {
-		string_push(self->line_buffer, self->file_buffer->char_);
-		self->column++;
 	}
-
+	
 	file_buffer_advance(self->file_buffer);
+
+	string_push(self->line_buffer, self->file_buffer->char_);
+	self->column++;
 }
 
+// TODO: Fix the source_print_error
+//	this maybe involve source_advance self->line_buffer logic
 void source_print_error(const struct source *self, const char *const error_text, int error_length)
 {
 	if (error_length > self->column) {

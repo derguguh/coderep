@@ -20,7 +20,8 @@ int main(int argc, const char **argv)
 	}
 
 	printf("Symbol Table elements count: %lu\n", lexer->symbol_table->element_count);
-	distributive_print(lexer->word);
+	distributive_print(lexer->identifier);
+	distributive_print(lexer->keyword);
 	distributive_print(lexer->number);
 	distributive_print(lexer->string);
 	distributive_print(lexer->multi_line_string);

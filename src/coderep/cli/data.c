@@ -1,6 +1,7 @@
 #include "coderep/cli/data.h"
 #include "coderep/consts.h"
 #include "coderep/data_types/string.h"
+#include "coderep/macros.h"
 
 #include <stdio.h>
 #include <string.h>

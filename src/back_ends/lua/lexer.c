@@ -1,5 +1,6 @@
 #include "back_ends/lua/lexer.h"
 #include "back_ends/lua/token.h"
+#include "coderep/data_types/distributive.h"
 #include "coderep/data_types/string.h"
 #include "coderep/macros.h"
 #include "coderep/tools/file_buffer.h"
@@ -15,8 +16,11 @@ struct lua_lexer *lua_lexer_alloc(struct string *file_path)
 	struct string *tmp_str = string_from_cstr("Lua Symbol Table");
 	struct list *symbol_table = list_alloc(&tmp_str, 40);
 
-	tmp_str = string_from_cstr("lexer.symbols.words");
-	struct distributive *word = distributive_alloc(&tmp_str, 40);
+	tmp_str = string_from_cstr("lexer.symbols.identifiers");
+	struct distributive *identifiers = distributive_alloc(&tmp_str, 40);
+
+	tmp_str = string_from_cstr("lexer.symbols.keywords");
+	struct distributive *keyword = distributive_alloc(&tmp_str, 20);
 
 	tmp_str = string_from_cstr("lexer.symbols.numbers");
 	struct distributive *number = distributive_alloc(&tmp_str, 40);
@@ -38,7 +42,8 @@ struct lua_lexer *lua_lexer_alloc(struct string *file_path)
 	self->char_ = source->file_buffer->char_;
 	self->source = source;
 	self->symbol_table = symbol_table;
-	self->word = word;
+	self->identifier = identifiers;
+	self->keyword = keyword;
 	self->number = number;
 	self->string = string;
 	self->multi_line_string = multi_line_string;
@@ -91,6 +96,32 @@ void lua_lexer_skip_whitespaces(struct lua_lexer *self)
 		source_advance(self->source);
 		self->char_ = file_buffer_peek(self->source->file_buffer);
 	}
+	// TODO: Clean that thing later
+	char peek = file_buffer_peek_next(self->source->file_buffer);
+
+	if (self->char_ == '-' && peek == '-') {
+
+		source_advance(self->source);
+		source_advance(self->source);
+		self->char_ = file_buffer_peek(self->source->file_buffer);
+		peek = file_buffer_peek_next(self->source->file_buffer);
+
+		if (self->char_ == '[' || peek == '[') {
+			while (self->char_ != EOF && !(self->char_ == ']' && peek == ']')) {
+
+				source_advance(self->source);
+				self->char_ = file_buffer_peek(self->source->file_buffer);
+				peek = file_buffer_peek_next(self->source->file_buffer);
+			}
+		} else {
+			while (self->char_ != '\n' && self->char_ != EOF) {
+
+				source_advance(self->source);
+				self->char_ = file_buffer_peek(self->source->file_buffer);
+			}
+		}
+		lua_lexer_skip_whitespaces(self);
+	}
 }
 
 struct token lua_lexer_word(struct lua_lexer *self)
@@ -106,7 +137,9 @@ struct token lua_lexer_word(struct lua_lexer *self)
 	token.type = lua_lexer_identifier_word(self, word);
 	struct string *temp = string_clone(word);
 	token.id = list_push(self->symbol_table, &temp);
-	distributive_push(self->word, &word);
+
+	if (token.type == TOKEN_TYPE_IDENTIFIER) distributive_push(self->identifier, &word);
+	else distributive_push(self->keyword, &word);
 
 	return token;
 }
@@ -292,6 +325,13 @@ struct token lua_lexer_characters(struct lua_lexer *self)
 			}
 			else token.type = TOKEN_TYPE_SLASH;
 		break;
+		case '=':
+			if (peek == '=') {
+				token.type = TOKEN_TYPE_EQUALS;
+				lua_lexer_advance_and_push(self, symbol);
+			}
+			else token.type = TOKEN_TYPE_ASSIGN;
+		break;
 		case '~':
 			if (peek == '=') {
 				token.type = TOKEN_TYPE_NOT_EQUALS;
@@ -331,15 +371,15 @@ struct token lua_lexer_next(struct lua_lexer *self)
 {
 	lua_lexer_skip_whitespaces(self);
 
-	if	(self->char_ == EOF)	return (struct token) { .type=TOKEN_TYPE_EOF, .id=0 };
-	else if (isalpha(self->char_))	return lua_lexer_word(self);
+	if	(self->char_ == EOF) return (struct token) { .type=TOKEN_TYPE_EOF, .id=0 };
+	else if (isalpha(self->char_) || self->char_ == '_') return lua_lexer_word(self);
 	else if (self->char_ == '0') {
 
 		char peek = file_buffer_peek_next(self->source->file_buffer);
 		if (peek == 'x' || peek == 'X') return lua_lexer_hex(self);
 
 		return lua_lexer_number(self);
-	} else if (isdigit(self->char_))	return lua_lexer_number(self);
+	} else if (isdigit(self->char_)) return lua_lexer_number(self);
 	else if (self->char_ == '\'')	return lua_lexer_string(self, false);
 	else if (self->char_ == '"')	return lua_lexer_string(self, true);
 	else if (self->char_ == '[') {
@@ -358,7 +398,8 @@ void lua_lexer_drop(struct lua_lexer **self)
 
 	source_drop(&(*self)->source);
 	list_drop(&(*self)->symbol_table);
-	distributive_drop(&(*self)->word);
+	distributive_drop(&(*self)->identifier);
+	distributive_drop(&(*self)->keyword);
 	distributive_drop(&(*self)->string);
 	distributive_drop(&(*self)->number);
 	distributive_drop(&(*self)->multi_line_string);
