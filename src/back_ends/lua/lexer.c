@@ -162,8 +162,6 @@ struct token lua_lexer_hex(struct lua_lexer *self)
 		source_print_error(self->source, "Hexadecial numbers need values, not just the prefix", 2);
 	}
 
-	struct string *temp = string_clone(number);
-	token.id = list_push(self->symbol_table, &temp);
 	distributive_push(self->number, &number);
 
 	return token;
@@ -202,8 +200,6 @@ struct token lua_lexer_number(struct lua_lexer *self)
 
 	if (self->char_ == 'e' || self->char_ == 'E') lua_lexer_scientific_suffix(self, number, &token);
 
-	struct string *temp = string_clone(number);
-	token.id = list_push(self->symbol_table, &temp);
 	distributive_push(self->number, &number);
 
 	return token;
@@ -236,8 +232,6 @@ struct token lua_lexer_string(struct lua_lexer *self, bool double_quotes)
 		lua_lexer_advance_and_push(self, string);
 	} while (continue_);
 
-	struct string *temp = string_clone(string);
-	token.id = list_push(self->symbol_table, &temp);
 	distributive_push(self->string, &string);
 
 	return token;
@@ -262,8 +256,6 @@ struct token lua_lexer_multi_line_string(struct lua_lexer *self)
 	lua_lexer_advance_and_push(self, string);
 	lua_lexer_advance_and_push(self, string);
 
-	struct string *temp = string_clone(string);
-	token.id = list_push(self->symbol_table, &temp);
 	distributive_push(self->multi_line_string, &string);
 
 	return token;
