@@ -25,17 +25,17 @@ void source_advance(struct source *self)
 	if (self->file_buffer->char_ == '\n') {
 		string_clear(self->line_buffer);
 		self->line++;
-		self->column = 1;
+		self->column = 0;
 	}
-	
+
 	file_buffer_advance(self->file_buffer);
 
-	string_push(self->line_buffer, self->file_buffer->char_);
-	self->column++;
+	if (self->file_buffer->char_ != '\n') {
+		string_push(self->line_buffer, self->file_buffer->char_);
+		self->column++;
+	}
 }
 
-// TODO: Fix the source_print_error
-//	this maybe involve source_advance self->line_buffer logic
 void source_print_error(const struct source *self, const char *const error_text, int error_length)
 {
 	if (error_length > self->column) {
@@ -43,6 +43,12 @@ void source_print_error(const struct source *self, const char *const error_text,
 				error_length, self->column);
 
 		error_length = self->column;
+	} else if (error_length < 1) {
+		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %d passed to 'source_print_error' is less than 1, "
+				"which means it don't have anything to be printed. Will be set to 1\n",
+				error_length);
+
+		error_length = 1;
 	}
 
 	printf(ANSI_ERR "(on lexing process) %s;\n\t%lu;%lu\t|", error_text, self->line, self->column);
