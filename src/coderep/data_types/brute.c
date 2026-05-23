@@ -6,20 +6,22 @@
 struct brute *brute_alloc(struct string **name, struct string **value)
 {
 	struct brute *brute = malloc(sizeof(struct brute));
-	if (!brute) {
-		string_drop(name);
-		string_drop(value);
 
-		MALLOC_ERR_EXIT("struct brute");
-	} else {
-		brute->name = *name;
-		brute->value = *value;
+	if (!brute) goto defer;
 
-		*name = NULL;
-		*value = NULL;
+	brute->name = *name;
+	brute->value = *value;
 
-		return brute;
-	}
+	*name = NULL;
+	*value = NULL;
+
+	return brute;
+
+defer:
+	string_drop(name);
+	string_drop(value);
+
+	MALLOC_ERR_EXIT("struct brute");
 }
 
 void brute_print(const struct brute *self)

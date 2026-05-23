@@ -62,9 +62,9 @@ enum flags parse_flags(const struct string_slice flags)
 struct data data_create()
 {
 	struct data data = {
-		DEFAULT_DISTRIBUTIVE,
-		DEFAULT_BRUTE,
-		DEFAULT_LIST,
+		.distributive=DEFAULT_DISTRIBUTIVE,
+		.brute=DEFAULT_BRUTE,
+		.list=DEFAULT_LIST,
 	};
 
 	return data;
@@ -87,11 +87,11 @@ void data_put_in(struct data *self, enum flags flag, const struct string_slice t
 	*f = flag;
 }
 
-int data_parse(struct data *self, const char **argv, int argc, int index)
+int data_parse(struct data *self, const char **const argv, int argc, int index)
 {
-	if (index + 1 > argc) {
+	if (index >= argc) {
 
-		PRINT_ERR("'--data' option expects at least one flag\n");
+		PRINT_ERR("'--data' option expects at least one flag");
 		return index;
 	}
 	self->distributive = NONE;
@@ -106,7 +106,7 @@ int data_parse(struct data *self, const char **argv, int argc, int index)
 		int dot_loc = string_find(arg, '.');
 		char *arg_cstr = string_to_cstr(arg);
 
-		if (dot_loc == -1) PRINTF_ERR("flag \"%s\" don't have a subflag, indicated by '.'\n", arg_cstr);
+		if (dot_loc == -1) PRINTF_ERR("flag \"%s\" don't have a subflag, indicated by '.'", arg_cstr);
 		else {
 			struct string_slice flags_slice = string_slice(arg, dot_loc + 1, arg->length);
 			struct string_slice type_slice = string_slice(arg, 0, dot_loc);
@@ -118,6 +118,6 @@ int data_parse(struct data *self, const char **argv, int argc, int index)
 		index++;
 	}
 	string_drop(&arg);
-	return index - 1;
+	return index;
 }
 

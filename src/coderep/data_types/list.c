@@ -27,22 +27,23 @@ struct list *list_alloc(struct string **name, size_t initial_capacity)
 	struct list *list = malloc(sizeof(struct list));
 	struct node **nodes = calloc(sizeof(struct node*), initial_capacity);
 
-	if (list && nodes) {
-		list->buckets_count = initial_capacity;
-		list->element_count = 0;
-		list->buckets = nodes;
-		list->name = *name;
+	if (!list || !nodes) goto defer;
 
-		*name = NULL;
-		
-		return list;
-	} else {
-		string_drop(name);
-		free(list);
-		free(nodes);
+	list->buckets_count = initial_capacity;
+	list->element_count = 0;
+	list->buckets = nodes;
+	list->name = *name;
 
-		MALLOC_ERR_EXIT("struct list");
-	}
+	*name = NULL;
+	
+	return list;
+
+defer:
+	string_drop(name);
+	free(list);
+	free(nodes);
+
+	MALLOC_ERR_EXIT("struct list");
 }
 
 int list_push(struct list *self, struct string **value)

@@ -12,18 +12,19 @@ struct string *string_alloc()
 	struct string *string = malloc(sizeof(struct string));
 	char *chars = calloc(1, INITIAL_CAPACITY);
 
-	if (string && chars) {
-		string->capacity = INITIAL_CAPACITY;
-		string->length = 0;
-		string->chars = chars;
+	if (!string || !chars) goto defer;
 
-		return string;
-	} else {
-		free(string);
-		free(chars);
+	string->capacity = INITIAL_CAPACITY;
+	string->length = 0;
+	string->chars = chars;
 
-		MALLOC_ERR_EXIT("struct string");
-	}
+	return string;
+
+defer:
+	free(string);
+	free(chars);
+
+	MALLOC_ERR_EXIT("struct string");
 }
 
 struct string *string_from_cstr(const char *const cstr)
@@ -171,6 +172,8 @@ void string_drop(struct string **self)
 	if (!self || !(*self)) return;
 
 	free((*self)->chars);
+	(*self)->chars = NULL;
+
 	free(*self);
 	(*self) = NULL;
 }

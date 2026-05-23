@@ -5,7 +5,7 @@
 #include "coderep/data_types/string.h"
 #include "coderep/macros.h"
 #include "coderep/tools/file_buffer.h"
-#include "coderep/tools/source.h"
+#include "coderep/tools/file.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -35,13 +35,13 @@ struct lua_lexer *lua_lexer_alloc(struct string *file_path)
 	tmp_str = string_from_cstr("lexer.symbols.symbols");
 	struct distributive *character = distributive_alloc(&tmp_str, 40);
 
-	struct source *source = source_alloc(file_path);
+	struct file *file = file_alloc(file_path);
 
 	struct lua_lexer *self = malloc(sizeof(struct lua_lexer));
 	if (!self) MALLOC_ERR_EXIT("struct lexer (for lua)");
 
-	self->char_ = source->file_buffer->char_;
-	self->source = source;
+	self->char_ = file->file_buffer->char_;
+	self->file = file;
 	self->symbol_table = symbol_table;
 	self->identifier = identifiers;
 	self->keyword = keyword;
@@ -55,36 +55,36 @@ struct lua_lexer *lua_lexer_alloc(struct string *file_path)
 
 void lua_lexer_skip_comments(struct lua_lexer *self)
 {
-	const struct file_buffer *cache = self->source->file_buffer;
+	const struct file_buffer *cache = self->file->file_buffer;
 
 	if (file_buffer_peek(cache) == '[' || file_buffer_peek_next(cache) == '[') {
 		while (file_buffer_peek(cache) != EOF && !(file_buffer_peek(cache) == ']' && file_buffer_peek_next(cache) == ']')) {
-			source_advance(self->source);
+			file_advance(self->file);
 		}
-	} else while (file_buffer_peek(cache) != '\n' && file_buffer_peek(cache) != EOF) source_advance(self->source);
+	} else while (file_buffer_peek(cache) != '\n' && file_buffer_peek(cache) != EOF) file_advance(self->file);
 }
 
 void lua_lexer_skip_whitespaces(struct lua_lexer *self)
 {
-	const struct file_buffer *cache = self->source->file_buffer;
+	const struct file_buffer *cache = self->file->file_buffer;
 
-	while (!isgraph(file_buffer_peek(cache)) && file_buffer_peek(cache) != EOF) source_advance(self->source);
+	while (!isgraph(file_buffer_peek(cache)) && file_buffer_peek(cache) != EOF) file_advance(self->file);
 }
 
 void lua_lexer_skip_blank(struct lua_lexer *self)
 {
 	lua_lexer_skip_whitespaces(self);
 
-	if (file_buffer_peek(self->source->file_buffer) == '-' && file_buffer_peek_next(self->source->file_buffer)) {
+	if (file_buffer_peek(self->file->file_buffer) == '-' && file_buffer_peek_next(self->file->file_buffer)) {
 
-		source_advance(self->source);
-		source_advance(self->source);
+		file_advance(self->file);
+		file_advance(self->file);
 		lua_lexer_skip_comments(self);
 
 		lua_lexer_skip_blank(self);
 	}
 
-	self->char_ = file_buffer_peek(self->source->file_buffer);
+	self->char_ = file_buffer_peek(self->file->file_buffer);
 }
 
 enum token_type lua_lexer_identifier_word(const struct lua_lexer *self, struct string *word)
@@ -121,8 +121,8 @@ void lua_lexer_advance_and_push(struct lua_lexer *self, struct string *string)
 {
 	string_push(string, self->char_);
 
-	source_advance(self->source);
-	self->char_ = file_buffer_peek(self->source->file_buffer);
+	file_advance(self->file);
+	self->char_ = file_buffer_peek(self->file->file_buffer);
 }
 
 struct token lua_lexer_word(struct lua_lexer *self)
@@ -160,7 +160,7 @@ struct token lua_lexer_hex(struct lua_lexer *self)
 
 	if (number->length == 2) {
 
-		source_print_error(self->source, "Hexadecial numbers need values, not just the prefix", 2);
+		file_print_error(self->file, "Hexadecial numbers need values, not just the prefix", 2);
 	}
 
 	distributive_push(self->number, &number);
@@ -178,7 +178,7 @@ void lua_lexer_scientific_suffix(struct lua_lexer *self, struct string *number, 
 	while (isdigit(self->char_)) lua_lexer_advance_and_push(self, number);
 
 	if (length_threshold == number->length) {
-		source_print_error(self->source, "Scientific numbers need at least one digit after the 'e', 'e+' or 'e-'", length_threshold);
+		file_print_error(self->file, "Scientific numbers need at least one digit after the 'e', 'e+' or 'e-'", length_threshold);
 		token->type=TOKEN_TYPE_UNKNOWN;
 	} else token->type = TOKEN_TYPE_SCIENTIFIC_NUMBER;
 }
@@ -216,7 +216,7 @@ struct token lua_lexer_string(struct lua_lexer *self, bool double_quotes)
 	do {
 		if (self->char_ == EOF || self->char_ == '\n') {
 
-			source_print_error(self->source, "Normal strings needs to be single lined, "
+			file_print_error(self->file, "Normal strings needs to be single lined, "
 					"and end with the same quotes (single or double) as it started",
 					string->length);
 			token.type = TOKEN_TYPE_UNKNOWN;
@@ -228,7 +228,7 @@ struct token lua_lexer_string(struct lua_lexer *self, bool double_quotes)
 		} else if (self->char_ == '\'') continue_ = !continue_;
 
 		if (self->char_ == '\\') {
-			char peek = file_buffer_peek_next(self->source->file_buffer);
+			char peek = file_buffer_peek_next(self->file->file_buffer);
 			if (peek == '\'' || peek == '"' || peek == '\\') lua_lexer_advance_and_push(self, string);
 		}
 
@@ -245,9 +245,9 @@ struct token lua_lexer_multi_line_string(struct lua_lexer *self)
 	struct string *string = string_alloc();
 	struct token token = { .type=TOKEN_TYPE_MULTI_LINE_STRING };
 	
-	while (!(self->char_ == ']' && file_buffer_peek_next(self->source->file_buffer) == ']')) {
+	while (!(self->char_ == ']' && file_buffer_peek_next(self->file->file_buffer) == ']')) {
 		if (self->char_ == EOF) {
-			source_print_error(self->source, "Multi lined strings need a clossing ']], "
+			file_print_error(self->file, "Multi lined strings need a clossing ']], "
 					"but founded EOF (End Of File)",
 					string->length + 1);
 			token.type = TOKEN_TYPE_UNKNOWN;
@@ -268,7 +268,7 @@ struct token lua_lexer_characters(struct lua_lexer *self)
 {
 	struct token token = { .type=TOKEN_TYPE_UNKNOWN };
 	struct string *symbol = string_alloc();
-	char peek = file_buffer_peek_next(self->source->file_buffer);
+	char peek = file_buffer_peek_next(self->file->file_buffer);
 
 	switch (self->char_) {
 		case '+':	token.type = TOKEN_TYPE_PLUS;		break;
@@ -336,7 +336,7 @@ struct token lua_lexer_characters(struct lua_lexer *self)
 		case '.':
 			if	(peek == '.') {
 				lua_lexer_advance_and_push(self, symbol);
-				peek = file_buffer_peek_next(self->source->file_buffer);
+				peek = file_buffer_peek_next(self->file->file_buffer);
 
 				if (peek == '.') {
 					lua_lexer_advance_and_push(self, symbol);
@@ -345,12 +345,12 @@ struct token lua_lexer_characters(struct lua_lexer *self)
 			} else token.type = TOKEN_TYPE_PERIOD;
 		break;
 		default:
-			source_print_error(self->source, "Can't identify a character", 1);
+			file_print_error(self->file, "Can't identify a character", 1);
 
 			string_drop(&symbol);
 
-			source_advance(self->source);
-			self->char_ = file_buffer_peek(self->source->file_buffer);
+			file_advance(self->file);
+			self->char_ = file_buffer_peek(self->file->file_buffer);
 			return token;
 		break;
 	};
@@ -366,8 +366,8 @@ struct token lua_lexer_next(struct lua_lexer *self)
 	lua_lexer_skip_blank(self);
 
 	if	(self->char_ == EOF)							 return (struct token) { .type=TOKEN_TYPE_EOF, .id=0 };
-	else if (self->char_ == '0' && file_buffer_peek_next(self->source->file_buffer)) return lua_lexer_hex(self);
-	else if (self->char_ == '[' && file_buffer_peek_next(self->source->file_buffer)) return lua_lexer_multi_line_string(self);
+	else if (self->char_ == '0' && file_buffer_peek_next(self->file->file_buffer)) return lua_lexer_hex(self);
+	else if (self->char_ == '[' && file_buffer_peek_next(self->file->file_buffer)) return lua_lexer_multi_line_string(self);
 	else if (isalpha(self->char_) || self->char_ == '_')				 return lua_lexer_word(self);
 	else if (isdigit(self->char_))	return lua_lexer_number(self);
 	else if (self->char_ == '\'')	return lua_lexer_string(self, false);
@@ -379,7 +379,7 @@ void lua_lexer_drop(struct lua_lexer **self)
 {
 	if (!self || !(*self)) return;
 
-	source_drop(&(*self)->source);
+	file_drop(&(*self)->file);
 	list_drop(&(*self)->symbol_table);
 	distributive_drop(&(*self)->identifier);
 	distributive_drop(&(*self)->keyword);

@@ -1,14 +1,14 @@
-#include "coderep/tools/source.h"
+#include "coderep/tools/file.h"
 #include "coderep/tools/file_buffer.h"
 #include "coderep/macros.h"
 
 #include <stdlib.h>
 
-struct source *source_alloc(struct string *file_path)
+struct file *file_alloc(struct string *file_path)
 {
 	struct file_buffer *file_buffer = file_buffer_alloc(file_path);
 	struct string *line_buffer = string_alloc();
-	struct source *self = malloc(sizeof(struct source));
+	struct file *self = malloc(sizeof(struct file));
 	
 	if (!self) MALLOC_ERR_EXIT("struct file_buffer for lua");
 
@@ -20,7 +20,7 @@ struct source *source_alloc(struct string *file_path)
 	return self;
 }
 
-void source_advance(struct source *self)
+void file_advance(struct file *self)
 {
 	if (self->file_buffer->char_ == '\n') {
 		string_clear(self->line_buffer);
@@ -36,15 +36,15 @@ void source_advance(struct source *self)
 	}
 }
 
-void source_print_error(const struct source *self, const char *const error_text, int error_length)
+void file_print_error(const struct file *self, const char *const error_text, int error_length)
 {
 	if (error_length > self->column) {
-		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %d passed to 'source_print_error' is bigger than 'source->column' %lu. Will be truncated",
+		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %d passed to 'file_print_error' is bigger than 'file->column' %lu. Will be truncated",
 				error_length, self->column);
 
 		error_length = self->column;
 	} else if (error_length < 1) {
-		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %d passed to 'source_print_error' is less than 1, "
+		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %d passed to 'file_print_error' is less than 1, "
 				"which means it don't have anything to be printed. Will be set to 1\n",
 				error_length);
 
@@ -60,7 +60,7 @@ void source_print_error(const struct source *self, const char *const error_text,
 	puts("^\n");
 }
 
-void source_print(const struct source *self, bool trim_spaces)
+void file_print(const struct file *self, bool trim_spaces)
 {
 	puts("Source: {");
 	putchar('\t');
@@ -72,7 +72,7 @@ void source_print(const struct source *self, bool trim_spaces)
 	puts("}\n");
 }
 
-void source_drop(struct source **self)
+void file_drop(struct file **self)
 {
 	if (!self || !(*self)) return;
 

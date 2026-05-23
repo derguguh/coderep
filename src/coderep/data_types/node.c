@@ -7,17 +7,19 @@
 struct node *node_alloc(struct string **value)
 {
 	struct node *node = malloc(sizeof(struct node));
-	if (!node) {
-		MALLOC_ERR_EXIT("struct node");
-	} else {
-		node->value = *value;
-		node->count = 1;
-		node->_next = NULL;
 
-		*value = NULL;
+	if (!node) goto defer;
 
-		return node;
-	}
+	node->value = *value;
+	node->count = 1;
+	node->_next = NULL;
+
+	*value = NULL;
+
+	return node;
+
+defer:
+	MALLOC_ERR_EXIT("struct node");
 }
 
 int node_push(struct node *self, struct string **value)

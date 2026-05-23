@@ -4,12 +4,12 @@
 #include "back_ends/lua/token.h"
 #include "coderep/data_types/distributive.h"
 #include "coderep/data_types/list.h"
-#include "coderep/tools/source.h"
+#include "coderep/tools/file.h"
 
 #include <stddef.h>
 
 struct lua_lexer {
-	struct source *source;
+	struct file *file;
 	struct list *symbol_table;
 	struct distributive *identifier;
 	struct distributive *keyword;

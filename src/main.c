@@ -1,18 +1,26 @@
 #include "back_ends/lua/lexer.h"
 #include "back_ends/lua/token.h"
+
 #include "coderep/data_types/brute.h"
 #include "coderep/tools/file_buffer.h"
+#include "coderep/cli/cli.h"
 
 #include <stdbool.h>
 #include <stdio.h>
-// #include "coderep/tools/cli/data.h"
 
 int main(int argc, const char **argv)
 {
 	// struct data data = data_create();
 	//
 	// data_parse(&data, argv, argc, 1);
+	struct cli *cli = cli_alloc();
 
+	cli_parse(cli, argv, argc);
+
+	cli_drop(&cli);
+}
+
+void put_int_lua_c_latter() {
 	struct string *file_path = string_from_cstr("../tests/lua/lexer/strings.lua");
 	struct lua_lexer *lexer = lua_lexer_alloc(file_path);
 
@@ -23,7 +31,7 @@ int main(int argc, const char **argv)
 	}
 
 	char buffer[] = "          ";
-	snprintf(buffer, sizeof(buffer), "%lu", lexer->source->file_buffer->block * BUFFER_SIZE + lexer->source->file_buffer->buffer_length);
+	snprintf(buffer, sizeof(buffer), "%lu", lexer->file->file_buffer->block * BUFFER_SIZE + lexer->file->file_buffer->buffer_length);
 	struct string *name = string_from_cstr("file.byte_count");
 	struct string *value = string_from_cstr(buffer);
 	struct brute *byte_count = brute_alloc(&name, &value);

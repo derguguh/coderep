@@ -10,24 +10,26 @@
 struct distributive *distributive_alloc(struct string **name, size_t initial_capacity)
 {
 	if (initial_capacity == 0) initial_capacity = DEFAULT_SIZE;
+
 	struct distributive *distributive = malloc(sizeof(struct distributive));
 	struct node **nodes = calloc(sizeof(struct node*), initial_capacity);
 
-	if (distributive && nodes) {
-		distributive->buckets_count = initial_capacity;
-		distributive->buckets = nodes;
-		distributive->name = *name;
+	if (!distributive || !nodes) goto defer;
 
-		*name = NULL;
-		
-		return distributive;
-	} else {
-		string_drop(name);
-		free(distributive);
-		free(nodes);
+	distributive->buckets_count = initial_capacity;
+	distributive->buckets = nodes;
+	distributive->name = *name;
 
-		MALLOC_ERR_EXIT("struct distributive");
-	}
+	*name = NULL;
+	
+	return distributive;
+
+defer:
+	string_drop(name);
+	free(distributive);
+	free(nodes);
+
+	MALLOC_ERR_EXIT("struct distributive");
 }
 
 void distributive_push(struct distributive *self, struct string **value)
