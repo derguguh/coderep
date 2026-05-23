@@ -24,14 +24,13 @@ int main(int argc, const char **argv)
 
 	char buffer[] = "          ";
 	snprintf(buffer, sizeof(buffer), "%lu", lexer->source->file_buffer->block * BUFFER_SIZE + lexer->source->file_buffer->buffer_length);
-
 	struct string *name = string_from_cstr("file.byte_count");
 	struct string *value = string_from_cstr(buffer);
 	struct brute *byte_count = brute_alloc(&name, &value);
 
 	printf("Symbol Table elements count: %lu\n", lexer->symbol_table->element_count);
-	brute_print(byte_count);
 	list_print(lexer->symbol_table);
+	brute_print(byte_count);
 	distributive_print(lexer->identifier);
 	distributive_print(lexer->keyword);
 	distributive_print(lexer->number);
@@ -39,6 +38,7 @@ int main(int argc, const char **argv)
 	distributive_print(lexer->multi_line_string);
 	distributive_print(lexer->character);
 
+	brute_drop(&byte_count);
 	lua_lexer_drop(&lexer);
 	string_drop(&file_path);
 }

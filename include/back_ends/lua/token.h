@@ -2,6 +2,7 @@
 #define BACK_END_LUA_TOKEN_H
 
 #include <stddef.h>
+#include <stdio.h>
 
 enum token_type {
 	TOKEN_TYPE_UNKNOWN = -2,
@@ -80,6 +81,9 @@ struct token {
 	size_t id;
 };
 
-void token_print(const struct token self);
+static inline void token_print(const struct token self)
+{
+	printf("Token: { .type=%d, .id=%lu }\n", self.type, self.id);
+}
 
 #endif

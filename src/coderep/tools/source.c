@@ -51,14 +51,13 @@ void source_print_error(const struct source *self, const char *const error_text,
 		error_length = 1;
 	}
 
-	printf(ANSI_ERR "(on lexing process) %s;\n\t%lu;%lu\t|", error_text, self->line, self->column);
+	printf(ANSI_ERR "%lu;%lu; Error message: %s;\n\t|", self->line, self->column, error_text);
 	string_print(self->line_buffer);
-	printf("\n\t\t ");
+	printf("\n\t ");
 
 	for (int i = 0; i < self->column - error_length; i++) putchar(' ');
 	for (int i = 0; i < error_length - 1; i++) putchar('~');
-	putchar('^');
-	putchar('\n');
+	puts("^\n");
 }
 
 void source_print(const struct source *self, bool trim_spaces)
