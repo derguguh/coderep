@@ -8,7 +8,7 @@ struct brute {
 	struct string *value;
 };
 
-struct brute *brute_new(struct string **name, struct string **value);
+struct brute *brute_alloc(struct string **name, struct string **value);
 
 void brute_print(const struct brute *self);
 

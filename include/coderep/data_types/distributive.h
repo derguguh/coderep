@@ -9,7 +9,7 @@ struct distributive {
 	size_t buckets_count;
 };
 
-struct distributive *distributive_new(struct string **name, size_t initial_capacity);
+struct distributive *distributive_alloc(struct string **name, size_t initial_capacity);
 
 void distributive_push(struct distributive *self, struct string **value);
 

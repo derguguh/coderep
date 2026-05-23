@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS = -I include/ -g
+CFLAGS = -MMD -MP -I include/ -g
 
 build_dir := build/
 sources_dir := src/
@@ -7,8 +7,11 @@ objects_dir := $(build_dir)objects/
 
 sources := $(shell find $(sources_dir) -name '*.c')
 objects := $(addprefix $(objects_dir),$(sources:.c=.o))
+dependencies := $(objects:.o=.d)
 target := coderep
 commands := compile_commands.json
+
+.PHONY: all bear clean
 
 all: $(build_dir)$(target)
 
@@ -25,5 +28,5 @@ $(objects_dir)%.o: %.c
 clean:
 	rm -rf $(build_dir)*
 
-.PHONY: all bear clean
+-include $(dependencies)
 

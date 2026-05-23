@@ -27,7 +27,7 @@ struct string_slice {
 };
 
 // Allocators
-struct string *string_new();
+struct string *string_alloc();
 struct string *string_from_cstr(const char *const cstr);
 struct string *string_from_slice(const struct string_slice slice);
 struct string *string_clone(const struct string *self);

@@ -1,26 +1,27 @@
 #include "coderep/data_types/list.h"
-#include "coderep/consts.h"
+#include "coderep/macros.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
 #define DEFAULT_SIZE 20
 
-int node_push_index(struct node *self, struct string **value, size_t element_index)
+size_t node_push_index(struct node *self, struct string **value, size_t element_count)
 {
-	int deep_level = 1;
+	size_t index = self->count;
 	if (string_is_equal(self->value, *value)) string_drop(value);
 	else {
-		if (self->next == NULL) {
-			self->next = node_new(value);
-			self->next->count = element_index;
-		} else deep_level = node_push(self->next, value) + 1;
+		if (self->_next == NULL) {
+			self->_next = node_alloc(value);
+			self->_next->count = element_count;
+			index = element_count;
+		} else index = node_push_index(self->_next, value, element_count);
 	}
 
-	return deep_level;
+	return index;
 }
 
-struct list *list_new(struct string **name, size_t initial_capacity)
+struct list *list_alloc(struct string **name, size_t initial_capacity)
 {
 	if (initial_capacity == 0) initial_capacity = DEFAULT_SIZE;
 	struct list *list = malloc(sizeof(struct list));
@@ -40,9 +41,7 @@ struct list *list_new(struct string **name, size_t initial_capacity)
 		free(list);
 		free(nodes);
 
-		PRINT_ERR("Couldn't allocate memory for a struct list\n");
-		exit(ERROR_CODE_MEMORY_ALLOCATION);
-		return NULL;
+		MALLOC_ERR_EXIT("struct list");
 	}
 }
 
@@ -51,14 +50,16 @@ int list_push(struct list *self, struct string **value)
 	size_t index = string_hash(*value) % self->buckets_count;
 	struct node *node = self->buckets[index];
 
+	int element_count = self->element_count;
 	if (node == NULL) {
-		node = node_new(value);
+		node = node_alloc(value);
+		node->count = element_count;
 		self->buckets[index] = node;
-	} else node_push_index(node, value, self->element_count);
+	} else element_count = node_push_index(node, value, self->element_count);
 
 	*value = NULL;
 
-	self->element_count++;
+	if (element_count == self->element_count) self->element_count++;
 	return self->element_count - 1;
 }
 
@@ -68,7 +69,7 @@ const struct string *list_peek(struct list *self, size_t index)
 		struct node *node = self->buckets[index];
 		while (node != NULL) {
 			if (node->count == index) return node->value;
-			else node = node->next;
+			else node = node->_next;
 		}
 	}
 
@@ -88,7 +89,7 @@ void list_print(struct list *self)
 			if (!first) printf(", ");
 			string_print(node->value);
 
-			node = node->next;
+			node = node->_next;
 			first = false;
 		}
 	}

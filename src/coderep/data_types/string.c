@@ -1,13 +1,13 @@
 #include "coderep/data_types/string.h"
 
-#include "coderep/consts.h"
+#include "coderep/macros.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 #define INITIAL_CAPACITY 4
 
-struct string *string_new()
+struct string *string_alloc()
 {
 	struct string *string = malloc(sizeof(struct string));
 	char *chars = calloc(1, INITIAL_CAPACITY);
@@ -22,15 +22,13 @@ struct string *string_new()
 		free(string);
 		free(chars);
 
-		PRINT_ERR("Couldn't allocate memory for struct string");
-		exit(ERROR_CODE_MEMORY_ALLOCATION);
-		return NULL;
+		MALLOC_ERR_EXIT("struct string");
 	}
 }
 
 struct string *string_from_cstr(const char *const cstr)
 {
-	struct string *string = string_new();
+	struct string *string = string_alloc();
 	string_append_cstr(string, cstr);
 
 	return string;
@@ -38,7 +36,7 @@ struct string *string_from_cstr(const char *const cstr)
 
 struct string *string_clone(const struct string *self)
 {
-	struct string *string = string_new();
+	struct string *string = string_alloc();
 	string_append(string, self);
 
 	return string;

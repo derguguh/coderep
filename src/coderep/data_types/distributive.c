@@ -1,13 +1,13 @@
 #include "coderep/data_types/distributive.h"
 #include "coderep/data_types/node.h"
-#include "coderep/consts.h"
+#include "coderep/macros.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
 
 #define DEFAULT_SIZE 16
 
-struct distributive *distributive_new(struct string **name, size_t initial_capacity)
+struct distributive *distributive_alloc(struct string **name, size_t initial_capacity)
 {
 	if (initial_capacity == 0) initial_capacity = DEFAULT_SIZE;
 	struct distributive *distributive = malloc(sizeof(struct distributive));
@@ -26,9 +26,7 @@ struct distributive *distributive_new(struct string **name, size_t initial_capac
 		free(distributive);
 		free(nodes);
 
-		PRINT_ERR("Couldn't allocate memory for a struct distributive\n");
-		exit(ERROR_CODE_MEMORY_ALLOCATION);
-		return NULL;
+		MALLOC_ERR_EXIT("struct distributive");
 	}
 }
 
@@ -38,7 +36,7 @@ void distributive_push(struct distributive *self, struct string **value)
 	struct node *node = self->buckets[index];
 
 	if (node == NULL) {
-		node = node_new(value);
+		node = node_alloc(value);
 		self->buckets[index] = node;
 	} else node_push(node, value);
 
@@ -59,7 +57,7 @@ void distributive_print(struct distributive *self)
 			string_print(node->value);
 			printf("(%d)", node->count);
 
-			node = node->next;
+			node = node->_next;
 			first = false;
 		}
 	}
@@ -71,7 +69,8 @@ void distributive_drop(struct distributive **self)
 {
 	if (!self || !(*self)) return;
 
-	for (int i = 0; i < (*self)->buckets_count; i++) node_drop(&(*self)->buckets[i]);
+	for (int i = 0; i < (*self)->buckets_count; i++) node_drop(&((*self)->buckets[i]));
+
 	free((*self)->buckets);
 	(*self)->buckets = NULL;
 
