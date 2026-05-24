@@ -2,7 +2,7 @@
 #define BACK_END_LUA_LEXER_H
 
 #include "back_ends/lua/token.h"
-#include "coderep/data_types/distributive.h"
+#include "coderep/data_types/frequency.h"
 #include "coderep/data_types/list.h"
 #include "coderep/tools/file.h"
 
@@ -11,12 +11,12 @@
 struct lua_lexer {
 	struct file *file;
 	struct list *symbol_table;
-	struct distributive *identifier;
-	struct distributive *keyword;
-	struct distributive *number;
-	struct distributive *string;
-	struct distributive *multi_line_string;
-	struct distributive *character;
+	struct frequency *identifier;
+	struct frequency *keyword;
+	struct frequency *number;
+	struct frequency *string;
+	struct frequency *multi_line_string;
+	struct frequency *character;
 	char char_;
 };
 

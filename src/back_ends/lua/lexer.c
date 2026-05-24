@@ -1,7 +1,7 @@
 #include "back_ends/lua/lexer.h"
 
 #include "back_ends/lua/token.h"
-#include "coderep/data_types/distributive.h"
+#include "coderep/data_types/frequency.h"
 #include "coderep/data_types/string.h"
 #include "coderep/macros.h"
 #include "coderep/tools/file_buffer.h"
@@ -18,22 +18,22 @@ struct lua_lexer *lua_lexer_alloc(struct string *file_path)
 	struct list *symbol_table = list_alloc(&tmp_str, 40);
 
 	tmp_str = string_from_cstr("lexer.symbols.identifiers");
-	struct distributive *identifiers = distributive_alloc(&tmp_str, 40);
+	struct frequency *identifiers = frequency_alloc(&tmp_str, 40);
 
 	tmp_str = string_from_cstr("lexer.symbols.keywords");
-	struct distributive *keyword = distributive_alloc(&tmp_str, 20);
+	struct frequency *keyword = frequency_alloc(&tmp_str, 20);
 
 	tmp_str = string_from_cstr("lexer.symbols.numbers");
-	struct distributive *number = distributive_alloc(&tmp_str, 40);
+	struct frequency *number = frequency_alloc(&tmp_str, 40);
 
 	tmp_str = string_from_cstr("lexer.symbols.strings");
-	struct distributive *string = distributive_alloc(&tmp_str, 40);
+	struct frequency *string = frequency_alloc(&tmp_str, 40);
 
 	tmp_str = string_from_cstr("lexer.symbols.multi_line_strings");
-	struct distributive *multi_line_string = distributive_alloc(&tmp_str, 40);
+	struct frequency *multi_line_string = frequency_alloc(&tmp_str, 40);
 
 	tmp_str = string_from_cstr("lexer.symbols.symbols");
-	struct distributive *character = distributive_alloc(&tmp_str, 40);
+	struct frequency *character = frequency_alloc(&tmp_str, 40);
 
 	struct file *file = file_alloc(file_path);
 
@@ -139,8 +139,8 @@ struct token lua_lexer_word(struct lua_lexer *self)
 	struct string *temp = string_clone(word);
 	token.id = list_push(self->symbol_table, &temp);
 
-	if (token.type == TOKEN_TYPE_IDENTIFIER) distributive_push(self->identifier, &word);
-	else distributive_push(self->keyword, &word);
+	if (token.type == TOKEN_TYPE_IDENTIFIER) frequency_push(self->identifier, &word);
+	else frequency_push(self->keyword, &word);
 
 	return token;
 }
@@ -163,7 +163,7 @@ struct token lua_lexer_hex(struct lua_lexer *self)
 		file_print_error(self->file, "Hexadecial numbers need values, not just the prefix", 2);
 	}
 
-	distributive_push(self->number, &number);
+	frequency_push(self->number, &number);
 
 	return token;
 }
@@ -201,7 +201,7 @@ struct token lua_lexer_number(struct lua_lexer *self)
 
 	if (self->char_ == 'e' || self->char_ == 'E') lua_lexer_scientific_suffix(self, number, &token);
 
-	if (token.type != TOKEN_TYPE_UNKNOWN) distributive_push(self->number, &number);
+	if (token.type != TOKEN_TYPE_UNKNOWN) frequency_push(self->number, &number);
 	else string_drop(&number);
 
 	return token;
@@ -235,7 +235,7 @@ struct token lua_lexer_string(struct lua_lexer *self, bool double_quotes)
 		lua_lexer_advance_and_push(self, string);
 	} while (continue_);
 
-	distributive_push(self->string, &string);
+	frequency_push(self->string, &string);
 
 	return token;
 }
@@ -259,7 +259,7 @@ struct token lua_lexer_multi_line_string(struct lua_lexer *self)
 	lua_lexer_advance_and_push(self, string);
 	lua_lexer_advance_and_push(self, string);
 
-	distributive_push(self->multi_line_string, &string);
+	frequency_push(self->multi_line_string, &string);
 
 	return token;
 }
@@ -356,7 +356,7 @@ struct token lua_lexer_characters(struct lua_lexer *self)
 	};
 
 	lua_lexer_advance_and_push(self, symbol);
-	distributive_push(self->character, &symbol);
+	frequency_push(self->character, &symbol);
 
 	return token;
 }
@@ -381,12 +381,12 @@ void lua_lexer_drop(struct lua_lexer **self)
 
 	file_drop(&(*self)->file);
 	list_drop(&(*self)->symbol_table);
-	distributive_drop(&(*self)->identifier);
-	distributive_drop(&(*self)->keyword);
-	distributive_drop(&(*self)->string);
-	distributive_drop(&(*self)->number);
-	distributive_drop(&(*self)->multi_line_string);
-	distributive_drop(&(*self)->character);
+	frequency_drop(&(*self)->identifier);
+	frequency_drop(&(*self)->keyword);
+	frequency_drop(&(*self)->string);
+	frequency_drop(&(*self)->number);
+	frequency_drop(&(*self)->multi_line_string);
+	frequency_drop(&(*self)->character);
 	free(*self);
 }
 

@@ -1,4 +1,4 @@
-#include "coderep/data_types/distributive.h"
+#include "coderep/data_types/frequency.h"
 #include "coderep/data_types/node.h"
 #include "coderep/macros.h"
 
@@ -7,32 +7,32 @@
 
 #define DEFAULT_SIZE 16
 
-struct distributive *distributive_alloc(struct string **name, size_t initial_capacity)
+struct frequency *frequency_alloc(struct string **name, size_t initial_capacity)
 {
 	if (initial_capacity == 0) initial_capacity = DEFAULT_SIZE;
 
-	struct distributive *distributive = malloc(sizeof(struct distributive));
+	struct frequency *frequency = malloc(sizeof(struct frequency));
 	struct node **nodes = calloc(sizeof(struct node*), initial_capacity);
 
-	if (!distributive || !nodes) goto defer;
+	if (!frequency || !nodes) goto defer;
 
-	distributive->buckets_count = initial_capacity;
-	distributive->buckets = nodes;
-	distributive->name = *name;
+	frequency->buckets_count = initial_capacity;
+	frequency->buckets = nodes;
+	frequency->name = *name;
 
 	*name = NULL;
 	
-	return distributive;
+	return frequency;
 
 defer:
 	string_drop(name);
-	free(distributive);
+	free(frequency);
 	free(nodes);
 
-	MALLOC_ERR_EXIT("struct distributive");
+	MALLOC_ERR_EXIT("struct frequency");
 }
 
-void distributive_push(struct distributive *self, struct string **value)
+void frequency_push(struct frequency *self, struct string **value)
 {
 	size_t index = string_hash(*value) % self->buckets_count;
 	struct node *node = self->buckets[index];
@@ -45,7 +45,7 @@ void distributive_push(struct distributive *self, struct string **value)
 	*value = NULL;
 }
 
-void distributive_print(struct distributive *self)
+void frequency_print(struct frequency *self)
 {
 	string_print(self->name);
 	printf(": [");
@@ -67,7 +67,7 @@ void distributive_print(struct distributive *self)
 	puts("]");
 }
 
-void distributive_drop(struct distributive **self)
+void frequency_drop(struct frequency **self)
 {
 	if (!self || !(*self)) return;
 

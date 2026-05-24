@@ -39,12 +39,12 @@ void put_int_lua_c_latter() {
 	printf("Symbol Table elements count: %lu\n", lexer->symbol_table->element_count);
 	list_print(lexer->symbol_table);
 	brute_print(byte_count);
-	distributive_print(lexer->identifier);
-	distributive_print(lexer->keyword);
-	distributive_print(lexer->number);
-	distributive_print(lexer->string);
-	distributive_print(lexer->multi_line_string);
-	distributive_print(lexer->character);
+	frequency_print(lexer->identifier);
+	frequency_print(lexer->keyword);
+	frequency_print(lexer->number);
+	frequency_print(lexer->string);
+	frequency_print(lexer->multi_line_string);
+	frequency_print(lexer->character);
 
 	brute_drop(&byte_count);
 	lua_lexer_drop(&lexer);
