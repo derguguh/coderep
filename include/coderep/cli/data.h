@@ -2,6 +2,7 @@
 #define CODEREP_DATA_H
 
 // This define WHAT to show
+#include <stddef.h>
 enum flags {
 	// Flags
 	NONE			= 0x00000000,
@@ -17,17 +18,40 @@ enum flags {
 	// Flag mixes
 	DEFAULT_BRUTE		= 0x00000040,
 	DEFAULT_LIST		= 0x00000040,
-	DEFAULT_DISTRIBUTIVE	= 0x0000000E,
+	DEFAULT_FREQUENCY	= 0x0000000E,
 	DISTRIBUTION		= 0x000000C0,
 	STATS			= 0x0000003E,
 	ALL			= 0xFFFFFFFF,
 };
 
 struct data {
-	enum flags distributive;
+	enum flags frequency;
 	enum flags brute;
 	enum flags list;
 };
+
+struct flag_opt {
+	char *cstr;
+	enum flags flag;
+};
+
+static const struct flag_opt FLAGS_OPTS[] = {
+	{ "none",		NONE },
+	{ "raw",		RAW },
+	{ "min",		MIN },
+	{ "avg",		AVG },
+	{ "max",		MAX },
+	{ "moda",		MODA },
+	{ "median",		MEDIAN },
+	{ "value",		VALUE },
+	{ "frequency",		FREQUENCY },
+	{ "count",		COUNT },
+	// Mixs
+	{ "distribution",	DISTRIBUTION},
+	{ "all",		ALL},
+};
+
+static const size_t FLAGS_OPTS_L = sizeof(FLAGS_OPTS) / sizeof(struct flag_opt);
 
 struct data data_create();
 

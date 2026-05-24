@@ -1,6 +1,7 @@
 #ifndef CODEREP_CLI_CLI_H
 #define CODEREP_CLI_CLI_H
 
+#include "coderep/cli/help.h"
 #include "coderep/cli/lang.h"
 #include "coderep/cli/input.h"
 #include "coderep/cli/source.h"
@@ -10,6 +11,7 @@
 #include <stddef.h>
 
 enum flag_locations {
+	FLAG_LOCATIONS_HELP,
 	FLAG_LOCATIONS_LANG,
 	FLAG_LOCATIONS_INPUT,
 	FLAG_LOCATIONS_SOURCE,
@@ -35,6 +37,7 @@ struct cli {
 };
 
 static const struct flags_table TABLE[] = {
+	{ NULL, "--help", (parse_function_t)help_print },
 	{ NULL, "--lang", (parse_function_t)lang_parse },
 	{ NULL, "--input", (parse_function_t)input_parse },
 	{ NULL, "--source", (parse_function_t)source_parse },

@@ -24,19 +24,8 @@ defer:
 
 int source_parse(struct source *self, const char **argv, int argc, int index)
 {
-	if (index >= argc) goto defer;
+	printf("Sorry, --source is not implemented yet");
 
-	struct string *file_path = string_from_cstr(argv[index]);
-	FILE *file = fopen(argv[index], "r");
-
-	if (!file) goto defer;
-
-	fclose(file);
-	list_push(self->files, &file_path);
-
-	return index + 1;
-defer:
-	PRINT_ERR("'--source' option expects a single flag, that also should contains a valid file path");
 	return index;
 }
 

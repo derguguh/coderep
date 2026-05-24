@@ -26,17 +26,26 @@ int input_parse(struct input *self, const char **argv, int argc, int index)
 {
 	if (index >= argc) goto defer;
 
-	struct string *file_path = string_from_cstr(argv[index]);
-	FILE *file = fopen(argv[index], "r");
+	struct string *arg = string_alloc();
+	while (index < argc && string_get(arg, 0) != '-') {
 
-	if (!file) goto defer;
+		string_append_cstr(arg, argv[index]);
+		FILE *file = fopen(argv[index], "r");
 
-	fclose(file);
-	list_push(self->files, &file_path);
+		if (!file) goto defer;
 
-	return index + 1;
+		fclose(file);
+		list_push(self->files, &arg);
+
+		string_clear(arg);
+		index++;
+	}
+
+	string_drop(&arg);
+	return index;
 defer:
-	PRINT_ERR("'--input' option expects a single flag, that also should contains a valid file path");
+	PRINT_ERR("'--input' option expects at least a flag, that contains a valid file path");
+	string_drop(&arg);
 	return index;
 }
 

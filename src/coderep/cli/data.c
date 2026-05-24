@@ -6,35 +6,14 @@
 #include <stdio.h>
 #include <string.h>
 
-struct flag_opt {
-	char *cstr;
-	enum flags flag;
-};
-
-const struct flag_opt flag_opts[] = {
-	{ "none",		NONE },
-	{ "raw",		RAW },
-	{ "min",		MIN },
-	{ "avg",		AVG },
-	{ "max",		MAX },
-	{ "moda",		MODA },
-	{ "median",		MEDIAN },
-	{ "value",		VALUE },
-	{ "frequency",		FREQUENCY },
-	{ "count",		COUNT },
-	// Mixs
-	{ "distribution",	DISTRIBUTION},
-	{ "all",		ALL},
-};
-
-const size_t flag_opts_l = sizeof(flag_opts) / sizeof(struct flag_opt);
-
 enum flags parse_flag(const struct string_slice slice)
 {
-	for (int i = 0; i < flag_opts_l; i++) if (strncasecmp(slice.chars, flag_opts[i].cstr, slice.length) == 0) return flag_opts[i].flag;
+	for (int i = 0; i < FLAGS_OPTS_L; i++) if (strncasecmp(slice.chars, FLAGS_OPTS[i].cstr, slice.length) == 0) return FLAGS_OPTS[i].flag;
+
 	fprintf(stderr, ANSI_ERR "\"");
 	for (int i = 0; i < slice.length ; i++) putc(slice.chars[i], stderr);
 	fprintf(stderr, "\" is not a valid '--data' subflag\n" ANSI_ESC ANSI_RESET);
+
 	return NONE;
 }
 
@@ -62,7 +41,7 @@ enum flags parse_flags(const struct string_slice flags)
 struct data data_create()
 {
 	struct data data = {
-		.distributive=DEFAULT_DISTRIBUTIVE,
+		.frequency=DEFAULT_FREQUENCY,
 		.brute=DEFAULT_BRUTE,
 		.list=DEFAULT_LIST,
 	};
@@ -74,7 +53,7 @@ struct data data_create()
 void data_put_in(struct data *self, enum flags flag, const struct string_slice type)
 {
 	enum flags *f = NULL;
-	if	(strncasecmp("distributive", type.chars, 12) == 0) f = &self->distributive;
+	if	(strncasecmp("frequency", type.chars, 9) == 0) f = &self->frequency;
 	else if (strncasecmp("brute", type.chars, 5) == 0) f = &self->brute;
 	else if (strncasecmp("list", type.chars, 4) == 0) f = &self->list;
 	else {
@@ -94,12 +73,12 @@ int data_parse(struct data *self, const char **const argv, int argc, int index)
 		PRINT_ERR("'--data' option expects at least one flag");
 		return index;
 	}
-	self->distributive = NONE;
+	self->frequency = NONE;
 	self->brute = NONE;
 	self->list = NONE;
 
 	struct string *arg = string_alloc();
-	while (index < argc) {
+	while (index < argc && string_get(arg, 0) != '-') {
 
 		string_append_cstr(arg, argv[index]);
 
@@ -117,6 +96,7 @@ int data_parse(struct data *self, const char **const argv, int argc, int index)
 		string_clear(arg);
 		index++;
 	}
+
 	string_drop(&arg);
 	return index;
 }

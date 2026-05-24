@@ -4,7 +4,6 @@
 #include <stdbool.h>
 
 struct lang {
-	struct string *file;
 };
 
 struct lang lang_create();

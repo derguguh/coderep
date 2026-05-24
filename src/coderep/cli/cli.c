@@ -24,6 +24,7 @@ struct cli *cli_alloc()
 	cli->table = table;
 	memcpy(cli->table, TABLE, sizeof(TABLE));
 
+	cli->table[FLAG_LOCATIONS_HELP].structure = NULL;
 	cli->table[FLAG_LOCATIONS_LANG].structure = &cli->lang;
 	cli->table[FLAG_LOCATIONS_INPUT].structure = cli->input;
 	cli->table[FLAG_LOCATIONS_SOURCE].structure = cli->source;
@@ -43,19 +44,17 @@ void cli_parse(struct cli *self, const char **argv, int argc)
 {
 	if (argc <= 1) {
 
-		PRINT_ERR("Code Report needs more than one argument, and all options needs at least one flag");
+		PRINT_ERR("Code Report needs an argument. You can use the '--help' flag for help");
 		return;
 	}
 
 	int index = 1;
 	while (index < argc) {
-		printf("Before: %d\n", index);
 		bool detected = false;
 
 		for (size_t i = 0; i < TABLE_L; i++) {
 			if (strcmp(argv[index], self->table[i].flag_name) == 0) {
 				index = self->table[i].parsing(self->table[i].structure, argv,  argc, index + 1);
-				printf("Option detected: %s\n", self->table[i].flag_name);
 				detected = true;
 				break;
 			}
@@ -65,8 +64,6 @@ void cli_parse(struct cli *self, const char **argv, int argc)
 			PRINTF_ERR("The option '%s' is not handled by the CLI", argv[index]);
 			index++;
 		}
-
-		printf("After: %d\n", index);
 	}
 }
 
