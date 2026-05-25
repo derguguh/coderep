@@ -13,7 +13,7 @@ struct lang lang_create()
 
 int lang_parse(struct lang *self, const char **argv, int argc, int index)
 {
-	printf("Sorry, --source is not implemented yet");
+	printf("'--lang' option is on WIP! Expect bugs\n");
 
 	return index;
 }

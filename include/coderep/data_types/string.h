@@ -34,8 +34,15 @@ struct string *string_clone(const struct string *self);
 
 // Resizing
 void string_resize(struct string *self, size_t new_capacity);
-void string_expand(struct string *self);
-void string_trim(struct string *self);
+static inline void string_expand(struct string *self)
+{
+	string_resize(self, self->capacity * 2);
+}
+
+static inline void string_trim(struct string *self)
+{
+	string_resize(self, self->length);
+}
 
 // Adding or removing from
 char string_pop(struct string *self);

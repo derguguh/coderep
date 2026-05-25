@@ -46,27 +46,18 @@ struct string *string_clone(const struct string *self)
 void string_resize(struct string *self, size_t new_capacity)
 {
 	char *tmp = realloc(self->chars, new_capacity);
-	if (!tmp) {
-		string_drop(&self);
-
-		PRINT_ERR("Couldn't reallocate memory for resizig struct string");
-		exit(ERROR_CODE_MEMORY_ALLOCATION);
-		return;
-	}
+	if (!tmp) goto defer;
 	
 	if (self->length > new_capacity) self->length = new_capacity;
 	self->capacity = new_capacity;
 	self->chars = tmp;
-}
 
-void string_expand(struct string *self)
-{
-	string_resize(self, self->capacity * 2);
-}
+	return;
+defer:
+	string_drop(&self);
 
-void string_trim(struct string *self)
-{
-	string_resize(self, self->length);
+	PRINT_ERR("Couldn't reallocate memory to resize a struct string");
+	exit(ERROR_CODE_MEMORY_REALLOCATION);
 }
 
 char string_pop(struct string *self)

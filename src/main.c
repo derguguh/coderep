@@ -1,6 +1,7 @@
 #include "back_ends/lua/lexer.h"
 #include "back_ends/lua/token.h"
 
+#include "coderep/backend.h"
 #include "coderep/data_types/brute.h"
 #include "coderep/tools/file_buffer.h"
 #include "coderep/cli/cli.h"
@@ -8,19 +9,35 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+void push_random_data(struct data_array *data_array)
+{
+	struct string *name = string_from_cstr("test.data_array");
+	struct string *string = string_from_cstr("some random data");
+	struct brute *brute = brute_alloc(&name, &string);
+
+	data_array_push_brute(data_array, &brute);
+}
+
 int main(int argc, const char **argv)
 {
-	// struct data data = data_create();
-	//
-	// data_parse(&data, argv, argc, 1);
 	struct cli *cli = cli_alloc();
 
 	cli_parse(cli, argv, argc);
 
+	struct data_array *data = data_array_alloc();
+
+	for (int i = 0; i < 32; i++) push_random_data(data);
+
+	data_array_print(data, cli->data);
+
+	printf("Hello!\n");
+	data_array_drop(&data);
+	printf("Hello!\n");
+
 	cli_drop(&cli);
 }
 
-void put_int_lua_c_latter() {
+void put_into_lua_c_latter() {
 	struct string *file_path = string_from_cstr("../tests/lua/lexer/strings.lua");
 	struct lua_lexer *lexer = lua_lexer_alloc(file_path);
 

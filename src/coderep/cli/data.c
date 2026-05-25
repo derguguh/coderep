@@ -78,9 +78,10 @@ int data_parse(struct data *self, const char **const argv, int argc, int index)
 	self->list = NONE;
 
 	struct string *arg = string_alloc();
-	while (index < argc && string_get(arg, 0) != '-') {
+	while (index < argc) {
 
 		string_append_cstr(arg, argv[index]);
+		if (string_get(arg, 0) == '-') break;
 
 		int dot_loc = string_find(arg, '.');
 		char *arg_cstr = string_to_cstr(arg);

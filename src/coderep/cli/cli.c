@@ -17,7 +17,6 @@ struct cli *cli_alloc()
 
 	cli->lang = lang_create();
 	cli->input = input_alloc();
-	cli->source = source_alloc();
 	cli->filter = filter_create();
 	cli->data = data_create();
 
@@ -27,7 +26,6 @@ struct cli *cli_alloc()
 	cli->table[FLAG_LOCATIONS_HELP].structure = NULL;
 	cli->table[FLAG_LOCATIONS_LANG].structure = &cli->lang;
 	cli->table[FLAG_LOCATIONS_INPUT].structure = cli->input;
-	cli->table[FLAG_LOCATIONS_SOURCE].structure = cli->source;
 	cli->table[FLAG_LOCATIONS_FILTER].structure = &cli->filter;
 	cli->table[FLAG_LOCATIONS_DATA].structure = &cli->data;
 
@@ -75,7 +73,6 @@ void cli_drop(struct cli **self)
 	(*self)->table = NULL;
 
 	input_drop(&(*self)->input);
-	source_drop(&(*self)->source);
 
 	free(*self);
 	*self = NULL;

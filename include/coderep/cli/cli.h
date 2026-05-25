@@ -4,7 +4,6 @@
 #include "coderep/cli/help.h"
 #include "coderep/cli/lang.h"
 #include "coderep/cli/input.h"
-#include "coderep/cli/source.h"
 #include "coderep/cli/filter.h"
 #include "coderep/cli/data.h"
 
@@ -14,7 +13,6 @@ enum flag_locations {
 	FLAG_LOCATIONS_HELP,
 	FLAG_LOCATIONS_LANG,
 	FLAG_LOCATIONS_INPUT,
-	FLAG_LOCATIONS_SOURCE,
 	FLAG_LOCATIONS_FILTER,
 	FLAG_LOCATIONS_DATA,
 };
@@ -40,7 +38,6 @@ static const struct flags_table TABLE[] = {
 	{ NULL, "--help", (parse_function_t)help_print },
 	{ NULL, "--lang", (parse_function_t)lang_parse },
 	{ NULL, "--input", (parse_function_t)input_parse },
-	{ NULL, "--source", (parse_function_t)source_parse },
 	{ NULL, "--filter", (parse_function_t)filter_parse },
 	{ NULL, "--data", (parse_function_t)data_parse },
 };

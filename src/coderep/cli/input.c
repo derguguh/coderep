@@ -30,9 +30,14 @@ int input_parse(struct input *self, const char **argv, int argc, int index)
 	while (index < argc && string_get(arg, 0) != '-') {
 
 		string_append_cstr(arg, argv[index]);
+		if (string_get(arg, 0) == '-') break;
+
 		FILE *file = fopen(argv[index], "r");
 
-		if (!file) goto defer;
+		if (!file) {
+			PRINT_ERR("'--input' option expects at least a flag, that contains a valid file path");
+			goto defer;
+		}
 
 		fclose(file);
 		list_push(self->files, &arg);
@@ -41,10 +46,7 @@ int input_parse(struct input *self, const char **argv, int argc, int index)
 		index++;
 	}
 
-	string_drop(&arg);
-	return index;
 defer:
-	PRINT_ERR("'--input' option expects at least a flag, that contains a valid file path");
 	string_drop(&arg);
 	return index;
 }
