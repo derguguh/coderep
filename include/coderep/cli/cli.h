@@ -29,7 +29,6 @@ struct cli {
 	struct flags_table *table;
 	struct lang lang;
 	struct input *input;
-	struct source *source;
 	struct filter filter;
 	struct data data;
 };

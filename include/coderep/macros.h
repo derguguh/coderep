@@ -3,7 +3,7 @@
 
 #include "coderep/consts.h"
 
-#define ANSI_F(color, text)	ANSI_ESC color ANSI_ESC ANSI_BOLD "[" text "]: " ANSI_ESC ANSI_WHITE
+#define ANSI_F(color, text)	ANSI_ESC color ANSI_ESC ANSI_BOLD "[" text "]: " ANSI_ESC ANSI_RESET
 #define ANSI_DEBUG		ANSI_F(ANSI_DEBUG, "Debug")
 #define ANSI_LOG		ANSI_F(ANSI_CYAN, "Log")
 #define ANSI_WARN		ANSI_F(ANSI_YELLOW, "Warn")

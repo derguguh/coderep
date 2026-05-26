@@ -17,6 +17,11 @@ struct lua_lexer {
 	struct frequency *string;
 	struct frequency *multi_line_string;
 	struct frequency *character;
+	struct frequency *invalid;
+	struct frequency *what_invalid;
+	struct string *template_invalid_number;
+	struct string *template_invalid_string;
+	struct string *template_invalid_char;
 	char char_;
 };
 

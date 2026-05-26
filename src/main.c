@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-void push_random_data(struct data_array *data_array)
+void push_random_brute(struct data_array *data_array)
 {
 	struct string *name = string_from_cstr("test.data_array");
 	struct string *string = string_from_cstr("some random data");
@@ -17,6 +17,30 @@ void push_random_data(struct data_array *data_array)
 
 	data_array_push_brute(data_array, &brute);
 }
+
+void push_random_frequency(struct data_array *data_array)
+{
+	struct string *name = string_from_cstr("test.data_array");
+	struct frequency *frequency = frequency_alloc(&name, 1);
+
+	struct string *string = string_from_cstr("some random data");
+	frequency_push(frequency, &string);
+
+	data_array_push_frequency(data_array, &frequency);
+}
+
+void push_random_list(struct data_array *data_array)
+{
+	struct string *name = string_from_cstr("test.data_array");
+	struct list *list = list_alloc(&name, 1);
+
+	struct string *string = string_from_cstr("some random data");
+	list_push(list, &string);
+
+	data_array_push_list(data_array, &list);
+}
+
+void put_into_lua_c_latter();
 
 int main(int argc, const char **argv)
 {
@@ -26,19 +50,26 @@ int main(int argc, const char **argv)
 
 	struct data_array *data = data_array_alloc();
 
-	for (int i = 0; i < 32; i++) push_random_data(data);
+	for (int i = 0; i < 0; i++) {
+
+		push_random_brute(data);
+		push_random_list(data);
+		push_random_frequency(data);
+	}
 
 	data_array_print(data, cli->data);
+	printf("struct data_array arrays length: %lu\n", data->brutes_l);
+	printf("struct data_array arrays capacity: %lu\n", data->brutes_c);
 
-	printf("Hello!\n");
 	data_array_drop(&data);
-	printf("Hello!\n");
 
 	cli_drop(&cli);
+	
+	put_into_lua_c_latter();
 }
 
 void put_into_lua_c_latter() {
-	struct string *file_path = string_from_cstr("../tests/lua/lexer/strings.lua");
+	struct string *file_path = string_from_cstr("../tests/lua/lexer/numbers.lua");
 	struct lua_lexer *lexer = lua_lexer_alloc(file_path);
 
 	struct token token = lua_lexer_next(lexer);
@@ -62,6 +93,9 @@ void put_into_lua_c_latter() {
 	frequency_print(lexer->string);
 	frequency_print(lexer->multi_line_string);
 	frequency_print(lexer->character);
+
+	frequency_print(lexer->invalid);
+	frequency_print(lexer->what_invalid);
 
 	brute_drop(&byte_count);
 	lua_lexer_drop(&lexer);

@@ -78,11 +78,7 @@ void data_array_push_frequency(struct data_array *self, struct frequency **frequ
 
 void data_array_print(struct data_array *self, struct data output_options)
 {
-	for (int i = 0; i < self->brutes_l; i++) {
-
-		printf("%d: ", i);
-		brute_print(self->brutes[i]);
-	}
+	for (int i = 0; i < self->brutes_l; i++) brute_print(self->brutes[i]);
 	for (int i = 0; i < self->lists_l; i++) list_print(self->lists[i]);
 	for (int i = 0; i < self->frequencies_l; i++) frequency_print(self->frequencies[i]);
 }
