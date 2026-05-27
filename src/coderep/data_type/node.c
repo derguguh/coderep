@@ -1,5 +1,6 @@
-#include "coderep/data_types/node.h"
-#include "coderep/data_types/string.h"
+#include "coderep/data_type/node.h"
+
+#include "coderep/data_type/string.h"
 #include "coderep/macros.h"
 
 #include <stdlib.h>
@@ -10,9 +11,11 @@ struct node *node_alloc(struct string **value)
 
 	if (!node) goto defer;
 
-	node->value = *value;
-	node->count = 1;
-	node->_next = NULL;
+	*node = (struct node) {
+		.value = *value,
+		.count = 1,
+		._next = NULL,
+	};
 
 	*value = NULL;
 

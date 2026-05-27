@@ -1,7 +1,7 @@
 #ifndef CODEREP_TOOLS_FILE_H
 #define CODEREP_TOOLS_FILE_H
 
-#include "coderep/tools/file_buffer.h"
+#include "coderep/tool/file_buffer.h"
 
 #include <stdbool.h>
 

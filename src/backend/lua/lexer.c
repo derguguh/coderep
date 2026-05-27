@@ -1,11 +1,12 @@
-#include "back_ends/lua/lexer.h"
+#include "backend/lua/lexer.h"
 
-#include "back_ends/lua/token.h"
-#include "coderep/data_types/frequency.h"
-#include "coderep/data_types/string.h"
+#include "backend/lua/token.h"
+
+#include "coderep/data_type/frequency.h"
+#include "coderep/data_type/string.h"
 #include "coderep/macros.h"
-#include "coderep/tools/file_buffer.h"
-#include "coderep/tools/file.h"
+#include "coderep/tool/file_buffer.h"
+#include "coderep/tool/file.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -317,14 +318,14 @@ struct token lua_lexer_characters(struct lua_lexer *self)
 		case '%':	token.type = TOKEN_TYPE_CHAR_MODULE;		break;
 		case '^':	token.type = TOKEN_TYPE_CHAR_CARET;		break;
 		case '#':	token.type = TOKEN_TYPE_CHAR_HASH;		break;
-		case '&':	token.type = TOKEN_TYPE_CHAR_AMPERSAND;	break;
+		case '&':	token.type = TOKEN_TYPE_CHAR_AMPERSAND;		break;
 		case ',':	token.type = TOKEN_TYPE_CHAR_COMMA;		break;
-		case ';':	token.type = TOKEN_TYPE_CHAR_SEMICOLON;	break;
+		case ';':	token.type = TOKEN_TYPE_CHAR_SEMICOLON;		break;
 		case '|':	token.type = TOKEN_TYPE_CHAR_VBAR;		break;
 		case '(':	token.type = TOKEN_TYPE_CHAR_LPARENTHESIS;	break;
 		case ')':	token.type = TOKEN_TYPE_CHAR_RPARENTHESIS;	break;
-		case '[':	token.type = TOKEN_TYPE_CHAR_LBRACKET;	break;
-		case ']':	token.type = TOKEN_TYPE_CHAR_RBRACKET;	break;
+		case '[':	token.type = TOKEN_TYPE_CHAR_LBRACKET;		break;
+		case ']':	token.type = TOKEN_TYPE_CHAR_RBRACKET;		break;
 		case '{':	token.type = TOKEN_TYPE_CHAR_LBRACE;		break;
 		case '}':	token.type = TOKEN_TYPE_CHAR_RBRACE;		break;
 		case '<':

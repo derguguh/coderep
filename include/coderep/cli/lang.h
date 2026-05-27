@@ -1,9 +1,12 @@
 #ifndef CODEREP_LANG_H
 #define CODEREP_LANG_H
 
+#include "coderep/backend.h"
+
 #include <stdbool.h>
 
 struct lang {
+	const struct backend *_backend;
 };
 
 struct lang lang_create();

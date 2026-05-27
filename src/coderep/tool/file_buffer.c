@@ -1,5 +1,6 @@
-#include "coderep/tools/file_buffer.h"
-#include "coderep/data_types/string.h"
+#include "coderep/tool/file_buffer.h"
+
+#include "coderep/data_type/string.h"
 #include "coderep/macros.h"
 
 #include <stdio.h>
@@ -11,6 +12,8 @@ struct file_buffer *file_buffer_alloc(struct string *file_path)
 
 	if (!self) MALLOC_ERR_EXIT("struct file_buffer for lua");
 
+	*self = (struct file_buffer) {};
+
 	FILE *file = fopen(string_to_cstr(file_path), "r");
 	if (file == NULL) {
 		free(self);
@@ -18,6 +21,7 @@ struct file_buffer *file_buffer_alloc(struct string *file_path)
 		PRINTF_ERR("Unkown file \"%s\". Does it exists or have permission to open?", string_to_cstr(file_path));
 		exit(ERROR_CODE_UNKNOWN_FILE);
 	}
+
 	self->buffer_length = fread(self->buffer, 1, BUFFER_SIZE, file);
 	if (self->buffer_length == 0) {
 		fclose(file);
@@ -28,10 +32,7 @@ struct file_buffer *file_buffer_alloc(struct string *file_path)
 	}
 
 	self->file = file;
-
-	self->buffer_cursor = 0;
 	self->char_ = self->buffer[0];
-	self->block = 0;
 
 	return self;
 }

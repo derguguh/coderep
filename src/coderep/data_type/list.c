@@ -1,4 +1,5 @@
-#include "coderep/data_types/list.h"
+#include "coderep/data_type/list.h"
+
 #include "coderep/macros.h"
 
 #include <stdio.h>
@@ -29,10 +30,11 @@ struct list *list_alloc(struct string **name, size_t initial_capacity)
 
 	if (!list || !nodes) goto defer;
 
-	list->buckets_count = initial_capacity;
-	list->element_count = 0;
-	list->buckets = nodes;
-	list->name = *name;
+	*list = (struct list) {
+		.buckets_count = initial_capacity,
+		.buckets = nodes,
+		.name = *name,
+	};
 
 	*name = NULL;
 	

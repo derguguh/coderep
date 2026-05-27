@@ -1,8 +1,8 @@
 #ifndef CODEREP_DATA_TYPES_LIST_H
 #define CODEREP_DATA_TYPES_LIST_H
 
-#include "coderep/data_types/string.h"
-#include "coderep/data_types/node.h"
+#include "coderep/data_type/string.h"
+#include "coderep/data_type/node.h"
 
 #include <stddef.h>
 

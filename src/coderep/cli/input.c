@@ -1,6 +1,6 @@
 #include "coderep/cli/input.h"
 
-#include "coderep/data_types/string.h"
+#include "coderep/data_type/string.h"
 #include "coderep/macros.h"
 
 #include <stdlib.h>
@@ -24,7 +24,11 @@ defer:
 
 int input_parse(struct input *self, const char **argv, int argc, int index)
 {
-	if (index >= argc) goto defer;
+	if (index >= argc) {
+
+		PRINT_ERR("'--input' option expects at least one flag");
+		return index;
+	}
 
 	struct string *arg = string_alloc();
 	while (index < argc && string_get(arg, 0) != '-') {
@@ -35,7 +39,7 @@ int input_parse(struct input *self, const char **argv, int argc, int index)
 		FILE *file = fopen(argv[index], "r");
 
 		if (!file) {
-			PRINT_ERR("'--input' option expects at least a flag, that contains a valid file path");
+			PRINT_ERR("'--input' option expects a valid path for every input");
 			goto defer;
 		}
 

@@ -1,5 +1,6 @@
-#include "coderep/data_types/frequency.h"
-#include "coderep/data_types/node.h"
+#include "coderep/data_type/frequency.h"
+
+#include "coderep/data_type/node.h"
 #include "coderep/macros.h"
 
 #include <stdbool.h>
@@ -16,9 +17,11 @@ struct frequency *frequency_alloc(struct string **name, size_t initial_capacity)
 
 	if (!frequency || !nodes) goto defer;
 
-	frequency->buckets_count = initial_capacity;
-	frequency->buckets = nodes;
-	frequency->name = *name;
+	*frequency = (struct frequency) {
+		.buckets_count = initial_capacity,
+		.buckets = nodes,
+		.name = *name,
+	};
 
 	*name = NULL;
 	
@@ -45,7 +48,7 @@ void frequency_push(struct frequency *self, struct string **value)
 	*value = NULL;
 }
 
-void frequency_print(struct frequency *self)
+void frequency_print(struct frequency *self, enum output_mode output_mode)
 {
 	string_print(self->name);
 	printf(": [");

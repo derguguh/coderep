@@ -1,10 +1,10 @@
-#ifndef BACK_END_LUA_LEXER_H
-#define BACK_END_LUA_LEXER_H
+#ifndef BACKEND_LUA_LEXER_H
+#define BACKEND_LUA_LEXER_H
 
-#include "back_ends/lua/token.h"
-#include "coderep/data_types/frequency.h"
-#include "coderep/data_types/list.h"
-#include "coderep/tools/file.h"
+#include "backend/lua/token.h"
+#include "coderep/data_type/frequency.h"
+#include "coderep/data_type/list.h"
+#include "coderep/tool/file.h"
 
 #include <stddef.h>
 

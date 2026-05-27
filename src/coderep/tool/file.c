@@ -1,5 +1,6 @@
-#include "coderep/tools/file.h"
-#include "coderep/tools/file_buffer.h"
+#include "coderep/tool/file.h"
+
+#include "coderep/tool/file_buffer.h"
 #include "coderep/macros.h"
 
 #include <stdlib.h>
@@ -12,10 +13,12 @@ struct file *file_alloc(struct string *file_path)
 	
 	if (!self) MALLOC_ERR_EXIT("struct file_buffer for lua");
 
-	self->file_buffer = file_buffer;
-	self->line_buffer = line_buffer;
-	self->column = 1;
-	self->line = 1;
+	*self = (struct file) {
+		.file_buffer = file_buffer,
+		.line_buffer = line_buffer,
+		.column = 1,
+		.line = 1,
+	};
 
 	return self;
 }

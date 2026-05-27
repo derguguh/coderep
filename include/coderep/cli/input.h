@@ -1,7 +1,7 @@
 #ifndef CODEREP_INPUT_H
 #define CODEREP_INPUT_H
 
-#include "coderep/data_types/list.h"
+#include "coderep/data_type/list.h"
 
 #include <stdbool.h>
 

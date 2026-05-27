@@ -1,6 +1,5 @@
-#include "coderep/backend.h"
+#include "coderep/data_array.h"
 
-#include "coderep/data_types/frequency.h"
 #include "coderep/macros.h"
 
 #include <stdlib.h>
@@ -15,16 +14,15 @@ struct data_array *data_array_alloc()
 
 	if (!self || !brutes || !lists || !frequencies) goto defer;
 
-	self->brutes = brutes;
-	self->lists = lists;
-	self->frequencies = frequencies;
+	*self = (struct data_array) {
+		.brutes = brutes,
+		.lists = lists,
+		.frequencies = frequencies,
 
-	self->brutes_l = 0;
-	self->brutes_c = DEFAULT_CAPACITY;
-	self->lists_l = 0;
-	self->lists_c = DEFAULT_CAPACITY;
-	self->frequencies_l = 0;
-	self->frequencies_c = DEFAULT_CAPACITY;
+		.brutes_c = DEFAULT_CAPACITY,
+		.lists_c = DEFAULT_CAPACITY,
+		.frequencies_c = DEFAULT_CAPACITY,
+	};
 
 	return self;
 defer:
@@ -78,9 +76,9 @@ void data_array_push_frequency(struct data_array *self, struct frequency **frequ
 
 void data_array_print(struct data_array *self, struct data output_options)
 {
-	for (int i = 0; i < self->brutes_l; i++) brute_print(self->brutes[i]);
+	for (int i = 0; i < self->brutes_l; i++) brute_print(self->brutes[i], output_options.brute);
 	for (int i = 0; i < self->lists_l; i++) list_print(self->lists[i]);
-	for (int i = 0; i < self->frequencies_l; i++) frequency_print(self->frequencies[i]);
+	for (int i = 0; i < self->frequencies_l; i++) frequency_print(self->frequencies[i], output_options.frequency);
 }
 
 void data_array_drop(struct data_array **self)

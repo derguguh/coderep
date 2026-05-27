@@ -1,7 +1,7 @@
 #ifndef CODEREP_TOOLS_BUFFER_FILE_H
 #define CODEREP_TOOLS_BUFFER_FILE_H
 
-#include "coderep/data_types/string.h"
+#include "coderep/data_type/string.h"
 #include <stdio.h>
 #include <stddef.h>
 
@@ -9,7 +9,7 @@
 
 struct file_buffer {
 	FILE *file;
-	unsigned char buffer[BUFFER_SIZE];
+	char buffer[BUFFER_SIZE];
 	size_t buffer_length;
 	size_t buffer_cursor;
 	size_t block;

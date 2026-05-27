@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS = -MMD -MP -I include/ -g
+CFLAGS = -MMD -MP -I include/ -g -Wall
 
 build_dir := build/
 sources_dir := src/

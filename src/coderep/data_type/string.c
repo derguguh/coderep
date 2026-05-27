@@ -1,4 +1,4 @@
-#include "coderep/data_types/string.h"
+#include "coderep/data_type/string.h"
 
 #include "coderep/macros.h"
 
@@ -14,9 +14,10 @@ struct string *string_alloc()
 
 	if (!string || !chars) goto defer;
 
-	string->capacity = INITIAL_CAPACITY;
-	string->length = 0;
-	string->chars = chars;
+	*string = (struct string) {
+		.capacity = INITIAL_CAPACITY,
+		.chars = chars,
+	};
 
 	return string;
 

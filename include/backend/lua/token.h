@@ -1,5 +1,5 @@
-#ifndef BACK_END_LUA_TOKEN_H
-#define BACK_END_LUA_TOKEN_H
+#ifndef BACKEND_LUA_TOKEN_H
+#define BACKEND_LUA_TOKEN_H
 
 #include <stddef.h>
 #include <stdio.h>
