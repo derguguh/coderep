@@ -1,6 +1,8 @@
-#ifndef CODEREP_BACKEND_LUA_LUA_H
-#define CODEREP_BACKEND_LUA_LUA_H
+#ifndef BACKEND_LUA_LUA_H
+#define BACKEND_LUA_LUA_H
 
-struct data_array *lua_parse();
+#include "coderep/cli/input.h"
+
+struct data_array *lua_parse(const struct input *input);
 
 #endif

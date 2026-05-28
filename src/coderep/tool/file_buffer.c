@@ -1,12 +1,12 @@
 #include "coderep/tool/file_buffer.h"
 
-#include "coderep/data_type/string.h"
 #include "coderep/macros.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-struct file_buffer *file_buffer_alloc(struct string *file_path)
+struct file_buffer *file_buffer_alloc()
 {
 	struct file_buffer *self = malloc(sizeof(struct file_buffer));
 
@@ -14,38 +14,51 @@ struct file_buffer *file_buffer_alloc(struct string *file_path)
 
 	*self = (struct file_buffer) {};
 
-	FILE *file = fopen(string_to_cstr(file_path), "r");
-	if (file == NULL) {
-		free(self);
+	return self;
+}
 
-		PRINTF_ERR("Unkown file \"%s\". Does it exists or have permission to open?", string_to_cstr(file_path));
-		exit(ERROR_CODE_UNKNOWN_FILE);
-	}
+bool file_buffer_open(struct file_buffer *self, const char *const file_path)
+{
+	if (self->_file != NULL) fclose(self->_file);
+	self->_file = NULL;
+
+	self->buffer_cursor = 0;
+	self->block = 0;
+
+	FILE *file = fopen(file_path, "r");
+	if (file == NULL) goto defer;
 
 	self->buffer_length = fread(self->buffer, 1, BUFFER_SIZE, file);
-	if (self->buffer_length == 0) {
-		fclose(file);
-		free(self);
+	if (self->buffer_length == 0) goto defer;
 
-		PRINTF_ERR("File \"%s\" is empty", string_to_cstr(file_path));
-		exit(ERROR_CODE_EMPTY_FILE);
-	}
-
-	self->file = file;
+	self->_file = file;
+	self->_file_name = file_path;
 	self->char_ = self->buffer[0];
 
-	return self;
+	return true;
+defer:
+	if (file) fclose(file);
+
+	self->_file_name = NULL;
+	self->_file = NULL;
+	self->char_ = EOF;
+	
+	PRINTF_ERR("File \"%s\" don't meet the criteria. It needs to exist, be possible to read (permission to read), and be not empty", file_path);
+
+	return false;
 }
 
 void file_buffer_advance(struct file_buffer *self)
 {
+	assert(self->_file != NULL && "struct file_buffer: is not possible to advance in a null file\n");
+
 	self->buffer_cursor++;
 
 	if (self->buffer_cursor < self->buffer_length) self->char_ = self->buffer[self->buffer_cursor];
-	else if (self->buffer_cursor == BUFFER_SIZE && !feof(self->file)) {
+	else if (self->buffer_cursor == BUFFER_SIZE && !feof(self->_file)) {
 		self->buffer_cursor = 0;
 
-		self->buffer_length = fread(self->buffer, 1, BUFFER_SIZE, self->file);
+		self->buffer_length = fread(self->buffer, 1, BUFFER_SIZE, self->_file);
 
 		if (self->buffer_length == 0) self->char_ = EOF;
 		else {
@@ -69,12 +82,14 @@ char file_buffer_peek(const struct file_buffer *self)
 
 char file_buffer_peek_next(const struct file_buffer *self)
 {
+	assert(self->_file != NULL && "struct file_buffer: is not possible to advance in a null file\n");
+
 	if (self->buffer_cursor + 1 < self->buffer_length) return self->buffer[self->buffer_cursor + 1];
-	else if (self->buffer_cursor + 1 == BUFFER_SIZE && !feof(self->file)) {
+	else if (self->buffer_cursor + 1 == BUFFER_SIZE && !feof(self->_file)) {
 		
 		unsigned char tmp = 0;
-		unsigned char count = fread(&tmp, 1, 1, self->file);
-		fseek(self->file, -1, SEEK_CUR);
+		unsigned char count = fread(&tmp, 1, 1, self->_file);
+		fseek(self->_file, -1, SEEK_CUR);
 
 		if (count == 0) tmp = EOF;
 		return tmp;
@@ -103,8 +118,8 @@ void file_buffer_drop(struct file_buffer **self)
 {
 	if (!self || !(*self)) return;
 
-	if ((*self)->file != NULL) fclose((*self)->file);
-	(*self)->file = NULL;
+	if ((*self)->_file != NULL) fclose((*self)->_file);
+	(*self)->_file = NULL;
 
 	free(*self);
 	*self = NULL;

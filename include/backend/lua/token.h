@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdio.h>
 
-enum token_type {
+enum lua_token_type {
 	TOKEN_TYPE_INVALID,
 	TOKEN_TYPE_EOF,
 	TOKEN_TYPE_IDENTIFIER,
@@ -25,7 +25,6 @@ enum token_type {
 	TOKEN_TYPE_KW_FALSE,
 	TOKEN_TYPE_KW_FOR,
 	TOKEN_TYPE_KW_FUNCTION,
-	TOKEN_TYPE_KW_GLOBAL,
 	TOKEN_TYPE_KW_GOTO,
 	TOKEN_TYPE_KW_IF,
 	TOKEN_TYPE_KW_IN,
@@ -39,7 +38,7 @@ enum token_type {
 	TOKEN_TYPE_KW_TRUE,
 	TOKEN_TYPE_KW_UNTIL,
 	TOKEN_TYPE_KW_WHILE,
-	// Symbols
+	// Characters
 	TOKEN_TYPE_CHAR_PLUS,
 	TOKEN_TYPE_CHAR_MINUS,
 	TOKEN_TYPE_CHAR_MULT,
@@ -76,12 +75,12 @@ enum token_type {
 	TOKEN_TYPE_CHAR_EPSILON,
 };
 
-struct token {
-	enum token_type type;
+struct lua_token {
+	enum lua_token_type type;
 	size_t id;
 };
 
-static inline void token_print(const struct token self)
+static inline void lua_token_print(const struct lua_token self)
 {
 	printf("Token: { .type=%d, .id=%lu }\n", self.type, self.id);
 }

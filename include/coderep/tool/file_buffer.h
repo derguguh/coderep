@@ -1,22 +1,26 @@
 #ifndef CODEREP_TOOLS_BUFFER_FILE_H
 #define CODEREP_TOOLS_BUFFER_FILE_H
 
-#include "coderep/data_type/string.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stddef.h>
 
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE_ 4096
+static const size_t BUFFER_SIZE = BUFFER_SIZE_;
 
 struct file_buffer {
-	FILE *file;
-	char buffer[BUFFER_SIZE];
+	FILE *_file;
+	const char *_file_name;
+	char buffer[BUFFER_SIZE_];
 	size_t buffer_length;
 	size_t buffer_cursor;
 	size_t block;
 	char char_;
 };
 
-struct file_buffer *file_buffer_alloc(struct string *file_path);
+struct file_buffer *file_buffer_alloc();
+
+bool file_buffer_open(struct file_buffer *self, const char *const file_path);
 
 void file_buffer_advance(struct file_buffer *self);
 

@@ -1,13 +1,16 @@
 #ifndef CODEREP_INPUT_H
 #define CODEREP_INPUT_H
 
-#include "coderep/data_type/list.h"
-
 #include <stdbool.h>
+#include <stddef.h>
 
 struct input {
-	struct list *files;
+	const char **files;
+	size_t files_l;
+	size_t files_c;
 };
+
+static const size_t FILES_DEFAULT_CAPACITY = 20;
 
 struct input *input_alloc();
 

@@ -6,13 +6,15 @@
 #include <stdbool.h>
 
 struct file {
-	struct file_buffer *file_buffer;
+	struct file_buffer *buffer;
 	struct string *line_buffer;
 	size_t column;
 	size_t line;
 };
 
-struct file *file_alloc(struct string *file_path);
+struct file *file_alloc();
+
+bool file_open(struct file *self, const char *const file_path);
 
 void file_advance(struct file *self);
 
