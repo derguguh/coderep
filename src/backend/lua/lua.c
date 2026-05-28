@@ -4,6 +4,7 @@
 #include "backend/lua/lexical_table.h"
 #include "backend/lua/token.h"
 #include "coderep/cli/input.h"
+#include "coderep/consts.h"
 #include "coderep/data_array.h"
 #include "coderep/tool/file.h"
 
@@ -15,10 +16,18 @@ struct data_array *lua_parse(const struct input *input)
 
 	struct file *file = file_alloc();
 
-	for (int i = 0; i < input->files_l; i++) {
+	for (size_t i = 0; i < input->files_l; i++) {
 
 		file_open(file, input->files[i]);
+		if (file->buffer->_file == NULL) continue;
+		printf(ANSI_ESC ANSI_GREEN "[File "
+				ANSI_ESC ANSI_RESET "%lu/%lu"
+				ANSI_ESC ANSI_GREEN ":"
+				ANSI_ESC ANSI_RESET "%s" ANSI_ESC ANSI_GREEN
+				ANSI_ESC ANSI_GREEN "]"
+				ANSI_ESC ANSI_RESET " \n", i, input->files_l, input->files[i]);
 
+		lua_lexer_skip_shebang(file);
 		struct lua_token token = lua_lexer_next(file, lexical_table);
 		while (token.type != TOKEN_TYPE_EOF) token = lua_lexer_next(file, lexical_table);
 	}

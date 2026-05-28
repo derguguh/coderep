@@ -24,8 +24,7 @@ bool file_buffer_open(struct file_buffer *self, const char *const file_path);
 
 void file_buffer_advance(struct file_buffer *self);
 
-char file_buffer_peek(const struct file_buffer *self);
-char file_buffer_peek_next(const struct file_buffer *self);
+char file_buffer_peek_n(const struct file_buffer *self, size_t n);
 
 void file_buffer_print(const struct file_buffer *self, bool trim_spaces);
 

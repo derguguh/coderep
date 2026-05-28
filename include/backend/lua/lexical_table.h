@@ -4,11 +4,11 @@
 #include "coderep/data_array.h"
 
 struct lua_lexical_table {
-	struct frequency *identifier;
-	struct frequency *keyword;
-	struct frequency *number;
 	struct frequency *string;
-	struct frequency *multi_line_string;
+	struct frequency *block_string;
+	struct frequency *identifier;
+	struct frequency *number;
+	struct frequency *keyword;
 	struct frequency *character;
 	struct frequency *invalid;
 	struct frequency *what_invalid;

@@ -75,21 +75,17 @@ void file_buffer_advance(struct file_buffer *self)
 	}
 }
 
-char file_buffer_peek(const struct file_buffer *self)
-{
-	return self->char_;
-}
-
-char file_buffer_peek_next(const struct file_buffer *self)
+char file_buffer_peek_n(const struct file_buffer *self, size_t n)
 {
 	assert(self->_file != NULL && "struct file_buffer: is not possible to advance in a null file\n");
 
-	if (self->buffer_cursor + 1 < self->buffer_length) return self->buffer[self->buffer_cursor + 1];
-	else if (self->buffer_cursor + 1 == BUFFER_SIZE && !feof(self->_file)) {
+	if (self->buffer_cursor + n < self->buffer_length) return self->buffer[self->buffer_cursor + n];
+	else if (self->buffer_cursor + n == BUFFER_SIZE && !feof(self->_file)) {
 		
+		fseek(self->_file, n - 1, SEEK_CUR);
 		unsigned char tmp = 0;
 		unsigned char count = fread(&tmp, 1, 1, self->_file);
-		fseek(self->_file, -1, SEEK_CUR);
+		fseek(self->_file, -n, SEEK_CUR);
 
 		if (count == 0) tmp = EOF;
 		return tmp;

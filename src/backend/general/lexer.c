@@ -129,7 +129,7 @@ enum general_token_type general_lexer_characters(struct file *file, struct gener
 	struct string *symbol = string_alloc();
 	enum general_token_type token = TOKEN_TYPE_CHAR_UTF8;
 
-	unsigned char b = file_buffer_peek(file->buffer);
+	unsigned char b = file->buffer->char_;
 	int utf8_len = 1;
 	if      ((b & 0x80) == 0x00) utf8_len = 1;
 	else if ((b & 0xE0) == 0xC0) utf8_len = 2;

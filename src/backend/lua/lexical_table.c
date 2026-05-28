@@ -8,20 +8,20 @@
 
 struct lua_lexical_table *lua_lexical_table_alloc()
 {
-	struct string *tmp_str = string_from_cstr("lexer.symbols.identifiers");
-	struct frequency *identifiers = frequency_alloc(&tmp_str, 40);
-
-	tmp_str = string_from_cstr("lexer.symbols.keywords");
-	struct frequency *keyword = frequency_alloc(&tmp_str, 20);
-
-	tmp_str = string_from_cstr("lexer.symbols.numbers");
-	struct frequency *number = frequency_alloc(&tmp_str, 40);
+	struct string *tmp_str = string_from_cstr("lexer.symbols.block_strings");
+	struct frequency *block_string = frequency_alloc(&tmp_str, 40);
 
 	tmp_str = string_from_cstr("lexer.symbols.strings");
 	struct frequency *string = frequency_alloc(&tmp_str, 40);
 
-	tmp_str = string_from_cstr("lexer.symbols.multi_line_strings");
-	struct frequency *multi_line_string = frequency_alloc(&tmp_str, 40);
+	tmp_str = string_from_cstr("lexer.symbols.identifiers");
+	struct frequency *identifiers = frequency_alloc(&tmp_str, 40);
+
+	tmp_str = string_from_cstr("lexer.symbols.numbers");
+	struct frequency *number = frequency_alloc(&tmp_str, 40);
+
+	tmp_str = string_from_cstr("lexer.symbols.keywords");
+	struct frequency *keyword = frequency_alloc(&tmp_str, 20);
 
 	tmp_str = string_from_cstr("lexer.symbols.characters");
 	struct frequency *character = frequency_alloc(&tmp_str, 40);
@@ -40,11 +40,11 @@ struct lua_lexical_table *lua_lexical_table_alloc()
 	if (!self) MALLOC_ERR_EXIT("struct lexer (for lua)");
 
 	*self = (struct lua_lexical_table) {
-		.identifier = identifiers,
-		.keyword = keyword,
-		.number = number,
+		.block_string = block_string,
 		.string = string,
-		.multi_line_string = multi_line_string,
+		.identifier = identifiers,
+		.number = number,
+		.keyword = keyword,
 		.character = character,
 		.invalid = invalid,
 		.what_invalid = what_invalid,
@@ -59,20 +59,20 @@ struct lua_lexical_table *lua_lexical_table_alloc()
 
 void lua_lexical_table_append_to_data_array(struct lua_lexical_table *self, struct data_array *data_array)
 {
-	data_array_push_frequency(data_array, &self->identifier);
-	data_array_push_frequency(data_array, &self->keyword);
-	data_array_push_frequency(data_array, &self->number);
+	data_array_push_frequency(data_array, &self->block_string);
 	data_array_push_frequency(data_array, &self->string);
-	data_array_push_frequency(data_array, &self->multi_line_string);
+	data_array_push_frequency(data_array, &self->identifier);
+	data_array_push_frequency(data_array, &self->number);
+	data_array_push_frequency(data_array, &self->keyword);
 	data_array_push_frequency(data_array, &self->character);
 	data_array_push_frequency(data_array, &self->invalid);
 	data_array_push_frequency(data_array, &self->what_invalid);
 
-	self->identifier = NULL;
-	self->keyword = NULL;
-	self->number = NULL;
+	self->block_string = NULL;
 	self->string = NULL;
-	self->multi_line_string = NULL;
+	self->identifier = NULL;
+	self->number = NULL;
+	self->keyword = NULL;
 	self->character = NULL;
 	self->invalid = NULL;
 	self->what_invalid = NULL;
@@ -82,11 +82,11 @@ void lua_lexical_table_drop(struct lua_lexical_table **self)
 {
 	if (!self || !(*self)) return;
 
-	frequency_drop(&(*self)->identifier);
-	frequency_drop(&(*self)->keyword);
+	frequency_drop(&(*self)->block_string);
 	frequency_drop(&(*self)->string);
+	frequency_drop(&(*self)->identifier);
 	frequency_drop(&(*self)->number);
-	frequency_drop(&(*self)->multi_line_string);
+	frequency_drop(&(*self)->keyword);
 	frequency_drop(&(*self)->character);
 	frequency_drop(&(*self)->invalid);
 	frequency_drop(&(*self)->what_invalid);
