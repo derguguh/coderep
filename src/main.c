@@ -1,10 +1,11 @@
+#include "coderep/allocator/arena.h"
 #include "coderep/cli/cli.h"
 #include "coderep/data_array.h"
 #include "coderep/macros.h"
 
 #include <stdbool.h>
 
-int main(int argc, const char **argv)
+void execute_cli(const char **argv, int argc)
 {
 	struct cli *cli = cli_alloc();
 
@@ -20,5 +21,12 @@ int main(int argc, const char **argv)
 	}
 
 	cli_drop(&cli);
+}
+
+int main(int argc, const char **argv)
+{
+	struct arena *arena = arena_alloc(DEFAULT_BLOCK_SIZE);
+
+	arena_drop(&arena);
 }
 

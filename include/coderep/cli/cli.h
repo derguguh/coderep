@@ -1,7 +1,6 @@
 #ifndef CODEREP_CLI_CLI_H
 #define CODEREP_CLI_CLI_H
 
-#include "coderep/cli/help.h"
 #include "coderep/cli/lang.h"
 #include "coderep/cli/input.h"
 #include "coderep/cli/filter.h"
@@ -33,15 +32,9 @@ struct cli {
 	struct data data;
 };
 
-static const struct flags_table TABLE[] = {
-	{ NULL, "--help", (parse_function_t)help_print },
-	{ NULL, "--lang", (parse_function_t)lang_parse },
-	{ NULL, "--input", (parse_function_t)input_parse },
-	{ NULL, "--filter", (parse_function_t)filter_parse },
-	{ NULL, "--data", (parse_function_t)data_parse },
-};
+extern const struct flags_table TABLE[];
 
-static const size_t TABLE_L = sizeof(TABLE) / sizeof(struct flags_table);
+extern const size_t TABLE_L;
 
 struct cli *cli_alloc();
 

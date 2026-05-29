@@ -25,7 +25,7 @@ void general_lexer_push_and_advance(struct file *file, struct string *string)
 	file_advance(file);
 }
 
-enum general_token_type general_lexer_word(struct file *file, struct general_lexical_table *table)
+enum general_token_type general_lexer_word(struct file *file, struct general_lexical_table *table, struct string *string)
 {
 	struct string *word = string_alloc();
 
@@ -34,7 +34,8 @@ enum general_token_type general_lexer_word(struct file *file, struct general_lex
 		general_lexer_push_and_advance(file, word);
 	}
 
-	frequency_push(table->word, &word);
+	struct string *clone = string_clone(word);
+	frequency_push(table->word, &clone);
 
 	return TOKEN_TYPE_WORD;
 }
@@ -63,7 +64,7 @@ enum general_token_type general_lexer_read_number(struct file *file, struct stri
 	return type;
 }
 
-enum general_token_type general_lexer_number(struct file *file, struct general_lexical_table *table)
+enum general_token_type general_lexer_number(struct file *file, struct general_lexical_table *table, struct string *string)
 {
 	struct string *number = string_alloc();
 	enum general_token_type token = TOKEN_TYPE_LIT_INTEGER;
@@ -78,7 +79,8 @@ enum general_token_type general_lexer_number(struct file *file, struct general_l
 		token = TOKEN_TYPE_LIT_DECIMAL;
 	}
 
-	frequency_push(table->number, &number);
+	struct string *clone = string_clone(number);
+	frequency_push(table->number, &clone);
 
 	return token;
 }
@@ -124,9 +126,8 @@ enum general_token_type general_read_ascii(struct file *file)
 	};
 }
 
-enum general_token_type general_lexer_characters(struct file *file, struct general_lexical_table *table)
+enum general_token_type general_lexer_characters(struct file *file, struct general_lexical_table *table, struct string *symbol)
 {
-	struct string *symbol = string_alloc();
 	enum general_token_type token = TOKEN_TYPE_CHAR_UTF8;
 
 	unsigned char b = file->buffer->char_;
@@ -140,19 +141,21 @@ enum general_token_type general_lexer_characters(struct file *file, struct gener
 
 	for (int i = 0; i < utf8_len; i++) general_lexer_push_and_advance(file, symbol);
 
-	if (token == TOKEN_TYPE_UNKNOWN) frequency_push(table->unknown, &symbol);
-	else frequency_push(table->character, &symbol);
+	struct string *clone = string_clone(symbol);
+	if (token == TOKEN_TYPE_UNKNOWN) frequency_push(table->unknown, &clone);
+	else frequency_push(table->character, &clone);
 
 	return token;
 }
 
-enum general_token_type general_lexer_next(struct file *file, struct general_lexical_table *table)
+enum general_token_type general_lexer_next(struct file *file, struct general_lexical_table *table, struct string *string)
 {
 	general_lexer_skip_whitespaces(file);
+	string_clear(string);
 
 	if	(file->buffer->char_ == EOF) return TOKEN_TYPE_EOF;
-	else if (isalpha(file->buffer->char_) || file->buffer->char_ == '_') return general_lexer_word(file, table);
-	else if (isdigit(file->buffer->char_)) return general_lexer_number(file, table);
-	else return general_lexer_characters(file, table);
+	else if (isalpha(file->buffer->char_) || file->buffer->char_ == '_') return general_lexer_word(file, table, string);
+	else if (isdigit(file->buffer->char_)) return general_lexer_number(file, table, string);
+	else return general_lexer_characters(file, table, string);
 }
 

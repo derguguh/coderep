@@ -7,6 +7,6 @@
 
 #include <stddef.h>
 
-enum general_token_type general_lexer_next(struct file *file, struct general_lexical_table *table);
+enum general_token_type general_lexer_next(struct file *file, struct general_lexical_table *table, struct string *string);
 
 #endif

@@ -15,6 +15,7 @@ struct data_array *general_parse(const struct input *input)
 	struct general_lexical_table *lexical_table = general_lexical_table_alloc();
 
 	struct file *file = file_alloc();
+	struct string *string = string_alloc();
 
 	for (size_t i = 0; i < input->files_l; i++) {
 
@@ -27,10 +28,11 @@ struct data_array *general_parse(const struct input *input)
 				ANSI_ESC ANSI_GREEN "]"
 				ANSI_ESC ANSI_RESET " \n", i, input->files_l, input->files[i]);
 
-		enum general_token_type token = general_lexer_next(file, lexical_table);
-		while (token != TOKEN_TYPE_EOF) token = general_lexer_next(file, lexical_table);
+		enum general_token_type token = general_lexer_next(file, lexical_table, string);
+		while (token != TOKEN_TYPE_EOF) token = general_lexer_next(file, lexical_table, string);
 	}
 
+	string_drop(&string);
 	file_drop(&file);
 
 	general_lexical_table_append_to_data_array(lexical_table, data_array);

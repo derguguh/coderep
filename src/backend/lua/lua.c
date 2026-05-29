@@ -15,6 +15,7 @@ struct data_array *lua_parse(const struct input *input)
 	struct lua_lexical_table *lexical_table = lua_lexical_table_alloc();
 
 	struct file *file = file_alloc();
+	struct string *string = string_alloc();
 
 	for (size_t i = 0; i < input->files_l; i++) {
 
@@ -32,6 +33,7 @@ struct data_array *lua_parse(const struct input *input)
 		while (token.type != TOKEN_TYPE_EOF) token = lua_lexer_next(file, lexical_table);
 	}
 
+	string_drop(&string);
 	file_drop(&file);
 
 	lua_lexical_table_append_to_data_array(lexical_table, data_array);

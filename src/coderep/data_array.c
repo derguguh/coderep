@@ -4,23 +4,22 @@
 
 #include <stdlib.h>
 
+const size_t DATA_ARRAY_DEFAULT_CAPACITY = 20;
+
 struct data_array *data_array_alloc()
 {
 	struct brute **brutes = calloc(sizeof(struct brute *), DEFAULT_CAPACITY);
-	struct list **lists = calloc(sizeof(struct list *), DEFAULT_CAPACITY);
 	struct frequency **frequencies = calloc(sizeof(struct frequency *), DEFAULT_CAPACITY);
 
 	struct data_array *self = malloc(sizeof(struct data_array));
 
-	if (!self || !brutes || !lists || !frequencies) goto defer;
+	if (!self || !brutes || !frequencies) goto defer;
 
 	*self = (struct data_array) {
 		.brutes = brutes,
-		.lists = lists,
 		.frequencies = frequencies,
 
 		.brutes_c = DEFAULT_CAPACITY,
-		.lists_c = DEFAULT_CAPACITY,
 		.frequencies_c = DEFAULT_CAPACITY,
 	};
 
@@ -28,7 +27,6 @@ struct data_array *data_array_alloc()
 defer:
 	free(self);
 	free(brutes);
-	free(lists);
 	free(frequencies);
 
 	MALLOC_ERR_EXIT("struct data_array (backend outputs)");
@@ -64,11 +62,6 @@ void data_array_push_brute(struct data_array *self, struct brute **brute)
 	push_generic_array((void ***)&self->brutes, &self->brutes_l, &self->brutes_c, (void **)brute);
 }
 
-void data_array_push_list(struct data_array *self, struct list **list)
-{
-	push_generic_array((void ***)&self->lists, &self->lists_l, &self->lists_c, (void **)list);
-}
-
 void data_array_push_frequency(struct data_array *self, struct frequency **frequency)
 {
 	push_generic_array((void ***)&self->frequencies, &self->frequencies_l, &self->frequencies_c, (void **)frequency);
@@ -77,7 +70,6 @@ void data_array_push_frequency(struct data_array *self, struct frequency **frequ
 void data_array_print(struct data_array *self, struct data output_options)
 {
 	for (int i = 0; i < self->brutes_l; i++) brute_print(self->brutes[i], output_options.brute);
-	for (int i = 0; i < self->lists_l; i++) list_print(self->lists[i]);
 	for (int i = 0; i < self->frequencies_l; i++) frequency_print(self->frequencies[i], output_options.frequency);
 }
 
@@ -86,7 +78,6 @@ void data_array_drop(struct data_array **self)
 	if (!self || !(*self)) return;
 
 	for (int i = 0; i < (*self)->brutes_l; i++) brute_drop(&(*self)->brutes[i]);
-	for (int i = 0; i < (*self)->lists_l; i++) list_drop(&(*self)->lists[i]);
 	for (int i = 0; i < (*self)->frequencies_l; i++) frequency_drop(&(*self)->frequencies[i]);
 	free((*self)->brutes);
 	free((*self)->lists);

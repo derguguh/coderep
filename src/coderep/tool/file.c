@@ -1,15 +1,16 @@
 #include "coderep/tool/file.h"
 
+#include "coderep/allocator/allocator.h"
 #include "coderep/data_type/string.h"
 #include "coderep/tool/file_buffer.h"
 #include "coderep/macros.h"
 
 #include <stdlib.h>
 
-struct file *file_alloc()
+struct file *file_alloc(struct allocator *allocator)
 {
-	struct file_buffer *buffer = file_buffer_alloc();
-	struct string *line_buffer = string_alloc();
+	struct file_buffer *buffer = file_buffer_alloc(allocator);
+	struct string *line_buffer = string_alloc(allocator, 128);
 	struct file *self = malloc(sizeof(struct file));
 	
 	if (!self) goto defer;
@@ -93,11 +94,13 @@ void file_print(const struct file *self, bool trim_spaces)
 void file_drop(struct file **self)
 {
 	if (!self || !(*self)) return;
+	struct file *tmp = *self;
+	struct allocator *allocator = tmp->buffer->allocator;
 
-	file_buffer_drop(&(*self)->buffer);
-	string_drop(&(*self)->line_buffer);
+	string_drop(&tmp->line_buffer);
+	file_buffer_drop(&tmp->buffer);
+	allocator->deallocate(allocator->state, *self);
 
-	free(*self);
 	*self = NULL;
 }
 

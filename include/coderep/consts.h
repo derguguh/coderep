@@ -30,6 +30,8 @@ enum error_code {
 	// File handling
 	ERROR_CODE_UNKNOWN_FILE,
 	ERROR_CODE_EMPTY_FILE,
+	// Others
+	ERROR_CODE_UNSUPPORTED,
 };
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef CODEREP_BACKEND_H
-#define CODEREP_BACKEND_H
+#ifndef CODEREP_BACKEND_BACKEND_H
+#define CODEREP_BACKEND_BACKEND_H
 
 #include "backend/general/general.h"
 #include "backend/lua/lua.h"
