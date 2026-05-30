@@ -1,5 +1,6 @@
 #include "coderep/cli/help.h"
-#include "coderep/backend.h"
+
+#include "backend/backend.h"
 #include "coderep/cli/data.h"
 
 #include <stdio.h>

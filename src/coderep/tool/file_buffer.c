@@ -1,5 +1,6 @@
 #include "coderep/tool/file_buffer.h"
 
+#include "coderep/allocator/allocator.h"
 #include "coderep/macros.h"
 
 #include <assert.h>
@@ -14,7 +15,9 @@ struct file_buffer *file_buffer_alloc(struct allocator *allocator)
 
 	if (!self) MALLOC_ERR_EXIT("struct file_buffer for lua");
 
-	*self = (struct file_buffer) {};
+	*self = (struct file_buffer) {
+		.allocator = allocator,
+	};
 
 	return self;
 }

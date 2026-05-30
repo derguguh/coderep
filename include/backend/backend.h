@@ -1,24 +1,36 @@
 #ifndef CODEREP_BACKEND_BACKEND_H
 #define CODEREP_BACKEND_BACKEND_H
 
-#include "backend/general/general.h"
-#include "backend/lua/lua.h"
+#include "coderep/cli/data.h"
+#include "coderep/cli/input.h"
+#include "coderep/tool/file.h"
 
 #include <stddef.h>
 
-typedef struct data_array *(*parse_files_t)(const struct input *files);
+struct backend_data {
+	struct arena *allocator;
+	struct data_array *array;
+	void *context;
+};
+
+typedef size_t (*request_t)();
+typedef void (*init_t)(struct backend_data *data);
+typedef void (*parse_file_t)(struct backend_data *data, struct arena *temp_allocator, struct file *file);
+typedef void (*deinit_t)(struct backend_data *data);
 
 struct backend {
 	const char *const name;
 	const char *const identifier;
-	parse_files_t parsing_function;
+	request_t _request_function;
+	init_t _init_function;
+	parse_file_t parsing_function;
+	deinit_t _deinit_function;
 };
 
-static const struct backend BACKEND_REGISTER[] = {
-	{ "Lua", "lua", lua_parse },
-	{ "General text", "general", general_parse },
-};
+extern const struct backend BACKEND_REGISTER[];
 
-static const size_t BACKEND_REGISTER_L = sizeof(BACKEND_REGISTER) / sizeof(struct backend);
+extern const size_t BACKEND_REGISTER_L;
+
+struct data_array *backend_parse(const struct backend *backend, struct arena *allocator, struct input *input, struct data output_modes);
 
 #endif

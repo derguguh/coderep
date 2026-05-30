@@ -44,7 +44,14 @@ struct arena *arena_alloc(size_t block_size)
 	if (!self) goto defer;
 
 	*self = (struct arena) {
+		.abstract = (struct allocator) {
+			.state = self,
+			.allocate = (allocate_t)arena_allocate,
+			.reallocate = (reallocate_t)arena_reallocate,
+			.deallocate = (deallocate_t)arena_deallocate,
+		},
 		.block = block,
+		.active_block = block,
 		.block_size = block_size,
 		.current_block = 1,
 	};
@@ -56,24 +63,21 @@ defer:
 
 void *arena_allocate(struct arena *self, size_t size)
 {
-	struct block *block = self->block;
-	for (int i = 1; i < self->current_block; i++) block = block->_next;
-
 	size = PACKET_ALIGN(size);
 	self->used += size;
 
 	if (self->current_block * self->block_size < self->used) {
-		if (block->_next == NULL) block->_next = block_alloc(self->block_size);
+		if (self->active_block->_next == NULL) self->active_block->_next = block_alloc(self->block_size);
 
-		block = block->_next;
+		self->active_block = self->active_block->_next;
 		self->current_block++;
 		self->block_offset = 0;
 	}
 
-	void *pointer = block->mem + self->block_offset;
+	void *pointer = self->active_block->mem + self->block_offset;
 	self->block_offset += size;
 
-	self->packets_allocated += size >> 3;
+	self->packets_allocated += size / PACKET_SIZE;
 
 	return pointer;
 }
@@ -89,26 +93,20 @@ void  arena_deallocate(struct arena *self, void *pointer)
 	self->deallocation_tries++;
 }
 
-void  arena_clean(struct arena *self)
+void  arena_clear(struct arena *self)
 {
 	self->used = 0;
 	self->current_block = 0;
-}
-
-struct allocator arena_get_allocator(struct arena *self)
-{
-	return (struct allocator) {
-		.state = self,
-		.allocate = (allocate_t)arena_allocate,
-		.reallocate = (reallocate_t)arena_reallocate,
-		.deallocate = (deallocate_t)arena_deallocate,
-	};
 }
 
 void  arena_drop(struct arena **self)
 {
 	if (!self || !(*self)) return;
 
+	printf("Was need %lu new blocks\n", (*self)->current_block);
+	printf("Packets used: %lu\n", (*self)->packets_allocated);
+
+	(*self)->active_block = NULL;
 	block_drop(&(*self)->block);
 
 	default_deallocate(NULL, *self);

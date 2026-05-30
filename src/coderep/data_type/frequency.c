@@ -37,6 +37,33 @@ defer:
 	MALLOC_ERR_EXIT("struct frequency");
 }
 
+bool frequency_has(struct frequency *self, const struct string *value)
+{
+	size_t bucket = string_hash(value) % self->buckets_count;
+	struct node *node = self->buckets[bucket];
+
+	if (node == NULL) return false;
+	else return node_has(node, value);
+}
+
+bool frequency_increment(struct frequency *self, const struct string *value)
+{
+	size_t bucket = string_hash(value) % self->buckets_count;
+	struct node *node = self->buckets[bucket];
+
+	if (node == NULL) return false;
+	else return node_increment(node, value);
+}
+
+void frequency_intern(struct frequency *self, const struct string *value)
+{
+	if (frequency_has(self, value)) frequency_increment(self, value);
+	else {
+		struct string *cloned = string_clone(value, self->allocator, true);
+		frequency_push(self, &cloned);
+	}
+}
+
 void frequency_push(struct frequency *self, struct string **value)
 {
 	size_t bucket = string_hash(*value) % self->buckets_count;

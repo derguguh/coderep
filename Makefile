@@ -1,5 +1,9 @@
 CC = clang
-CFLAGS ?= -MMD -MP -I include/ -g -Wall
+
+DEBUG_CFLAGS = -MMD -MP -I include/ -g -Wall
+RELEASE_CFLAGS = -MMD -MP -I include/ -O2 -DNDEBUG -Wall
+
+CFLAGS ?= $(DEBUG_CFLAGS)
 install_prefix ?= ~/.local/bin
 
 build_dir := build
@@ -14,9 +18,15 @@ dependencies := $(objects:.o=.d)
 target := coderep
 commands := compile_commands.json
 
-.PHONY: all analyse bear clean install
+.PHONY: all debug release analyse bear clean install
 
 all: $(build_dir)/$(target)
+
+debug:
+	$(MAKE) CFLAGS="$(DEBUG_CFLAGS)"
+
+release:
+	$(MAKE) CFLAGS="$(RELEASE_CFLAGS)"
 
 # Change "general" to "c" later
 analyse:
@@ -36,6 +46,7 @@ clean:
 	rm -rf $(build_dir)/*
 
 install:
+	mkdir -p $(install_prefix)
 	cp $(build_dir)/$(target) $(install_prefix)/$(target)
 
 -include $(dependencies)

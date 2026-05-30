@@ -16,7 +16,9 @@ struct block {
 };
 
 struct arena {
+	struct allocator abstract;
 	struct block *block;
+	struct block *active_block;
 	size_t block_size;
 	size_t used;
 	size_t current_block;
@@ -34,9 +36,7 @@ void *arena_reallocate(struct arena *self, void *original_pointer, size_t new_si
 
 void  arena_deallocate(struct arena *self, void *pointer);
 
-void  arena_clean(struct arena *self);
-
-struct allocator arena_get_allocator(struct arena *self);
+void  arena_clear(struct arena *self);
 
 void  arena_drop(struct arena **self);
 

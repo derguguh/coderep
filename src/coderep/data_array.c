@@ -6,10 +6,16 @@
 
 const size_t DATA_ARRAY_DEFAULT_CAPACITY = 20;
 
+struct generic_array {
+	void **ptr;
+	size_t length;
+	size_t capacity;
+};
+
 struct data_array *data_array_alloc()
 {
-	struct brute **brutes = calloc(sizeof(struct brute *), DEFAULT_CAPACITY);
-	struct frequency **frequencies = calloc(sizeof(struct frequency *), DEFAULT_CAPACITY);
+	struct brute **brutes = calloc(sizeof(struct brute *), DATA_ARRAY_DEFAULT_CAPACITY);
+	struct frequency **frequencies = calloc(sizeof(struct frequency *), DATA_ARRAY_DEFAULT_CAPACITY);
 
 	struct data_array *self = malloc(sizeof(struct data_array));
 
@@ -19,8 +25,8 @@ struct data_array *data_array_alloc()
 		.brutes = brutes,
 		.frequencies = frequencies,
 
-		.brutes_c = DEFAULT_CAPACITY,
-		.frequencies_c = DEFAULT_CAPACITY,
+		.brutes_c = DATA_ARRAY_DEFAULT_CAPACITY,
+		.frequencies_c = DATA_ARRAY_DEFAULT_CAPACITY,
 	};
 
 	return self;
@@ -32,13 +38,14 @@ defer:
 	MALLOC_ERR_EXIT("struct data_array (backend outputs)");
 }
 
-static inline void resize_generic_array(void ***data_o, size_t new_size)
+static inline void resize_generic_expand(struct generic_array *array)
 {
-	void **tmp = realloc(*data_o, sizeof(void *) * new_size);
+	array->capacity *= 2;
+	void **tmp = realloc(array->ptr, sizeof(void *) * array->capacity);
 
 	if (!tmp) goto defer;
 
-	*data_o = tmp;
+	array->ptr = tmp;
 
 	return;
 defer:
@@ -46,25 +53,42 @@ defer:
 	exit(ERROR_CODE_MEMORY_REALLOCATION);
 }
 
-static inline void push_generic_array(void ***data_o, size_t *length_o, size_t *capacity_o, void **value)
+static inline void push_generic_array(struct generic_array *array, void **value)
 {
-	if (*length_o >= *capacity_o) {
-		*capacity_o *= 2;
-		resize_generic_array(data_o, *capacity_o);
-	}
+	if (array->length >= array->capacity) resize_generic_expand(array);
 
-	(*data_o)[*length_o] = *value;
-	(*length_o)++;
+	array->ptr[array->length] = *value;
+	array->length++;
+
+	*value = NULL;
 }
 
 void data_array_push_brute(struct data_array *self, struct brute **brute)
 {
-	push_generic_array((void ***)&self->brutes, &self->brutes_l, &self->brutes_c, (void **)brute);
+	struct generic_array array = {
+		.ptr = (void **)self->brutes,
+		.length = self->brutes_l,
+		.capacity = self->brutes_c,
+	};
+	push_generic_array(&array, (void **)brute);
+
+	self->brutes = (struct brute **)array.ptr;
+	self->brutes_l = array.length;
+	self->brutes_c = array.capacity;
 }
 
 void data_array_push_frequency(struct data_array *self, struct frequency **frequency)
 {
-	push_generic_array((void ***)&self->frequencies, &self->frequencies_l, &self->frequencies_c, (void **)frequency);
+	struct generic_array array = {
+		.ptr = (void **)self->frequencies,
+		.length = self->frequencies_l,
+		.capacity = self->frequencies_c,
+	};
+	push_generic_array(&array, (void **)frequency);
+
+	self->frequencies = (struct frequency **)array.ptr;
+	self->frequencies_l = array.length;
+	self->frequencies_c = array.capacity;
 }
 
 void data_array_print(struct data_array *self, struct data output_options)
@@ -80,10 +104,8 @@ void data_array_drop(struct data_array **self)
 	for (int i = 0; i < (*self)->brutes_l; i++) brute_drop(&(*self)->brutes[i]);
 	for (int i = 0; i < (*self)->frequencies_l; i++) frequency_drop(&(*self)->frequencies[i]);
 	free((*self)->brutes);
-	free((*self)->lists);
 	free((*self)->frequencies);
 	(*self)->brutes = NULL;
-	(*self)->lists = NULL;
 	(*self)->frequencies = NULL;
 
 	free(*self);

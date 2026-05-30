@@ -12,6 +12,8 @@ struct file {
 	size_t line;
 };
 
+extern const size_t RING_LINE_BUFFER_SIZE;
+
 struct file *file_alloc(struct allocator *allocator);
 
 bool file_open(struct file *self, const char *const file_path);

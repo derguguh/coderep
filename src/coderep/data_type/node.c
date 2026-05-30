@@ -24,6 +24,26 @@ defer:
 	MALLOC_ERR_EXIT("struct node");
 }
 
+bool node_has(struct node *self, const struct string *value)
+{
+	if (string_is_equal(self->value, value)) return true;
+	else {
+		if (self->_next == NULL) return false;
+		else return node_has(self->_next, value);
+	}
+}
+
+bool node_increment(struct node *self, const struct string *value)
+{
+	if (string_is_equal(self->value, value)) {
+		self->count++;
+		return true;
+	} else {
+		if (self->_next == NULL) return false;
+		else return node_increment(self->_next, value);
+	}
+}
+
 int node_push(struct node *self, struct allocator *allocator, struct string **value, int index)
 {
 	if (string_is_equal(self->value, *value)) {
