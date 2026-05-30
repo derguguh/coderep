@@ -1,16 +1,20 @@
 #include "coderep/tool/file.h"
 
+#include "coderep/allocator/allocator.h"
 #include "coderep/data_type/string.h"
 #include "coderep/tool/file_buffer.h"
 #include "coderep/macros.h"
 
 #include <stdlib.h>
+#include <string.h>
 
-struct file *file_alloc()
+const size_t RING_LINE_BUFFER_SIZE = 40;
+
+struct file *file_alloc(struct allocator *allocator)
 {
-	struct file_buffer *buffer = file_buffer_alloc();
-	struct string *line_buffer = string_alloc();
-	struct file *self = malloc(sizeof(struct file));
+	struct file_buffer *buffer = file_buffer_alloc(allocator);
+	struct string *line_buffer = string_alloc(allocator, 100);
+	struct file *self = allocator->allocate(allocator->state, sizeof(struct file));
 	
 	if (!self) goto defer;
 
@@ -35,6 +39,12 @@ bool file_open(struct file *self, const char *const file_path)
 	return file_buffer_open(self->buffer, file_path);
 }
 
+void file_reset_line_buffer(struct file *self)
+{
+	memmove(self->line_buffer->chars, self->line_buffer->chars + RING_LINE_BUFFER_SIZE, RING_LINE_BUFFER_SIZE);
+	self->line_buffer->length = RING_LINE_BUFFER_SIZE;
+}
+
 void file_advance(struct file *self)
 {
 	if (self->buffer->char_ == '\n') {
@@ -46,35 +56,48 @@ void file_advance(struct file *self)
 	file_buffer_advance(self->buffer);
 
 	if (self->buffer->char_ != '\n') {
+		if (self->line_buffer->length > RING_LINE_BUFFER_SIZE * 2) file_reset_line_buffer(self);
+
 		string_push(self->line_buffer, self->buffer->char_);
 		self->column++;
 	}
 }
 
-void file_print_error(const struct file *self, const char *const error_text, int error_length)
+void file_print_line_buffer(const struct file *self)
+{
+	if (self->line_buffer->length > RING_LINE_BUFFER_SIZE) {
+		size_t offset = self->line_buffer->length;
+
+		printf("...%.*s", (int)RING_LINE_BUFFER_SIZE, self->line_buffer->chars + offset);
+
+	} else string_print(self->line_buffer);
+}
+
+void file_print_error(const struct file *self, const char *const error_text, size_t error_length)
 {
 	if (error_length > self->column) {
-		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %d passed to 'file_print_error' is bigger than 'file->column' %lu. Will be truncated",
+		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %zu passed to 'file_print_error' is bigger than 'file->column' %lu. Will be truncated",
 				error_length, self->column);
 
 		error_length = self->column;
 	} else if (error_length < 1) {
-		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %d passed to 'file_print_error' is less than 1, "
+		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %zu passed to 'file_print_error' is less than 1, "
 				"which means it don't have anything to be printed. Will be set to 1\n",
 				error_length);
 
 		error_length = 1;
 	}
 
-	printf(ANSI_ERR "%lu;%lu in %s\n\tError message: %s\n\t|", self->line, self->column, self->buffer->_file_name, error_text);
-	string_print(self->line_buffer);
-	printf("\n\t ");
+	printf(ANSI_ERR "%zu;%zu in %-60s\n\t|%s\n\t|", self->line, self->column, self->buffer->_file_name, error_text);
+	file_print_line_buffer(self);
+	printf("\n\t|");
 
 	size_t tab_count = string_count(self->line_buffer, '\t');
-	size_t tab_as_space_count = tab_count == 0 ? 0 : tab_count * 8 - 2;
+	size_t extra_spaces = tab_count == 0 ? 0 : tab_count * 8 - 2;
+	if (self->line_buffer->length > RING_LINE_BUFFER_SIZE) extra_spaces += 3;
 
-	for (int i = 0; i < self->column - error_length + tab_as_space_count; i++) putchar(' ');
-	for (int i = 0; i < error_length - 1; i++) putchar('~');
+	for (size_t i = 0; i < self->column - error_length + extra_spaces; i++) putchar(' ');
+	for (size_t i = 0; i < error_length - 1; i++) putchar('~');
 	puts("^\n");
 }
 
@@ -85,19 +108,21 @@ void file_print(const struct file *self, bool trim_spaces)
 	file_buffer_print(self->buffer, trim_spaces);
 	printf("\tLine Buffer: ");
 	string_print(self->line_buffer);
-	printf("\n\tLine: %lu\n", self->line);
-	printf("\tColumn: %lu\n", self->column);
+	printf("\n\tLine: %zu\n", self->line);
+	printf("\tColumn: %zu\n", self->column);
 	puts("}\n");
 }
 
 void file_drop(struct file **self)
 {
 	if (!self || !(*self)) return;
+	struct file *tmp = *self;
+	struct allocator *allocator = tmp->buffer->allocator;
 
-	file_buffer_drop(&(*self)->buffer);
-	string_drop(&(*self)->line_buffer);
+	string_drop(&tmp->line_buffer);
+	file_buffer_drop(&tmp->buffer);
+	allocator->deallocate(allocator->state, *self);
 
-	free(*self);
 	*self = NULL;
 }
 

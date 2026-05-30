@@ -1,52 +1,61 @@
 #include "coderep/data_type/string.h"
 
+#include "coderep/allocator/allocator.h"
 #include "coderep/macros.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-#define INITIAL_CAPACITY 4
+const size_t STRING_DEFAULT_INITIAL_CAPACITY = 8;
 
-struct string *string_alloc()
+struct string *string_alloc(struct allocator *allocator, size_t initial_capacity)
 {
-	struct string *string = malloc(sizeof(struct string));
-	char *chars = calloc(1, INITIAL_CAPACITY);
+	if (initial_capacity == 0) initial_capacity = STRING_DEFAULT_INITIAL_CAPACITY;
 
-	if (!string || !chars) goto defer;
+	struct string *self = allocator->allocate(allocator->state, sizeof(struct string));
+	char *chars = allocator->allocate(allocator->state, initial_capacity);
 
-	*string = (struct string) {
-		.capacity = INITIAL_CAPACITY,
+	if (!self || !chars) goto defer;
+
+	memset(chars, 0, initial_capacity);
+
+	*self = (struct string) {
+		.allocator = allocator,
+		.capacity = initial_capacity,
 		.chars = chars,
 	};
 
-	return string;
+	return self;
 
 defer:
-	free(string);
-	free(chars);
+	allocator->deallocate(allocator->state, self);
+	allocator->deallocate(allocator->state, chars);
 
 	MALLOC_ERR_EXIT("struct string");
 }
-
-struct string *string_from_cstr(const char *const cstr)
+struct string *string_from_cstr(struct allocator *allocator, const char *const cstr)
 {
-	struct string *string = string_alloc();
-	string_append_cstr(string, cstr);
+	size_t cstr_l = strlen(cstr) + 1;
+	struct string *self = string_alloc(allocator, cstr_l);
 
-	return string;
+	memcpy(self->chars, cstr, cstr_l);
+	self->length = cstr_l;
+
+	return self;
 }
 
-struct string *string_clone(const struct string *self)
+struct string *string_clone(const struct string *self, struct allocator *allocator, bool trimmed)
 {
-	struct string *string = string_alloc();
-	string_append(string, self);
+	struct string *new = string_alloc(allocator, trimmed ? self->length : self->capacity);
 
-	return string;
+	string_append(new, self);
+
+	return new;
 }
 
 void string_resize(struct string *self, size_t new_capacity)
 {
-	char *tmp = realloc(self->chars, new_capacity);
+	char *tmp = self->allocator->reallocate(self->allocator->state, self->chars, new_capacity);
 	if (!tmp) goto defer;
 	
 	if (self->length > new_capacity) self->length = new_capacity;
@@ -156,17 +165,18 @@ void string_clear(struct string *self)
 
 void string_print(const struct string *self)
 {
-	for (int i = 0; i < self->length; i++) putchar(self->chars[i]);
+	for (size_t i = 0; i < self->length; i++) putchar(self->chars[i]);
 }
 
 void string_drop(struct string **self)
 {
 	if (!self || !(*self)) return;
+	struct string *tmp = *self;
 
-	free((*self)->chars);
-	(*self)->chars = NULL;
+	tmp->allocator->deallocate(tmp->allocator->state, (tmp->chars));
+	tmp->chars = NULL;
 
-	free(*self);
-	(*self) = NULL;
+	tmp->allocator->deallocate(tmp->allocator->state, *self);
+	*self = NULL;
 }
 

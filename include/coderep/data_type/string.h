@@ -1,6 +1,7 @@
 #ifndef CODEREP_DATA_TYPES_STRING_H
 #define CODEREP_DATA_TYPES_STRING_H
 
+#include "coderep/allocator/allocator.h"
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -14,6 +15,7 @@
  *  It CAN be used as C string with a conversion with string_to_cstr, but only after this
  */
 struct string {
+	struct allocator *allocator;
 	char  *chars;
 	size_t capacity;
 	size_t length;
@@ -26,11 +28,12 @@ struct string_slice {
 	const size_t offset;
 };
 
-// Allocators
-struct string *string_alloc();
-struct string *string_from_cstr(const char *const cstr);
-struct string *string_from_slice(const struct string_slice slice);
-struct string *string_clone(const struct string *self);
+extern const size_t STRING_DEFAULT_INITIAL_CAPACITY;
+
+// Allocations
+struct string *string_alloc(struct allocator *allocator, size_t initial_capacity);
+struct string *string_from_cstr(struct allocator *allocator, const char *const cstr);
+struct string *string_clone(const struct string *self, struct allocator *allocator, bool trimmed);
 
 // Resizing
 void string_resize(struct string *self, size_t new_capacity);

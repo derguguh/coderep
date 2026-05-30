@@ -1,14 +1,17 @@
 #ifndef CODEREP_TOOLS_BUFFER_FILE_H
 #define CODEREP_TOOLS_BUFFER_FILE_H
 
+#include "coderep/allocator/allocator.h"
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stddef.h>
 
 #define BUFFER_SIZE_ 4096
-static const size_t BUFFER_SIZE = BUFFER_SIZE_;
+extern const size_t BUFFER_SIZE;
 
 struct file_buffer {
+	struct allocator *allocator;
 	FILE *_file;
 	const char *_file_name;
 	char buffer[BUFFER_SIZE_];
@@ -18,7 +21,7 @@ struct file_buffer {
 	char char_;
 };
 
-struct file_buffer *file_buffer_alloc();
+struct file_buffer *file_buffer_alloc(struct allocator *allocator);
 
 bool file_buffer_open(struct file_buffer *self, const char *const file_path);
 

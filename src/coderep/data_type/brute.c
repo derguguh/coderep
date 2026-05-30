@@ -1,19 +1,17 @@
 #include "coderep/data_type/brute.h"
+
+#include "coderep/allocator/allocator.h"
 #include "coderep/data_type/output_mode.h"
 #include "coderep/macros.h"
 
-#include <stdlib.h>
-
-struct brute *brute_alloc(struct string **name, struct string **value)
+struct brute *brute_alloc(struct allocator *allocator, struct string **name, struct string **value)
 {
-	struct brute *brute = malloc(sizeof(struct brute));
+	struct brute *brute = allocator->allocate(allocator->state, sizeof(struct brute));
 
 	if (!brute) goto defer;
 
-	brute->name = *name;
-	brute->value = *value;
-
 	*brute = (struct brute) {
+		.allocator = allocator,
 		.name = *name,
 		.value = *value,
 	};
@@ -49,7 +47,7 @@ void brute_drop(struct brute **self)
 
 	string_drop(&(*self)->name);
 	string_drop(&(*self)->value);
-	free(*self);
+	(*self)->allocator->deallocate((*self)->allocator->state, *self);
 	*self = NULL;
 }
 

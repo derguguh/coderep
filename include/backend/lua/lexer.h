@@ -1,16 +1,21 @@
 #ifndef BACKEND_LUA_LEXER_H
 #define BACKEND_LUA_LEXER_H
 
-#include "backend/lua/lexical_table.h"
-#include "backend/lua/token.h"
 #include "coderep/tool/file.h"
+struct lua_lexer {
+	struct frequency *string;
+	struct frequency *block_string;
+	struct frequency *identifier;
+	struct frequency *number;
+	struct frequency *keyword;
+	struct frequency *character;
+	struct frequency *invalid;
+	struct frequency *what_invalid;
+	struct string *template_invalid_number;
+	struct string *template_invalid_string;
+	struct string *template_invalid_char;
+};
 
-#include <stddef.h>
-
-enum lua_token_type lua_lexer_identifier_word(struct string *word);
-
-struct lua_token lua_lexer_next(struct file *file, struct lua_lexical_table *table);
-
-void lua_lexer_skip_shebang(struct file *file);
+struct lua_token lua_lexer_next(struct lua_lexer *self, struct file *file, struct string *scratch_buffer);
 
 #endif

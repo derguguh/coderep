@@ -1,13 +1,12 @@
 #include "coderep/data_type/node.h"
 
+#include "coderep/allocator/allocator.h"
 #include "coderep/data_type/string.h"
 #include "coderep/macros.h"
 
-#include <stdlib.h>
-
-struct node *node_alloc(struct string **value)
+struct node *node_alloc(struct allocator *allocator, struct string **value)
 {
-	struct node *node = malloc(sizeof(struct node));
+	struct node *node = allocator->allocate(allocator->state, sizeof(struct node));
 
 	if (!node) goto defer;
 
@@ -25,27 +24,67 @@ defer:
 	MALLOC_ERR_EXIT("struct node");
 }
 
-int node_push(struct node *self, struct string **value)
+bool node_has(struct node *self, const struct string *value)
 {
-	int deep_level = 1;
+	if (string_is_equal(self->value, value)) return true;
+	else {
+		if (self->_next == NULL) return false;
+		else return node_has(self->_next, value);
+	}
+}
+
+bool node_increment(struct node *self, const struct string *value)
+{
+	if (string_is_equal(self->value, value)) {
+		self->count++;
+		return true;
+	} else {
+		if (self->_next == NULL) return false;
+		else return node_increment(self->_next, value);
+	}
+}
+
+int node_push(struct node *self, struct allocator *allocator, struct string **value, int index)
+{
 	if (string_is_equal(self->value, *value)) {
 		self->count++;
 		string_drop(value);
 	} else {
-		if (self->_next == NULL) self->_next = node_alloc(value);
-		else deep_level = node_push(self->_next, value) + 1;
+		if (self->_next == NULL) {
+			self->_next = node_alloc(allocator, value);
+			self->index = index;
+		} else index = node_push(self->_next, allocator, value, index);
 	}
 
-	return deep_level;
+	return index;
 }
 
-void node_drop(struct node **self)
+struct node *node_find(struct node *self, int index)
+{
+	if (self->index == index) return self;
+	else if (self->_next != NULL) return node_find(self->_next, index);
+	else return NULL;
+}
+
+void node_print(struct node *self, bool show_value, bool show_frequency)
+{
+	if (show_value) string_print(self->value);
+	if (show_frequency) printf("(%d)", self->count);
+
+	if (self->_next != NULL) {
+		printf(", ");
+		node_print(self->_next, show_value, show_frequency);
+	}
+}
+
+void node_drop(struct node **self, struct allocator *allocator)
 {
 	if(!self || !(*self)) return;
 
-	node_drop(&(*self)->_next);
+	node_drop(&(*self)->_next, allocator);
 	string_drop(&(*self)->value);
-	free(*self);
+
+	allocator->deallocate(allocator->state, *self);
 
 	*self = NULL;
 }

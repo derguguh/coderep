@@ -16,23 +16,9 @@ struct flag_opt {
 	enum output_mode flag;
 };
 
-static const struct flag_opt FLAGS_OPTS[] = {
-	{ "none",		OUTPUT_MODE_NONE },
-	{ "raw",		OUTPUT_MODE_RAW },
-	{ "min",		OUTPUT_MODE_MIN },
-	{ "avg",		OUTPUT_MODE_AVG },
-	{ "max",		OUTPUT_MODE_MAX },
-	{ "moda",		OUTPUT_MODE_MODA },
-	{ "median",		OUTPUT_MODE_MEDIAN },
-	{ "value",		OUTPUT_MODE_VALUE },
-	{ "frequency",		OUTPUT_MODE_FREQUENCY },
-	{ "count",		OUTPUT_MODE_COUNT },
-	// Mixs
-	{ "distribution",	OUTPUT_MIX_DISTRIBUTION},
-	{ "all",		OUTPUT_MIX_ALL},
-};
+extern const struct flag_opt FLAGS_OPTS[];
 
-static const size_t FLAGS_OPTS_L = sizeof(FLAGS_OPTS) / sizeof(struct flag_opt);
+extern const size_t FLAGS_OPTS_L;
 
 struct data data_create();
 

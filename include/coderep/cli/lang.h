@@ -1,7 +1,7 @@
 #ifndef CODEREP_LANG_H
 #define CODEREP_LANG_H
 
-#include "coderep/backend.h"
+#include "backend/backend.h"
 
 #include <stdbool.h>
 
