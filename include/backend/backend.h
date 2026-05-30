@@ -1,7 +1,6 @@
 #ifndef CODEREP_BACKEND_BACKEND_H
 #define CODEREP_BACKEND_BACKEND_H
 
-#include "coderep/cli/data.h"
 #include "coderep/cli/input.h"
 #include "coderep/tool/file.h"
 
@@ -31,6 +30,6 @@ extern const struct backend BACKEND_REGISTER[];
 
 extern const size_t BACKEND_REGISTER_L;
 
-struct data_array *backend_parse(const struct backend *backend, struct arena *allocator, struct input *input, struct data output_modes);
+struct data_array *backend_parse(const struct backend *backend, struct arena *allocator, struct input *input);
 
 #endif

@@ -11,8 +11,8 @@
 #define PACKET_ALIGN(size) (((size) + PACKET_SIZE - 1) & ~(PACKET_SIZE - 1))
 
 struct block {
-	uint8_t *mem;
 	struct block *_next;
+	uint8_t *mem;
 };
 
 struct arena {
@@ -20,7 +20,6 @@ struct arena {
 	struct block *block;
 	struct block *active_block;
 	size_t block_size;
-	size_t used;
 	size_t current_block;
 	size_t block_offset;
 // Data collection

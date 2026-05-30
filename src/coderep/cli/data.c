@@ -2,6 +2,7 @@
 
 #include "coderep/allocator/allocator.h"
 #include "coderep/consts.h"
+#include "coderep/data_type/output_mode.h"
 #include "coderep/data_type/string.h"
 #include "coderep/macros.h"
 
@@ -21,6 +22,7 @@ const struct flag_opt FLAGS_OPTS[] = {
 	{ "count",		OUTPUT_MODE_COUNT },
 	// Mixs
 	{ "distribution",	OUTPUT_MIX_DISTRIBUTION},
+	{ "stats",		OUTPUT_MIX_STATS},
 	{ "all",		OUTPUT_MIX_ALL},
 };
 
@@ -28,10 +30,10 @@ const size_t FLAGS_OPTS_L = sizeof(FLAGS_OPTS) / sizeof(struct flag_opt);
 
 enum output_mode parse_flag(const struct string_slice slice)
 {
-	for (int i = 0; i < FLAGS_OPTS_L; i++) if (strncasecmp(slice.chars, FLAGS_OPTS[i].cstr, slice.length) == 0) return FLAGS_OPTS[i].flag;
+	for (size_t i = 0; i < FLAGS_OPTS_L; i++) if (strncasecmp(slice.chars, FLAGS_OPTS[i].cstr, slice.length) == 0) return FLAGS_OPTS[i].flag;
 
 	fprintf(stderr, ANSI_ERR "\"");
-	for (int i = 0; i < slice.length ; i++) putc(slice.chars[i], stderr);
+	for (size_t i = 0; i < slice.length ; i++) putc(slice.chars[i], stderr);
 	fprintf(stderr, "\" is not a valid '--data' subflag\n" ANSI_ESC ANSI_RESET);
 
 	return OUTPUT_MODE_NONE;
@@ -77,7 +79,7 @@ void data_put_in(struct data *self, enum output_mode flag, const struct string_s
 	//else if (strncasecmp("list", type.chars, 4) == 0) f = &self->list; // list removed, should have bimap in the future
 	else {
 		fprintf(stderr, ANSI_ERR "\"");
-		for (int i = 0; i < type.length ; i++) putc(type.chars[i], stderr);
+		for (size_t i = 0; i < type.length ; i++) putc(type.chars[i], stderr);
 		fprintf(stderr, "\"" ANSI_ESC ANSI_RESET "\n");
 		return;
 	}

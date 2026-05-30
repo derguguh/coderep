@@ -10,16 +10,16 @@
 
 int main(int argc, const char **argv)
 {
-	struct arena *arena = arena_alloc(DEFAULT_BLOCK_SIZE);
+	struct arena *arena = arena_alloc(8 * 1024 * 1024);
 	struct cli *cli = cli_alloc();
 
 	cli_parse(cli, argv, argc);
 
 	if (cli->lang._backend == NULL) PRINT_ERR("Code Report needs a backend. Chose one with '--lang'. You can see the current ones with '--help'");
 	else {
-		struct data_array *datas = backend_parse(cli->lang._backend, arena, cli->input, cli->data);
+		struct data_array *datas = backend_parse(cli->lang._backend, arena, cli->input);
 
-		data_array_print(datas, cli->data);
+		data_array_print(datas, &cli->data);
 
 		data_array_drop(&datas);
 	}

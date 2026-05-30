@@ -17,6 +17,8 @@ struct string *string_alloc(struct allocator *allocator, size_t initial_capacity
 
 	if (!self || !chars) goto defer;
 
+	memset(chars, 0, initial_capacity);
+
 	*self = (struct string) {
 		.allocator = allocator,
 		.capacity = initial_capacity,
@@ -163,7 +165,7 @@ void string_clear(struct string *self)
 
 void string_print(const struct string *self)
 {
-	for (int i = 0; i < self->length; i++) putchar(self->chars[i]);
+	for (size_t i = 0; i < self->length; i++) putchar(self->chars[i]);
 }
 
 void string_drop(struct string **self)

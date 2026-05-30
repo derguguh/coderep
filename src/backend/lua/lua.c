@@ -55,7 +55,7 @@ void lua_init(struct backend_data *data)
 
 void lua_parse_file(struct backend_data *data, struct arena *file_allocator, struct file *file)
 {
-	struct lua_token token = { LUA_TOKEN_TYPE_EOF };
+	struct lua_token token = { .type = LUA_TOKEN_TYPE_EOF };
 	do {
 		token = lua_lexer_next((struct lua_lexer *)data->context, file);
 	} while (token.type != LUA_TOKEN_TYPE_EOF);

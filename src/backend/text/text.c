@@ -28,7 +28,7 @@ void text_init(struct backend_data *data)
 	context->word = frequency_alloc(allocator, &string, 64 * 1024);
 
 	string = string_from_cstr(allocator, "text.character");
-	context->character = frequency_alloc(allocator, &string, 16 * 1024);
+	context->character = frequency_alloc(allocator, &string, 4 * 1024);
 
 	string = string_from_cstr(allocator, "text.number");
 	context->number = frequency_alloc(allocator, &string, 16 * 1024);

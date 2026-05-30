@@ -18,6 +18,10 @@ bool node_increment(struct node *self, const struct string *value);
 
 int node_push(struct node *self, struct allocator *allocator, struct string **value, int index);
 
+struct node *node_find(struct node *self, int index);
+
+void node_print(struct node *self, bool show_value, bool show_frequency);
+
 void node_drop(struct node **self, struct allocator *allocator);
 
 #endif

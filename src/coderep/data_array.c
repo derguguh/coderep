@@ -1,8 +1,11 @@
 #include "coderep/data_array.h"
 
+#include "coderep/data_type/frequency.h"
+#include "coderep/data_type/output_mode.h"
 #include "coderep/macros.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 const size_t DATA_ARRAY_DEFAULT_CAPACITY = 20;
 
@@ -91,18 +94,22 @@ void data_array_push_frequency(struct data_array *self, struct frequency **frequ
 	self->frequencies_c = array.capacity;
 }
 
-void data_array_print(struct data_array *self, struct data output_options)
+void data_array_print(struct data_array *self, struct data *output_options)
 {
-	for (int i = 0; i < self->brutes_l; i++) brute_print(self->brutes[i], output_options.brute);
-	for (int i = 0; i < self->frequencies_l; i++) frequency_print(self->frequencies[i], output_options.frequency);
+	if (output_options->frequency != OUTPUT_MODE_NONE) {
+		for (size_t i = 0; i < self->frequencies_l; i++) frequency_print(self->frequencies[i], output_options->frequency);
+	}
+	if (output_options->brute != OUTPUT_MODE_NONE) {
+		for (size_t i = 0; i < self->brutes_l; i++) brute_print(self->brutes[i], output_options->brute);
+	}
 }
 
 void data_array_drop(struct data_array **self)
 {
 	if (!self || !(*self)) return;
 
-	for (int i = 0; i < (*self)->brutes_l; i++) brute_drop(&(*self)->brutes[i]);
-	for (int i = 0; i < (*self)->frequencies_l; i++) frequency_drop(&(*self)->frequencies[i]);
+	for (size_t i = 0; i < (*self)->brutes_l; i++) brute_drop(&(*self)->brutes[i]);
+	for (size_t i = 0; i < (*self)->frequencies_l; i++) frequency_drop(&(*self)->frequencies[i]);
 	free((*self)->brutes);
 	free((*self)->frequencies);
 	(*self)->brutes = NULL;

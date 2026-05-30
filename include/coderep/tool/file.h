@@ -20,7 +20,7 @@ bool file_open(struct file *self, const char *const file_path);
 
 void file_advance(struct file *self);
 
-void file_print_error(const struct file *self, const char *const error_text, int error_length);
+void file_print_error(const struct file *self, const char *const error_text, size_t error_length);
 
 void file_print(const struct file *self, bool trim_spaces);
 

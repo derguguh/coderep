@@ -4,15 +4,19 @@
 #include "coderep/consts.h"
 #include "coderep/macros.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct block *block_alloc(size_t block_size)
 {
 	struct block *self = default_allocate(NULL, sizeof(struct block));
 	uint8_t *mem = default_allocate(NULL, block_size);
 	if (!self || !mem) goto defer;
+
+	memset(mem, 0, block_size);
 
 	*self = (struct block) {
 		.mem = mem,
@@ -64,9 +68,9 @@ defer:
 void *arena_allocate(struct arena *self, size_t size)
 {
 	size = PACKET_ALIGN(size);
-	self->used += size;
+	assert(size <= self->block_size);
 
-	if (self->current_block * self->block_size < self->used) {
+	if (self->block_offset + size > self->block_size) {
 		if (self->active_block->_next == NULL) self->active_block->_next = block_alloc(self->block_size);
 
 		self->active_block = self->active_block->_next;
@@ -95,16 +99,15 @@ void  arena_deallocate(struct arena *self, void *pointer)
 
 void  arena_clear(struct arena *self)
 {
-	self->used = 0;
-	self->current_block = 0;
+	self->block_offset = 0;
+
+	self->active_block = self->block;
+	self->current_block = 1;
 }
 
 void  arena_drop(struct arena **self)
 {
 	if (!self || !(*self)) return;
-
-	printf("Was need %lu new blocks\n", (*self)->current_block);
-	printf("Packets used: %lu\n", (*self)->packets_allocated);
 
 	(*self)->active_block = NULL;
 	block_drop(&(*self)->block);

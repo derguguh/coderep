@@ -14,6 +14,18 @@ struct frequency {
 	size_t element_count;
 };
 
+struct stats {
+	bool have_something;
+	int min;
+	float avg;
+	int max;
+	int mode;
+	const struct node *mode_node;
+	float median;
+	const struct node *media_node_low;
+	const struct node *media_node_high;
+};
+
 extern const size_t FREQUENCY_DEFAULT_SIZE;
 
 struct frequency *frequency_alloc(struct allocator *allocator, struct string **name, size_t initial_capacity);
@@ -26,7 +38,9 @@ void frequency_intern(struct frequency *self, const struct string *value);
 
 void frequency_push(struct frequency *self, struct string **value);
 
-void frequency_print(struct frequency *self, enum output_mode output_mode);
+struct stats frequency_calculate_stats(const struct frequency *self);
+
+void frequency_print(const struct frequency *self, enum output_mode output_mode);
 
 void frequency_drop(struct frequency **self);
 

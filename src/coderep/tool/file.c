@@ -73,22 +73,22 @@ void file_print_line_buffer(const struct file *self)
 	} else string_print(self->line_buffer);
 }
 
-void file_print_error(const struct file *self, const char *const error_text, int error_length)
+void file_print_error(const struct file *self, const char *const error_text, size_t error_length)
 {
 	if (error_length > self->column) {
-		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %d passed to 'file_print_error' is bigger than 'file->column' %lu. Will be truncated",
+		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %zu passed to 'file_print_error' is bigger than 'file->column' %lu. Will be truncated",
 				error_length, self->column);
 
 		error_length = self->column;
 	} else if (error_length < 1) {
-		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %d passed to 'file_print_error' is less than 1, "
+		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %zu passed to 'file_print_error' is less than 1, "
 				"which means it don't have anything to be printed. Will be set to 1\n",
 				error_length);
 
 		error_length = 1;
 	}
 
-	printf(ANSI_ERR "%lu;%lu in %-60s\n\t|%s\n\t|", self->line, self->column, self->buffer->_file_name, error_text);
+	printf(ANSI_ERR "%zu;%zu in %-60s\n\t|%s\n\t|", self->line, self->column, self->buffer->_file_name, error_text);
 	file_print_line_buffer(self);
 	printf("\n\t|");
 
@@ -96,8 +96,8 @@ void file_print_error(const struct file *self, const char *const error_text, int
 	size_t extra_spaces = tab_count == 0 ? 0 : tab_count * 8 - 2;
 	if (self->line_buffer->length > RING_LINE_BUFFER_SIZE) extra_spaces += 3;
 
-	for (int i = 0; i < self->column - error_length + extra_spaces; i++) putchar(' ');
-	for (int i = 0; i < error_length - 1; i++) putchar('~');
+	for (size_t i = 0; i < self->column - error_length + extra_spaces; i++) putchar(' ');
+	for (size_t i = 0; i < error_length - 1; i++) putchar('~');
 	puts("^\n");
 }
 
@@ -108,8 +108,8 @@ void file_print(const struct file *self, bool trim_spaces)
 	file_buffer_print(self->buffer, trim_spaces);
 	printf("\tLine Buffer: ");
 	string_print(self->line_buffer);
-	printf("\n\tLine: %lu\n", self->line);
-	printf("\tColumn: %lu\n", self->column);
+	printf("\n\tLine: %zu\n", self->line);
+	printf("\tColumn: %zu\n", self->column);
 	puts("}\n");
 }
 

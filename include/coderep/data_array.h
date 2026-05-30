@@ -23,7 +23,7 @@ struct data_array *data_array_alloc();
 void data_array_push_brute(struct data_array *self, struct brute **brute);
 void data_array_push_frequency(struct data_array *self, struct frequency **frequency);
 
-void data_array_print(struct data_array *self, struct data output_options);
+void data_array_print(struct data_array *self, struct data *output_options);
 
 void data_array_drop(struct data_array **self);
 

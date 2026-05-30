@@ -59,6 +59,24 @@ int node_push(struct node *self, struct allocator *allocator, struct string **va
 	return index;
 }
 
+struct node *node_find(struct node *self, int index)
+{
+	if (self->index == index) return self;
+	else if (self->_next != NULL) return node_find(self->_next, index);
+	else return NULL;
+}
+
+void node_print(struct node *self, bool show_value, bool show_frequency)
+{
+	if (show_value) string_print(self->value);
+	if (show_frequency) printf("(%d)", self->count);
+
+	if (self->_next != NULL) {
+		printf(", ");
+		node_print(self->_next, show_value, show_frequency);
+	}
+}
+
 void node_drop(struct node **self, struct allocator *allocator)
 {
 	if(!self || !(*self)) return;

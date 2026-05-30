@@ -22,7 +22,7 @@ int lang_parse(struct lang *self, const char **argv, int argc, int index)
 	}
 	self->_backend = NULL;
 
-	for (int i = 0; i < BACKEND_REGISTER_L; i++) {
+	for (size_t i = 0; i < BACKEND_REGISTER_L; i++) {
 
 		if (strcmp(BACKEND_REGISTER[i].identifier, argv[index]) == 0) self->_backend = &BACKEND_REGISTER[i];
 	}

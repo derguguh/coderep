@@ -1,12 +1,17 @@
 CC = clang
 
-DEBUG_CFLAGS = -MMD -MP -I include/ -g -Wall
-RELEASE_CFLAGS = -MMD -MP -I include/ -O2 -DNDEBUG -Wall
+base_flags := -MMD -MP -I include/ -Wall -Wextra
+DEBUG_CFLAGS := $(base_flags) -DDEBUG -g
+RELEASE_CFLAGS := $(base_flags) -O2
 
 CFLAGS ?= $(DEBUG_CFLAGS)
 install_prefix ?= ~/.local/bin
 
-build_dir := build
+debug_build_dir := build/debug
+release_build_dir := build/release
+
+build_dir ?= $(debug_build_dir)
+
 sources_dir := src
 include_dir := include
 objects_dir := $(build_dir)/objects
@@ -23,17 +28,17 @@ commands := compile_commands.json
 all: $(build_dir)/$(target)
 
 debug:
-	$(MAKE) CFLAGS="$(DEBUG_CFLAGS)"
+	$(MAKE) CFLAGS="$(DEBUG_CFLAGS)" build_dir="$(debug_build_dir)"
 
 release:
-	$(MAKE) CFLAGS="$(RELEASE_CFLAGS)"
+	$(MAKE) CFLAGS="$(RELEASE_CFLAGS)" build_dir="$(release_build_dir)"
 
 # Change "general" to "c" later
 analyse:
 	$(build_dir)/$(target) --lang general --input $(sources) $(headers)
 
 bear:
-	bear -o $(build_dir)/$(commands) -- make all
+	bear -o build/$(commands) -- make all
 
 $(build_dir)/$(target): $(objects)
 	$(CC) $(CFLAGS) $(objects) -o $@
@@ -47,7 +52,7 @@ clean:
 
 install:
 	mkdir -p $(install_prefix)
-	cp $(build_dir)/$(target) $(install_prefix)/$(target)
+	cp $(debug_build_dir)/$(target) $(install_prefix)/$(target)
 
 -include $(dependencies)
 
