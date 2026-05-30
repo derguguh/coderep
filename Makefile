@@ -52,7 +52,7 @@ clean:
 
 install:
 	mkdir -p $(install_prefix)
-	cp $(debug_build_dir)/$(target) $(install_prefix)/$(target)
+	cp $(release_build_dir)/$(target) $(install_prefix)/$(target)
 
 -include $(dependencies)
 

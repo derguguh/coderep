@@ -66,9 +66,9 @@ void lua_skip_blank(struct file *file)
 	}
 }
 
-enum lua_token_type lua_lexer_identifier_word(struct lua_lexer *self)
+enum lua_token_type lua_identifier_word(struct string *scratch_buffer)
 {
-	const char *const cstr = string_to_cstr(self->string_buffer);
+	const char *const cstr = string_to_cstr(scratch_buffer);
 
 	if	(strcmp(cstr, "and") == 0)		return LUA_TOKEN_TYPE_KW_AND;
 	else if	(strcmp(cstr, "break") == 0)		return LUA_TOKEN_TYPE_KW_BREAK;
@@ -95,24 +95,24 @@ enum lua_token_type lua_lexer_identifier_word(struct lua_lexer *self)
 	else						return LUA_TOKEN_TYPE_IDENTIFIER;
 }
 
-struct lua_token lua_lexer_word(struct lua_lexer *self, struct file *file)
+struct lua_token lua_lexer_word(struct lua_lexer *self, struct file *file, struct string *scratch_buffer)
 {
 	struct lua_token token = { 0 };
 
 	while (isalnum(file->buffer->char_) || file->buffer->char_ == '_') {
 
-		push_and_advance(file, self->string_buffer);
+		push_and_advance(file, scratch_buffer);
 	}
 
-	token.type = lua_lexer_identifier_word(self);
+	token.type = lua_identifier_word(scratch_buffer);
 
-	if (token.type == LUA_TOKEN_TYPE_IDENTIFIER) frequency_intern(self->identifier, self->string_buffer);
-	else frequency_intern(self->keyword, self->string_buffer);
+	if (token.type == LUA_TOKEN_TYPE_IDENTIFIER) frequency_intern(self->identifier, scratch_buffer);
+	else frequency_intern(self->keyword, scratch_buffer);
 
 	return token;
 }
 
-struct lua_token lua_lexer_block_string(struct lua_lexer *self, struct file *file, size_t n)
+struct lua_token lua_block_string(struct file *file, struct string *scratch_buffer, size_t n)
 {
 	struct lua_token token = { .type = LUA_TOKEN_TYPE_MULTI_LINE_STRING };
 	bool continue_ = true;
@@ -125,115 +125,89 @@ struct lua_token lua_lexer_block_string(struct lua_lexer *self, struct file *fil
 			token.type = LUA_TOKEN_TYPE_INVALID;
 			continue_ = false;
 		} else if (file->buffer->char_ == ']' && file_buffer_peek_n(file->buffer, n) == ']') {
-			push_and_advance(file, self->string_buffer);
+			push_and_advance(file, scratch_buffer);
 
 			size_t n_ = 1;
 			while (file->buffer->char_ == '=') {
-				push_and_advance(file, self->string_buffer);
+				push_and_advance(file, scratch_buffer);
 				n_++;
 			}
 
 			if (file->buffer->char_ == ']' && n_ == n) continue_ = false;
-		} else push_and_advance(file, self->string_buffer);
+		} else push_and_advance(file, scratch_buffer);
 	}
 
-	push_and_advance(file, self->string_buffer);
+	push_and_advance(file, scratch_buffer);
 
 	return token;
 }
 
-struct lua_token lua_lexer_handle_lbracket(struct lua_lexer *self, struct file *file)
+struct lua_token lua_lexer_handle_lbracket(struct lua_lexer *self, struct file *file, struct string *scratch_buffer)
 {
 	struct lua_token token = { .type = LUA_TOKEN_TYPE_CHAR_LBRACKET };
 
-	push_and_advance(file, self->string_buffer);
+	push_and_advance(file, scratch_buffer);
 
 	size_t n = 1;
 	while (file->buffer->char_ == '=') {
 
-		push_and_advance(file, self->string_buffer);
+		push_and_advance(file, scratch_buffer);
 		n++;
 	}
 
-	if (file->buffer->char_ == '[') token = lua_lexer_block_string(self, file, n);
+	if (file->buffer->char_ == '[') token = lua_block_string(file, scratch_buffer, n);
 
 	if (token.type == LUA_TOKEN_TYPE_INVALID) {
-		frequency_intern(self->invalid, self->string_buffer);
+		frequency_intern(self->invalid, scratch_buffer);
 		frequency_intern(self->what_invalid, self->template_invalid_string);
-	} else if (token.type == LUA_TOKEN_TYPE_CHAR_LBRACKET) frequency_intern(self->character, self->string_buffer);
-	else frequency_intern(self->string, self->string_buffer);
+	} else if (token.type == LUA_TOKEN_TYPE_CHAR_LBRACKET) frequency_intern(self->character, scratch_buffer);
+	else frequency_intern(self->string, scratch_buffer);
 
 	return token;
 }
 
-enum lua_token_type lua_lexer_number_hex(struct lua_lexer *self, struct file *file)
-{
-	do {
-		push_and_advance(file, self->string_buffer);
-	} while (isxdigit(file->buffer->char_));
-
-	if (!isxdigit(string_get(self->string_buffer, self->string_buffer->length - 1))) {
-		file_print_error(file,
-				"Hexadecimal numbers need to have at least one digit after the prefix '0x'/'0X'",
-				self->string_buffer->length);
-		return LUA_TOKEN_TYPE_INVALID;
-	} else return LUA_TOKEN_TYPE_LIT_HEX;
-}
-
-enum lua_token_type lua_lexer_read_scientific_suffix(struct lua_lexer *self, struct file *file)
-{
-	push_and_advance(file, self->string_buffer);
-	if (file->buffer->char_ == '+' || file->buffer->char_ == '-') push_and_advance(file, self->string_buffer);
-	read_int(file, self->string_buffer);
-
-	if (!isdigit(string_get(self->string_buffer, self->string_buffer->length - 1))) {
-		file_print_error(file,
-				"Scientific numbers need to have at least one digit after the prefix 'e', 'e+' or 'e-'",
-				self->string_buffer->length);
-		return LUA_TOKEN_TYPE_INVALID;
-	} else return LUA_TOKEN_TYPE_LIT_SCIENTIFIC;
-}
-
-enum lua_token_type lua_lexer_read_number(struct lua_lexer *self, struct file *file)
+enum lua_token_type lua_read_number(struct file *file, struct string *scratch_buffer)
 {
 	enum lua_token_type type = LUA_TOKEN_TYPE_LIT_INTEGER;
 
-	read_int(file, self->string_buffer);
+	read_int(file, scratch_buffer);
 	if (file->buffer->char_ == '.') {
-		push_and_advance(file, self->string_buffer);
-		read_int(file, self->string_buffer);
+		push_and_advance(file, scratch_buffer);
+		read_int(file, scratch_buffer);
 		type = LUA_TOKEN_TYPE_LIT_DECIMAL;
 	}
 
-	if (type == LUA_TOKEN_TYPE_LIT_DECIMAL && string_get(self->string_buffer, self->string_buffer->length - 1) == '.') {
-		file_print_error(file, "Floating numbers expect at least one digit after '.'", self->string_buffer->length);
+	if (type == LUA_TOKEN_TYPE_LIT_DECIMAL && string_get(scratch_buffer, scratch_buffer->length - 1) == '.') {
+		file_print_error(file, "Floating numbers expect at least one digit after '.'", scratch_buffer->length);
 		type = LUA_TOKEN_TYPE_INVALID;
 	}
 
 	return type;
 }
 
-struct lua_token lua_lexer_number(struct lua_lexer *self, struct file *file)
+struct lua_token lua_lexer_number(struct lua_lexer *self, struct file *file, struct string *scratch_buffer)
 {
 	struct lua_token token = { .type = LUA_TOKEN_TYPE_LIT_INTEGER };
 
 	if (file->buffer->char_ == '0' && tolower(file_buffer_peek_n(file->buffer, 1)) == 'x') {
-		push_and_advance(file, self->string_buffer);
+		push_and_advance(file, scratch_buffer);
 
-		token.type = lua_lexer_number_hex(self, file);
-	} else token.type = lua_lexer_read_number(self, file);
+		token.type = read_hex(file, scratch_buffer, true) ? LUA_TOKEN_TYPE_LIT_HEX : LUA_TOKEN_TYPE_INVALID;
+	} else token.type = lua_read_number(file, scratch_buffer);
 
-	if (token.type != LUA_TOKEN_TYPE_INVALID && file->buffer->char_ == 'e') token.type = lua_lexer_read_scientific_suffix(self, file);
+	if (token.type != LUA_TOKEN_TYPE_INVALID && file->buffer->char_ == 'e') {
+		token.type = read_scientific_suffix(file, scratch_buffer, true) ? LUA_TOKEN_TYPE_LIT_SCIENTIFIC : LUA_TOKEN_TYPE_INVALID;
+	}
 
 	if (token.type == LUA_TOKEN_TYPE_INVALID) {
-		frequency_intern(self->invalid, self->string_buffer);
+		frequency_intern(self->invalid, scratch_buffer);
 		frequency_intern(self->what_invalid, self->template_invalid_number);
-	} else frequency_intern(self->number, self->string_buffer);
+	} else frequency_intern(self->number, scratch_buffer);
 
 	return token;
 }
 
-struct lua_token lua_lexer_string(struct lua_lexer *self, struct file *file, bool double_quotes)
+struct lua_token lua_lexer_string(struct lua_lexer *self, struct file *file, struct string *scratch_buffer, bool double_quotes)
 {
 	struct lua_token token = { .type = LUA_TOKEN_TYPE_STRING };
 	bool continue_ = false;
@@ -243,7 +217,7 @@ struct lua_token lua_lexer_string(struct lua_lexer *self, struct file *file, boo
 
 			file_print_error(file, "Normal strings needs to be single lined, "
 					"and end with the same quotes (single or double) as it started",
-					self->string_buffer->length);
+					scratch_buffer->length);
 			token.type = LUA_TOKEN_TYPE_INVALID;
 			break;
 		}
@@ -253,25 +227,25 @@ struct lua_token lua_lexer_string(struct lua_lexer *self, struct file *file, boo
 
 		if (file->buffer->char_ == '\\') {
 			char peek = file_buffer_peek_n(file->buffer, 1);
-			if (peek == '\n' || peek == '\'' || peek == '"' || peek == '\\') push_and_advance(file, self->string_buffer);
+			if (peek == '\n' || peek == '\'' || peek == '"' || peek == '\\') push_and_advance(file, scratch_buffer);
 			else if (peek == 'z') {
-				push_and_advance(file, self->string_buffer);
-				push_and_advance(file, self->string_buffer);
+				push_and_advance(file, scratch_buffer);
+				push_and_advance(file, scratch_buffer);
 			}
 		}
 
-		push_and_advance(file, self->string_buffer);
+		push_and_advance(file, scratch_buffer);
 	} while (continue_);
 
 	if (token.type == LUA_TOKEN_TYPE_INVALID) {
-		frequency_intern(self->invalid, self->string_buffer);
+		frequency_intern(self->invalid, scratch_buffer);
 		frequency_intern(self->what_invalid, self->template_invalid_string);
-	} else frequency_intern(self->string, self->string_buffer);
+	} else frequency_intern(self->string, scratch_buffer);
 
 	return token;
 }
 
-struct lua_token lua_lexer_characters(struct lua_lexer *self, struct file *file)
+struct lua_token lua_lexer_characters(struct lua_lexer *self, struct file *file, struct string *scratch_buffer)
 {
 	struct lua_token token = { .type = LUA_TOKEN_TYPE_INVALID };
 	char peek = file_buffer_peek_n(file->buffer, 1);
@@ -296,57 +270,57 @@ struct lua_token lua_lexer_characters(struct lua_lexer *self, struct file *file)
 		case '<':
 			if (peek == '<') {
 				token.type = LUA_TOKEN_TYPE_CHAR_SHIFT_LEFT;
-				push_and_advance(file, self->string_buffer);
+				push_and_advance(file, scratch_buffer);
 			} else if (peek == '=') {
 				token.type = LUA_TOKEN_TYPE_CHAR_LESS_OR_EQUALS_THAN;
-				push_and_advance(file, self->string_buffer);
+				push_and_advance(file, scratch_buffer);
 			} else token.type = LUA_TOKEN_TYPE_CHAR_LESS_THAN;
 		break;
 		case '>':
 			if (peek == '>') {
 				token.type = LUA_TOKEN_TYPE_CHAR_SHIFT_RIGHT;
-				push_and_advance(file, self->string_buffer);
+				push_and_advance(file, scratch_buffer);
 			} else if (peek == '=') {
 				token.type = LUA_TOKEN_TYPE_CHAR_GREATER_OR_EQUALS_THAN;
-				push_and_advance(file, self->string_buffer);
+				push_and_advance(file, scratch_buffer);
 			} else token.type = LUA_TOKEN_TYPE_CHAR_GREATER_THAN;
 		break;
 		case ':':
 			if (peek == ':') {
 				token.type = LUA_TOKEN_TYPE_CHAR_DOUBLE_COLON;
-				push_and_advance(file, self->string_buffer);
+				push_and_advance(file, scratch_buffer);
 			}
 			else token.type = LUA_TOKEN_TYPE_CHAR_COLON;
 		break;
 		case '/':
 			if (peek == '/') {
 				token.type = LUA_TOKEN_TYPE_CHAR_DOUBLE_SLASH;
-				push_and_advance(file, self->string_buffer);
+				push_and_advance(file, scratch_buffer);
 			}
 			else token.type = LUA_TOKEN_TYPE_CHAR_SLASH;
 		break;
 		case '=':
 			if (peek == '=') {
 				token.type = LUA_TOKEN_TYPE_CHAR_EQUALS;
-				push_and_advance(file, self->string_buffer);
+				push_and_advance(file, scratch_buffer);
 			}
 			else token.type = LUA_TOKEN_TYPE_CHAR_ASSIGN;
 		break;
 		case '~':
 			if (peek == '=') {
 				token.type = LUA_TOKEN_TYPE_CHAR_NOT_EQUALS;
-				push_and_advance(file, self->string_buffer);
+				push_and_advance(file, scratch_buffer);
 			}
 			else token.type = LUA_TOKEN_TYPE_CHAR_TILDE;
 		break;
 		case '.':
 			
 			if	(peek == '.') {
-				push_and_advance(file, self->string_buffer);
+				push_and_advance(file, scratch_buffer);
 				peek = file_buffer_peek_n(file->buffer, 1);
 
 				if (peek == '.') {
-					push_and_advance(file, self->string_buffer);
+					push_and_advance(file, scratch_buffer);
 					token.type = LUA_TOKEN_TYPE_CHAR_EPSILON;
 				} else token.type = LUA_TOKEN_TYPE_CHAR_CONCAT;
 			} else token.type = LUA_TOKEN_TYPE_CHAR_PERIOD;
@@ -357,27 +331,27 @@ struct lua_token lua_lexer_characters(struct lua_lexer *self, struct file *file)
 		break;
 	};
 
-	push_and_advance(file, self->string_buffer);
+	push_and_advance(file, scratch_buffer);
 
 	if (token.type == LUA_TOKEN_TYPE_INVALID) {
-		frequency_intern(self->invalid, self->string_buffer);
+		frequency_intern(self->invalid, scratch_buffer);
 		frequency_intern(self->what_invalid, self->template_invalid_string);
-	} else frequency_intern(self->character, self->string_buffer);
+	} else frequency_intern(self->character, scratch_buffer);
 
 	return token;
 }
 
-struct lua_token lua_lexer_next(struct lua_lexer *self, struct file *file)
+struct lua_token lua_lexer_next(struct lua_lexer *self, struct file *file, struct string *scratch_buffer)
 {
-	string_clear(self->string_buffer);
+	string_clear(scratch_buffer);
 	lua_skip_blank(file);
 
 	if	(file->buffer->char_ == EOF) return (struct lua_token) { .type=LUA_TOKEN_TYPE_EOF, .id=0 };
-	else if (file->buffer->char_ == '[') return lua_lexer_handle_lbracket(self, file);
-	else if (isalpha(file->buffer->char_) || file->buffer->char_ == '_') return lua_lexer_word(self, file);
-	else if (isdigit(file->buffer->char_))	return lua_lexer_number(self, file);
-	else if (file->buffer->char_ == '\'')	return lua_lexer_string(self, file, false);
-	else if (file->buffer->char_ == '"')	return lua_lexer_string(self, file, true);
-	else					return lua_lexer_characters(self, file);
+	else if (file->buffer->char_ == '[') return lua_lexer_handle_lbracket(self, file, scratch_buffer);
+	else if (isalpha(file->buffer->char_) || file->buffer->char_ == '_') return lua_lexer_word(self, file, scratch_buffer);
+	else if (isdigit(file->buffer->char_))	return lua_lexer_number(self, file, scratch_buffer);
+	else if (file->buffer->char_ == '\'')	return lua_lexer_string(self, file, scratch_buffer, false);
+	else if (file->buffer->char_ == '"')	return lua_lexer_string(self, file, scratch_buffer, true);
+	else					return lua_lexer_characters(self, file, scratch_buffer);
 }
 

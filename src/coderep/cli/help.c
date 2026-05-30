@@ -24,7 +24,7 @@ int help_print(void *_ignore, const char **const argv, int argc, int index)
 	printf("\t\tFilter flag is not implemented yet\n\n");
 
 	printf("\t--data: changes how the data types should output\n");
-	printf("\t\tExist 'frequency', 'list' and 'brute'\n");
+	printf("\t\tExist 'frequency' and 'brute'. 'bimap' is a TODO type\n");
 	printf("\t\tEach one needs a flag that show how to output the data, and this can be selected with '.'\n");
 	printf("\t\tYou can also mix one more flags with ':'\n");
 	printf("\t\tFor example, 'frequency.distribution:avg' shows the distribution and the average value\n");

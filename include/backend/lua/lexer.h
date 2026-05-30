@@ -14,10 +14,8 @@ struct lua_lexer {
 	struct string *template_invalid_number;
 	struct string *template_invalid_string;
 	struct string *template_invalid_char;
-	struct string *string_buffer;
-	struct allocator buffer_allocator;
 };
 
-struct lua_token lua_lexer_next(struct lua_lexer *self, struct file *file);
+struct lua_token lua_lexer_next(struct lua_lexer *self, struct file *file, struct string *scratch_buffer);
 
 #endif

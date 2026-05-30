@@ -10,6 +10,9 @@ struct backend_data {
 	struct arena *allocator;
 	struct data_array *array;
 	void *context;
+	// Common utilities
+	struct string *scratch_buffer;
+	size_t bucket_baseline;
 };
 
 typedef size_t (*request_t)();

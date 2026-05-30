@@ -3,6 +3,7 @@
 #include "backend/lua/lua.h"
 #include "backend/text/text.h"
 
+#include "coderep/allocator/allocator.h"
 #include "coderep/allocator/arena.h"
 #include "coderep/consts.h"
 #include "coderep/data_array.h"
@@ -48,16 +49,37 @@ void backend_print_reading_files(size_t current, size_t total)
 	fflush(stdout);
 }
 
+void backend_push_file_data(struct arena *allocator, struct data_array *array, size_t bytes_read, size_t total_lines)
+{
+	struct string *tmp_str = string_alloc(&allocator->abstract, sizeof(size_t) * 8);
+	snprintf(tmp_str->chars, sizeof(size_t) * 8, "%zu", bytes_read);
+
+	struct string *tmp_name = string_from_cstr(&allocator->abstract, "file.bytes_read");
+	struct brute *tmp_brute = brute_alloc(&allocator->abstract, &tmp_name, &tmp_str);
+
+	data_array_push_brute(array, &tmp_brute);
+
+	tmp_str = string_alloc(&allocator->abstract, sizeof(size_t) * 8);
+	snprintf(tmp_str->chars, sizeof(size_t) * 8, "%zu", total_lines);
+
+	tmp_name = string_from_cstr(&allocator->abstract, "file.lines");
+	tmp_brute = brute_alloc(&allocator->abstract, &tmp_name, &tmp_str);
+
+	data_array_push_brute(array, &tmp_brute);
+}
+
 struct data_array *backend_parse(const struct backend *backend, struct arena *arena, struct input *input)
 {
 	struct data_array *data_array = data_array_alloc();
 	struct file *file = file_alloc(&arena->abstract);
 	struct arena *parsing_arena = arena_alloc(1024 * 1024);
+	struct allocator default_allocator = default_get_allocator();
 
 	struct backend_data data = (struct backend_data) {
 		.allocator = arena,
 		.array = data_array,
 		.context = backend_fulfill_request(backend, arena),
+		.scratch_buffer = string_alloc(&default_allocator, 128),
 	};
 
 	if (backend->_init_function != NULL) backend->_init_function(&data);
@@ -70,6 +92,7 @@ struct data_array *backend_parse(const struct backend *backend, struct arena *ar
 		backend_print_reading_files(i + 1, input->files_l);
 
 		arena_clear(parsing_arena);
+		string_clear(data.scratch_buffer);
 		file_open(file, input->files[i]);
 		if (file->buffer->_file == NULL) continue;
 
@@ -80,24 +103,11 @@ struct data_array *backend_parse(const struct backend *backend, struct arena *ar
 	}
 	putchar('\n');
 
-	struct string *tmp_str = string_alloc(&arena->abstract, sizeof(size_t) * 8);
-	snprintf(tmp_str->chars, sizeof(size_t) * 8, "%zu", bytes_read);
-
-	struct string *tmp_name = string_from_cstr(&arena->abstract, "file.bytes_read");
-	struct brute *tmp_brute = brute_alloc(&arena->abstract, &tmp_name, &tmp_str);
-
-	data_array_push_brute(data_array, &tmp_brute);
-
-	tmp_str = string_alloc(&arena->abstract, sizeof(size_t) * 8);
-	snprintf(tmp_str->chars, sizeof(size_t) * 8, "%zu", total_lines);
-
-	tmp_name = string_from_cstr(&arena->abstract, "file.lines");
-	tmp_brute = brute_alloc(&arena->abstract, &tmp_name, &tmp_str);
-
-	data_array_push_brute(data_array, &tmp_brute);
+	backend_push_file_data(arena, data_array, bytes_read, total_lines);
 
 	if (backend->_deinit_function != NULL) backend->_deinit_function(&data);
 
+	string_drop(&data.scratch_buffer);
 	arena_drop(&parsing_arena);
 	file_drop(&file);
 

@@ -17,12 +17,9 @@ void text_init(struct backend_data *data)
 	struct text_lexer *context = (struct text_lexer *)data->context;
 	struct allocator *allocator = &data->allocator->abstract;
 
-	*context = (struct text_lexer) {
-		.buffer_allocator = default_get_allocator(),
-	};
+	*context = (struct text_lexer) { 0 };
 
 	context->template_unknown_char = string_from_cstr(allocator, "Unknown: character");
-	context->string_buffer = string_alloc(&context->buffer_allocator, 256);
 
 	struct string *string = string_from_cstr(allocator, "text.word");
 	context->word = frequency_alloc(allocator, &string, 64 * 1024);
@@ -41,7 +38,7 @@ void text_parse_file(struct backend_data *data, struct arena *ignore, struct fil
 {
 	enum text_token token = TEXT_TOKEN_EOF;
 	do {
-		token = text_lexer_next((struct text_lexer *)data->context, data->allocator, file);
+		token = text_lexer_next((struct text_lexer *)data->context, file, data->scratch_buffer);
 	} while (token != TEXT_TOKEN_EOF);
 }
 
@@ -53,7 +50,5 @@ void text_deinit(struct backend_data *data)
 	data_array_push_frequency(data->array, &context->number);
 	data_array_push_frequency(data->array, &context->character);
 	data_array_push_frequency(data->array, &context->unknown);
-
-	string_drop(&context->string_buffer);
 }
 
