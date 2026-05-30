@@ -1,18 +1,23 @@
 #include "coderep/tool/file_buffer.h"
 
+#include "coderep/allocator/allocator.h"
 #include "coderep/macros.h"
 
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-struct file_buffer *file_buffer_alloc()
+const size_t BUFFER_SIZE = BUFFER_SIZE_;
+
+struct file_buffer *file_buffer_alloc(struct allocator *allocator)
 {
-	struct file_buffer *self = malloc(sizeof(struct file_buffer));
+	struct file_buffer *self = allocator->allocate(allocator->state, sizeof(struct file_buffer));
 
 	if (!self) MALLOC_ERR_EXIT("struct file_buffer for lua");
 
-	*self = (struct file_buffer) {};
+	*self = (struct file_buffer) {
+		.allocator = allocator,
+	};
 
 	return self;
 }
@@ -117,6 +122,6 @@ void file_buffer_drop(struct file_buffer **self)
 	if ((*self)->_file != NULL) fclose((*self)->_file);
 	(*self)->_file = NULL;
 
-	free(*self);
+	(*self)->allocator->deallocate((*self)->allocator->state, *self);
 	*self = NULL;
 }

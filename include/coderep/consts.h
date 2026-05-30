@@ -4,20 +4,20 @@
 #define ANSI_ESC	"\033["
 
 // Formats
-#define ANSI_BOLD	"1m"
+#define ANSI_BOLD	ANSI_ESC "1m"
 
 // Colors
-#define ANSI_BLACK	"30m"
-#define ANSI_RED	"31m"
-#define ANSI_GREEN	"32m"
-#define ANSI_YELLOW	"33m"
-#define ANSI_BLUE	"34m"
-#define ANSI_MAGENTA	"35m"
-#define ANSI_CYAN	"36m"
-#define ANSI_WHITE	"37m"
-#define ANSI_DEFAULT	"39m"
+#define ANSI_BLACK	ANSI_ESC "30m"
+#define ANSI_RED	ANSI_ESC "31m"
+#define ANSI_GREEN	ANSI_ESC "32m"
+#define ANSI_YELLOW	ANSI_ESC "33m"
+#define ANSI_BLUE	ANSI_ESC "34m"
+#define ANSI_MAGENTA	ANSI_ESC "35m"
+#define ANSI_CYAN	ANSI_ESC "36m"
+#define ANSI_WHITE	ANSI_ESC "37m"
+#define ANSI_DEFAULT	ANSI_ESC "39m"
 
-#define ANSI_RESET	"0m"
+#define ANSI_RESET	ANSI_ESC "0m"
 
 enum error_code {
 	// General
@@ -30,6 +30,8 @@ enum error_code {
 	// File handling
 	ERROR_CODE_UNKNOWN_FILE,
 	ERROR_CODE_EMPTY_FILE,
+	// Others
+	ERROR_CODE_UNSUPPORTED,
 };
 
 #endif

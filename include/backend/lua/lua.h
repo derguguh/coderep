@@ -1,8 +1,16 @@
 #ifndef BACKEND_LUA_LUA_H
 #define BACKEND_LUA_LUA_H
 
-#include "coderep/cli/input.h"
+#include "backend/backend.h"
 
-struct data_array *lua_parse(const struct input *input);
+#include <stddef.h>
+
+size_t lua_request();
+
+void lua_init(struct backend_data *data);
+
+void lua_parse_file(struct backend_data *data, struct arena *file_allocator, struct file *file);
+
+void lua_deinit(struct backend_data *data);
 
 #endif

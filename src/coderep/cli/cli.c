@@ -1,6 +1,6 @@
 #include "coderep/cli/cli.h"
 
-#include "coderep/cli/filter.h"
+#include "coderep/cli/help.h"
 #include "coderep/macros.h"
 
 #include <stdbool.h>
@@ -8,10 +8,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+const struct flags_table TABLE[] = {
+	{ NULL, "--help", (parse_function_t)help_print },
+	{ NULL, "--lang", (parse_function_t)lang_parse },
+	{ NULL, "--input", (parse_function_t)input_parse },
+	{ NULL, "--filter", (parse_function_t)filter_parse },
+	{ NULL, "--data", (parse_function_t)data_parse },
+};
+
+const size_t TABLE_L = sizeof(TABLE) / sizeof(struct flags_table);
+
 struct cli *cli_alloc()
 {
-	struct cli *cli = malloc(sizeof(struct cli));
-	struct flags_table *table = malloc(sizeof(struct flags_table) * TABLE_L);
+	struct cli *cli = default_allocate(NULL, sizeof(struct cli));
+	struct flags_table *table = default_allocate(NULL, sizeof(struct flags_table) * TABLE_L);
 
 	if (!cli || !table) goto defer;
 
@@ -32,8 +42,8 @@ struct cli *cli_alloc()
 	return cli;
 
 defer:
-	free(cli);
-	free(table);
+	default_deallocate(NULL, cli);
+	default_deallocate(NULL, table);
 
 	MALLOC_ERR_EXIT("struct cli and struct flags_table");
 }

@@ -1,43 +1,79 @@
 #include "backend/lua/lua.h"
 
+#include "backend/backend.h"
 #include "backend/lua/lexer.h"
-#include "backend/lua/lexical_table.h"
 #include "backend/lua/token.h"
-#include "coderep/cli/input.h"
-#include "coderep/consts.h"
+#include "coderep/allocator/allocator.h"
+#include "coderep/allocator/arena.h"
 #include "coderep/data_array.h"
-#include "coderep/tool/file.h"
+#include "coderep/data_type/frequency.h"
+#include "coderep/data_type/string.h"
 
-struct data_array *lua_parse(const struct input *input)
+size_t lua_request()
 {
-	struct data_array *data_array = data_array_alloc();
+	return sizeof(struct lua_lexer);
+}
 
-	struct lua_lexical_table *lexical_table = lua_lexical_table_alloc();
+void lua_init(struct backend_data *data)
+{
+	struct lua_lexer *context = (struct lua_lexer *)data->context;
+	struct allocator *allocator = &data->allocator->abstract;
 
-	struct file *file = file_alloc();
+	*context = (struct lua_lexer) {
+		.buffer_allocator = default_get_allocator(),
+	};
 
-	for (size_t i = 0; i < input->files_l; i++) {
+	context->template_invalid_number = string_from_cstr(allocator, "Invalid: number");
+	context->template_invalid_string = string_from_cstr(allocator, "Invalid: string");
+	context->template_invalid_char = string_from_cstr(allocator, "Invalid: character");
+	context->string_buffer = string_alloc(&context->buffer_allocator, 256);
 
-		file_open(file, input->files[i]);
-		if (file->buffer->_file == NULL) continue;
-		printf(ANSI_ESC ANSI_GREEN "[File "
-				ANSI_ESC ANSI_RESET "%lu/%lu"
-				ANSI_ESC ANSI_GREEN ":"
-				ANSI_ESC ANSI_RESET "%s" ANSI_ESC ANSI_GREEN
-				ANSI_ESC ANSI_GREEN "]"
-				ANSI_ESC ANSI_RESET " \n", i, input->files_l, input->files[i]);
+	struct string *string = string_from_cstr(allocator, "lexer.keyword");
+	context->keyword = frequency_alloc(allocator, &string, 23);
 
-		lua_lexer_skip_shebang(file);
-		struct lua_token token = lua_lexer_next(file, lexical_table);
-		while (token.type != TOKEN_TYPE_EOF) token = lua_lexer_next(file, lexical_table);
-	}
+	string = string_from_cstr(allocator, "lexer.identifier");
+	context->identifier = frequency_alloc(allocator, &string, 16 * 1024);
 
-	file_drop(&file);
+	string = string_from_cstr(allocator, "lexer.character");
+	context->character = frequency_alloc(allocator, &string, 32);
 
-	lua_lexical_table_append_to_data_array(lexical_table, data_array);
+	string = string_from_cstr(allocator, "lexer.number");
+	context->number = frequency_alloc(allocator, &string, 4 * 1024);
 
-	lua_lexical_table_drop(&lexical_table);
+	string = string_from_cstr(allocator, "lexer.string");
+	context->string = frequency_alloc(allocator, &string, 4 * 1024);
 
-	return data_array;
+	string = string_from_cstr(allocator, "lexer.block_string");
+	context->block_string = frequency_alloc(allocator, &string, 4 * 1024);
+
+	string = string_from_cstr(allocator, "lexer.invalid");
+	context->invalid = frequency_alloc(allocator, &string, 1024);
+
+	string = string_from_cstr(allocator, "lexer.invalid.what");
+	context->what_invalid = frequency_alloc(allocator, &string, 3);
+}
+
+void lua_parse_file(struct backend_data *data, struct arena *file_allocator, struct file *file)
+{
+	struct lua_token token = { LUA_TOKEN_TYPE_EOF };
+	do {
+		token = lua_lexer_next((struct lua_lexer *)data->context, file);
+	} while (token.type != LUA_TOKEN_TYPE_EOF);
+}
+
+void lua_deinit(struct backend_data *data)
+{
+	struct lua_lexer *context = (struct lua_lexer *)data->context;
+
+	data_array_push_frequency(data->array, &context->string);
+	data_array_push_frequency(data->array, &context->block_string);
+	data_array_push_frequency(data->array, &context->identifier);
+	data_array_push_frequency(data->array, &context->number);
+	data_array_push_frequency(data->array, &context->keyword);
+	data_array_push_frequency(data->array, &context->character);
+	data_array_push_frequency(data->array, &context->invalid);
+	data_array_push_frequency(data->array, &context->what_invalid);
+
+	string_drop(&context->string_buffer);
 }
 
