@@ -24,7 +24,7 @@ defer:
 	MALLOC_ERR_EXIT("struct node");
 }
 
-bool node_has(struct node *self, const struct string *value)
+bool node_has(const struct node *self, const struct string *value)
 {
 	if (string_is_equal(self->value, value)) return true;
 	else {
@@ -44,7 +44,7 @@ bool node_increment(struct node *self, const struct string *value)
 	}
 }
 
-int node_push(struct node *self, struct allocator *allocator, struct string **value, int index)
+struct node *node_push(struct node *self, struct allocator *allocator, struct string **value)
 {
 	if (string_is_equal(self->value, *value)) {
 		self->count++;
@@ -52,24 +52,28 @@ int node_push(struct node *self, struct allocator *allocator, struct string **va
 	} else {
 		if (self->_next == NULL) {
 			self->_next = node_alloc(allocator, value);
-			self->index = index;
-		} else index = node_push(self->_next, allocator, value, index);
+			return self->_next;
+		} else return node_push(self->_next, allocator, value);
 	}
 
-	return index;
+	return self;
 }
 
-struct node *node_find(struct node *self, int index)
+struct node *node_find(struct node *self, const struct string *value)
 {
-	if (self->index == index) return self;
-	else if (self->_next != NULL) return node_find(self->_next, index);
-	else return NULL;
+	struct node *_node = self;
+	while (_node != NULL) {
+		if (string_is_equal(_node->value, value)) return _node;
+		else _node = _node->_next;
+	}
+
+	return NULL;
 }
 
-void node_print(struct node *self, bool show_value, bool show_frequency)
+void node_print(const struct node *self, bool show_value, bool show_frequency)
 {
 	if (show_value) string_print(self->value);
-	if (show_frequency) printf("(%d)", self->count);
+	if (show_frequency) printf("(%zu)", self->count);
 
 	if (self->_next != NULL) {
 		printf(", ");

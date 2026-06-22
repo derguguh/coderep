@@ -1,5 +1,5 @@
-#ifndef CODEREP_OUTPUT_H
-#define CODEREP_OUTPUT_H
+#ifndef CODEREP_DATA_TYPE_OUTPUT_H
+#define CODEREP_DATA_TYPE_OUTPUT_H
 
 enum output_mode {
 	// Flags

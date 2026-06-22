@@ -48,7 +48,7 @@ $(objects_dir)/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(build_dir)/*
+	rm -rf build/*
 
 install:
 	mkdir -p $(install_prefix)

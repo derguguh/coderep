@@ -13,6 +13,7 @@ struct file {
 };
 
 extern const size_t RING_LINE_BUFFER_SIZE;
+extern const char *const PRINT_PREFIX;
 
 struct file *file_alloc(struct allocator *allocator);
 

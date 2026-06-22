@@ -2,21 +2,17 @@
 #define CODEREP_ALLOCATOR_ARENA_H
 
 #include "coderep/allocator/allocator.h"
+#include "coderep/allocator/block.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
-#define DEFAULT_BLOCK_SIZE 8 * 1024 * 1024
 #define PACKET_SIZE sizeof(size_t)
 #define PACKET_ALIGN(size) (((size) + PACKET_SIZE - 1) & ~(PACKET_SIZE - 1))
 
-struct block {
-	struct block *_next;
-	uint8_t *mem;
-};
-
 struct arena {
 	struct allocator abstract;
+	struct allocator default_;
 	struct block *block;
 	struct block *active_block;
 	size_t block_size;

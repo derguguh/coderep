@@ -10,41 +10,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct block *block_alloc(size_t block_size)
-{
-	struct block *self = default_allocate(NULL, sizeof(struct block));
-	uint8_t *mem = default_allocate(NULL, block_size);
-	if (!self || !mem) goto defer;
-
-	memset(mem, 0, block_size);
-
-	*self = (struct block) {
-		.mem = mem,
-		._next = NULL,
-	};
-
-	return self;
-defer:
-	MALLOC_ERR_EXIT("struct block");
-}
-
-void block_drop(struct block **self)
-{
-	if ((*self)->_next != NULL) block_drop(&(*self)->_next);
-
-	default_deallocate(NULL, (*self)->mem);
-	(*self)->mem = NULL;
-
-	default_deallocate(NULL, *self);
-	*self = NULL;
-}
-
 struct arena *arena_alloc(size_t block_size)
 {
 	block_size = PACKET_ALIGN(block_size);
 
-	struct block *block = block_alloc(block_size);
-	struct arena *self = default_allocate(NULL, sizeof(struct arena));
+	struct allocator default_ = default_get_allocator();
+	struct block *block = block_alloc(&default_, block_size);
+	struct arena *self = default_.allocate(default_.state, sizeof(struct arena));
 	if (!self) goto defer;
 
 	*self = (struct arena) {
@@ -54,6 +26,7 @@ struct arena *arena_alloc(size_t block_size)
 			.reallocate = (reallocate_t)arena_reallocate,
 			.deallocate = (deallocate_t)arena_deallocate,
 		},
+		.default_ = default_,
 		.block = block,
 		.active_block = block,
 		.block_size = block_size,
@@ -71,7 +44,7 @@ void *arena_allocate(struct arena *self, size_t size)
 	assert(size <= self->block_size);
 
 	if (self->block_offset + size > self->block_size) {
-		if (self->active_block->_next == NULL) self->active_block->_next = block_alloc(self->block_size);
+		if (self->active_block->_next == NULL) self->active_block->_next = block_alloc(&self->default_, self->block_size);
 
 		self->active_block = self->active_block->_next;
 		self->current_block++;
@@ -110,7 +83,7 @@ void  arena_drop(struct arena **self)
 	if (!self || !(*self)) return;
 
 	(*self)->active_block = NULL;
-	block_drop(&(*self)->block);
+	block_drop(&(*self)->default_, &(*self)->block);
 
 	default_deallocate(NULL, *self);
 	*self = NULL;

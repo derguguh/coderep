@@ -9,6 +9,7 @@
 #include <string.h>
 
 const size_t RING_LINE_BUFFER_SIZE = 40;
+const char *const PRINT_PREFIX = "\n\t|";
 
 struct file *file_alloc(struct allocator *allocator)
 {
@@ -27,7 +28,7 @@ struct file *file_alloc(struct allocator *allocator)
 
 	return self;
 defer:
-	MALLOC_ERR_EXIT("struct file_buffer for lua");
+	MALLOC_ERR_EXIT("struct file_buffer");
 }
 
 bool file_open(struct file *self, const char *const file_path)
@@ -66,9 +67,9 @@ void file_advance(struct file *self)
 void file_print_line_buffer(const struct file *self)
 {
 	if (self->line_buffer->length > RING_LINE_BUFFER_SIZE) {
-		size_t offset = self->line_buffer->length;
+		size_t offset = self->line_buffer->length - RING_LINE_BUFFER_SIZE;
 
-		printf("...%.*s", (int)RING_LINE_BUFFER_SIZE, self->line_buffer->chars + offset);
+		fprintf(stderr, "...%.*s", (int)RING_LINE_BUFFER_SIZE, self->line_buffer->chars + offset);
 
 	} else string_print(self->line_buffer);
 }
@@ -76,27 +77,27 @@ void file_print_line_buffer(const struct file *self)
 void file_print_error(const struct file *self, const char *const error_text, size_t error_length)
 {
 	if (error_length > self->column) {
-		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %zu passed to 'file_print_error' is bigger than 'file->column' %lu. Will be truncated",
+		LOGF("'error_length' %zu passed to 'file_print_error' is bigger than 'file->column' %lu. Will be truncated",
 				error_length, self->column);
-
 		error_length = self->column;
 	} else if (error_length < 1) {
-		PRINTF_ANSI(stdout, ANSI_LOG, "'error_length' %zu passed to 'file_print_error' is less than 1, "
-				"which means it don't have anything to be printed. Will be set to 1\n",
+		LOGF("'error_length' %zu passed to 'file_print_error' is less than 1, which means it don't have anything to be printed. Will be set to 1\n",
 				error_length);
-
 		error_length = 1;
 	}
 
-	printf(ANSI_ERR "%zu;%zu in %-60s\n\t|%s\n\t|", self->line, self->column, self->buffer->_file_name, error_text);
+	PRINTF_ERR("%zu;%zu in %-60s\n\t|%s\n\t|", self->line, self->column, self->buffer->_file_name, error_text);
 	file_print_line_buffer(self);
-	printf("\n\t|");
 
 	size_t tab_count = string_count(self->line_buffer, '\t');
-	size_t extra_spaces = tab_count == 0 ? 0 : tab_count * 8 - 2;
-	if (self->line_buffer->length > RING_LINE_BUFFER_SIZE) extra_spaces += 3;
 
-	for (size_t i = 0; i < self->column - error_length + extra_spaces; i++) putchar(' ');
+	size_t spaces_total;
+	if (self->line_buffer->length > RING_LINE_BUFFER_SIZE) spaces_total = RING_LINE_BUFFER_SIZE - tab_count - error_length + strlen(PRINT_PREFIX);
+	else spaces_total = self->column - error_length;
+
+	printf(PRINT_PREFIX);
+	for (size_t i = 0; i < spaces_total; i++) putchar(' ');
+	for (size_t i = 0; i < tab_count; i++) putchar('\t');
 	for (size_t i = 0; i < error_length - 1; i++) putchar('~');
 	puts("^\n");
 }
@@ -104,12 +105,17 @@ void file_print_error(const struct file *self, const char *const error_text, siz
 void file_print(const struct file *self, bool trim_spaces)
 {
 	puts("Source: {");
+
 	putchar('\t');
 	file_buffer_print(self->buffer, trim_spaces);
+
 	printf("\tLine Buffer: ");
 	string_print(self->line_buffer);
-	printf("\n\tLine: %zu\n", self->line);
+	putchar('\n');
+
+	printf("\tLine: %zu\n", self->line);
 	printf("\tColumn: %zu\n", self->column);
+
 	puts("}\n");
 }
 

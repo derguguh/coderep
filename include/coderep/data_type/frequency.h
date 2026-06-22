@@ -1,5 +1,5 @@
-#ifndef CODEREP_DATA_TYPES_FREQUENCY_H
-#define CODEREP_DATA_TYPES_FREQUENCY_H
+#ifndef CODEREP_DATA_TYPE_FREQUENCY_H
+#define CODEREP_DATA_TYPE_FREQUENCY_H
 
 #include "coderep/data_type/output_mode.h"
 #include "coderep/data_type/string.h"
@@ -12,14 +12,15 @@ struct frequency {
 	struct node **buckets;
 	size_t buckets_count;
 	size_t element_count;
+	size_t count_total;
 };
 
 struct stats {
 	bool have_something;
-	int min;
+	unsigned int min;
 	float avg;
-	int max;
-	int mode;
+	unsigned int max;
+	unsigned int mode;
 	const struct node *mode_node;
 	float median;
 	const struct node *media_node_low;
@@ -34,7 +35,7 @@ bool frequency_has(struct frequency *self, const struct string *value);
 
 bool frequency_increment(struct frequency *self, const struct string *value);
 
-void frequency_intern(struct frequency *self, const struct string *value);
+bool frequency_intern(struct frequency *self, const struct string *value);
 
 void frequency_push(struct frequency *self, struct string **value);
 

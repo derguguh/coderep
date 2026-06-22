@@ -1,5 +1,5 @@
-#ifndef CODEREP_DATA_TYPES_BRUTE_H
-#define CODEREP_DATA_TYPES_BRUTE_H
+#ifndef CODEREP_DATA_TYPE_BRUTE_H
+#define CODEREP_DATA_TYPE_BRUTE_H
 
 #include "coderep/allocator/allocator.h"
 #include "coderep/data_type/output_mode.h"

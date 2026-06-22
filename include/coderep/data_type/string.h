@@ -1,5 +1,5 @@
-#ifndef CODEREP_DATA_TYPES_STRING_H
-#define CODEREP_DATA_TYPES_STRING_H
+#ifndef CODEREP_DATA_TYPE_STRING_H
+#define CODEREP_DATA_TYPE_STRING_H
 
 #include "coderep/allocator/allocator.h"
 #include <stddef.h>

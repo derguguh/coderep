@@ -56,33 +56,49 @@ bool frequency_increment(struct frequency *self, const struct string *value)
 	struct node *node = self->buckets[bucket];
 
 	if (node == NULL) return false;
-	else return node_increment(node, value);
+	else {
+		self->count_total++;
+		return node_increment(node, value);
+	}
 }
 
-void frequency_intern(struct frequency *self, const struct string *value)
+bool frequency_intern(struct frequency *self, const struct string *value)
 {
-	if (frequency_has(self, value)) frequency_increment(self, value);
-	else {
+	size_t index = string_hash(value) % self->buckets_count;
+	struct node *bucket = self->buckets[index];
+
+	self->count_total++;
+	if (bucket == NULL) {
 		struct string *cloned = string_clone(value, self->allocator, true);
-		frequency_push(self, &cloned);
+		self->buckets[index] = node_alloc(self->allocator, &cloned);
+		self->element_count++;
+		return true;
+	} else {
+		struct node *node = node_find(bucket, value);
+		if (node == NULL) {
+			struct string *cloned = string_clone(value, self->allocator, true);
+			node_push(bucket, self->allocator, &cloned);
+			self->element_count++;
+			return true;
+		} else {
+			node->count++;
+			return false;
+		}
 	}
 }
 
 void frequency_push(struct frequency *self, struct string **value)
 {
-	size_t bucket = string_hash(*value) % self->buckets_count;
-	struct node *node = self->buckets[bucket];
+	size_t index = string_hash(*value) % self->buckets_count;
+	struct node *bucket = self->buckets[index];
 
-	size_t count = self->element_count;
+	if (bucket == NULL) {
+		bucket = node_alloc(self->allocator, value);
+		self->buckets[index] = bucket;
+		self->element_count++;
+	} else if (node_push(bucket, self->allocator, value)->count == 1) self->element_count++;
 
-	if (node == NULL) {
-		node = node_alloc(self->allocator, value);
-		self->buckets[bucket] = node;
-	} else count = node_push(node, self->allocator, value, count);
-
-	self->element_count = count;
-	self->element_count++;
-
+	self->count_total++;
 	*value = NULL;
 }
 
@@ -93,13 +109,11 @@ struct stats frequency_calculate_stats(const struct frequency *self)
 	struct stats stats = (struct stats) { 
 		.min = 0x7fffffff,
 	};
-	size_t acumulator = 0;
 
 	for (size_t i = 0; i < self->buckets_count; i++) {
 		struct node *node = self->buckets[i];
 
 		while (node != NULL) {
-			acumulator += node->count;
 
 			if (node->count < stats.min) stats.min = node->count;
 			if (node->count > stats.max) stats.max = node->count;
@@ -107,13 +121,13 @@ struct stats frequency_calculate_stats(const struct frequency *self)
 				stats.mode = node->count;
 				stats.mode_node = node;
 			}
-			// let skip median for now
+			// TODO: median
 
 			node = node->_next;
 		}
 	}
 
-	stats.avg = (float)acumulator / self->element_count;
+	stats.avg = (float)self->count_total / self->element_count;
 
 	return stats;
 }
@@ -139,7 +153,7 @@ void frequency_print_stats(const struct frequency *self, enum output_mode output
 
 		printf("%smode = \"", prefix);
 		string_print(stats.mode_node->value);
-		printf("\"(%d)%s", stats.mode_node->count, sufix);
+		printf("\"(%zu)%s", stats.mode_node->count, sufix);
 	}
 }
 
@@ -202,7 +216,7 @@ void frequency_print_normal(const struct frequency *self, enum output_mode outpu
 		}
 		putchar(']');
 	}
-	if ((output_mode & OUTPUT_MODE_COUNT) == OUTPUT_MODE_COUNT) printf("(%zu)", self->element_count);
+	if ((output_mode & OUTPUT_MODE_COUNT) == OUTPUT_MODE_COUNT) printf("(unique: %zu, total: %zu)", self->element_count, self->count_total);
 
 	putchar('\n');
 }

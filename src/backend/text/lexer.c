@@ -59,6 +59,7 @@ enum text_token text_lexer_characters(struct text_lexer *self, struct file *file
 
 enum text_token text_lexer_next(struct text_lexer *self, struct file *file, struct string *scratch_buffer)
 {
+	string_clear(scratch_buffer);
 	skip_whitespaces(file);
 
 	if	(file->buffer->char_ == EOF) return TEXT_TOKEN_EOF;

@@ -14,8 +14,13 @@
 #define PRINT_ANSI(out, type, text)		fprintf(out, type text ANSI_RESET "\n")
 #define PRINTF_ANSI(out, type, text, ...)	fprintf(out, type text ANSI_RESET "\n", __VA_ARGS__)
 
+#ifdef DEBUG
 #define LOG(log)		PRINT_ANSI(stdout, ANSI_LOG, log)
 #define LOGF(log, ...)		PRINTF_ANSI(stdout, ANSI_LOG, log, __VA_ARGS__)
+#else
+#define LOG(log)
+#define LOGF(log, ...)
+#endif
 
 #define PRINT_ERR(err)		PRINT_ANSI(stderr, ANSI_ERR, err)
 #define PRINTF_ERR(err, ...)	PRINTF_ANSI(stderr, ANSI_ERR, err, __VA_ARGS__)

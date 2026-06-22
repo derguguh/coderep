@@ -3,6 +3,7 @@
 #include "coderep/allocator/arena.h"
 #include "coderep/cli/cli.h"
 #include "coderep/data_array.h"
+#include "coderep/data_type/bimap.h"
 #include "coderep/macros.h"
 
 #include <stdbool.h>
@@ -11,7 +12,8 @@
 int main(int argc, const char **argv)
 {
 	struct arena *arena = arena_alloc(8 * 1024 * 1024);
-	struct cli *cli = cli_alloc();
+
+	/* struct cli *cli = cli_alloc();
 
 	cli_parse(cli, argv, argc);
 
@@ -24,7 +26,14 @@ int main(int argc, const char **argv)
 		data_array_drop(&datas);
 	}
 
-	cli_drop(&cli);
+	cli_drop(&cli); */
+	struct string *name = string_from_cstr(&arena->abstract, "Binary map");
+	struct bimap *bimap = bimap_alloc(&arena->abstract, &name, 8);
+	name = string_from_cstr(&arena->abstract, "Brute");
+	bimap_push(bimap, &name);
+	name = string_from_cstr(&arena->abstract, "2");
+	bimap_push(bimap, &name);
+
 	arena_drop(&arena);
 }
 
