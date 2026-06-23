@@ -2,6 +2,7 @@
 
 #include "backend/lua/lua.h"
 #include "backend/text/text.h"
+#include "backend/c/c.h"
 
 #include "coderep/allocator/allocator.h"
 #include "coderep/allocator/arena.h"
@@ -15,6 +16,7 @@
 const struct backend BACKEND_REGISTER[] = {
 	{ "Text", "text", text_request, text_init, text_parse_file, text_deinit },
 	{ "Lua", "lua", lua_request, lua_init, lua_parse_file, lua_deinit },
+	{ "C", "c", c_request, c_init, c_parse_file, c_deinit },
 };
 
 const size_t BACKEND_REGISTER_L = sizeof(BACKEND_REGISTER) / sizeof(struct backend);

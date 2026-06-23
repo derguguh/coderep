@@ -16,8 +16,9 @@ struct arena {
 	struct block *block;
 	struct block *active_block;
 	size_t block_size;
-	size_t current_block;
 	size_t block_offset;
+	size_t block_count;
+	size_t current_block;
 // Data collection
 	size_t packets_allocated;
 	size_t deallocation_tries;

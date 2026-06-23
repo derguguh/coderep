@@ -31,6 +31,7 @@ struct arena *arena_alloc(size_t block_size)
 		.active_block = block,
 		.block_size = block_size,
 		.current_block = 1,
+		.block_count = 1,
 	};
 
 	return self;
@@ -44,7 +45,10 @@ void *arena_allocate(struct arena *self, size_t size)
 	assert(size <= self->block_size);
 
 	if (self->block_offset + size > self->block_size) {
-		if (self->active_block->_next == NULL) self->active_block->_next = block_alloc(&self->default_, self->block_size);
+		if (self->active_block->_next == NULL) {
+			self->active_block->_next = block_alloc(&self->default_, self->block_size);
+			self->block_count++;
+		}
 
 		self->active_block = self->active_block->_next;
 		self->current_block++;
