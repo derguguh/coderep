@@ -13,11 +13,7 @@
 
 enum text_token text_lexer_word(struct text_lexer *self, struct file *file, struct string *scratch_buffer)
 {
-	while (isalnum(file->buffer->char_) || file->buffer->char_ == '_') {
-
-		push_and_advance(file, scratch_buffer);
-	}
-
+	read_word(file, scratch_buffer);
 	frequency_intern(self->word, scratch_buffer);
 
 	return TEXT_TOKEN_WORD;
@@ -27,10 +23,10 @@ enum text_token text_lexer_number(struct text_lexer *self, struct file *file, st
 {
 	enum text_token type = TEXT_TOKEN_LIT_INTEGER;
 
-	read_int(file, scratch_buffer);
+	read_int(file, scratch_buffer, true);
 	if (file->buffer->char_ == '.') {
 		push_and_advance(file, scratch_buffer);
-		read_int(file, scratch_buffer);
+		read_int(file, scratch_buffer, true);
 		type = TEXT_TOKEN_LIT_DECIMAL;
 	}
 

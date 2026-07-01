@@ -33,9 +33,9 @@ debug:
 release:
 	$(MAKE) CFLAGS="$(RELEASE_CFLAGS)" build_dir="$(release_build_dir)"
 
-# Change "general" to "c" later
+# Change "text" to "c" later
 analyse:
-	$(build_dir)/$(target) --lang general --input $(sources) $(headers)
+	$(build_dir)/$(target) --lang text --input $(sources) $(headers)
 
 bear:
 	bear -o build/$(commands) -- make all
@@ -53,6 +53,7 @@ clean:
 install:
 	mkdir -p $(install_prefix)
 	cp $(release_build_dir)/$(target) $(install_prefix)/$(target)
+	cp $(debug_build_dir)/$(target) $(install_prefix)/$(target)-debug
 
 -include $(dependencies)
 

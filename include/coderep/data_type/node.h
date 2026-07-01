@@ -8,7 +8,7 @@
 struct node {
 	struct node *_next;
 	struct string *value;
-	size_t count;
+	ssize_t count;
 };
 
 struct node *node_alloc(struct allocator *allocator, struct string **value);
@@ -19,7 +19,7 @@ bool node_increment(struct node *self, const struct string *value);
 
 struct node *node_push(struct node *self, struct allocator *allocator, struct string **value);
 
-struct node *node_find(struct node *self, const struct string *value);
+struct node *node_find(struct node *_self, const struct string *value);
 
 void node_print(const struct node *self, bool show_value, bool show_frequency);
 

@@ -93,8 +93,7 @@ void frequency_push(struct frequency *self, struct string **value)
 	struct node *bucket = self->buckets[index];
 
 	if (bucket == NULL) {
-		bucket = node_alloc(self->allocator, value);
-		self->buckets[index] = bucket;
+		self->buckets[index] = node_alloc(self->allocator, value);
 		self->element_count++;
 	} else if (node_push(bucket, self->allocator, value)->count == 1) self->element_count++;
 

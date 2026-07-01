@@ -49,6 +49,8 @@ void lua_init(struct backend_data *data)
 
 	string = string_from_cstr(allocator, "lexer.invalid.what");
 	context->what_invalid = frequency_alloc(allocator, &string, 3);
+
+	context->keyword_tree = word_tree_from_table(allocator, LUA_KEYWORD_TABLE, LUA_KEYWORD_TABLE_L);
 }
 
 void lua_parse_file(struct backend_data *data, struct arena *ignore, struct file *file)

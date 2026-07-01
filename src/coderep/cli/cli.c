@@ -9,14 +9,14 @@
 #include <string.h>
 
 const struct flags_table TABLE[] = {
-	{ NULL, "--help", (parse_function_t)help_print },
+	{ NULL, "--help", help_print },
 	{ NULL, "--lang", (parse_function_t)lang_parse },
 	{ NULL, "--input", (parse_function_t)input_parse },
 	{ NULL, "--filter", (parse_function_t)filter_parse },
 	{ NULL, "--data", (parse_function_t)data_parse },
 };
 
-const size_t TABLE_L = sizeof(TABLE) / sizeof(struct flags_table);
+const size_t TABLE_L = ARRAY_SIZE(TABLE, struct flags_table);
 
 struct cli *cli_alloc()
 {

@@ -1,25 +1,72 @@
 #include "backend/general/word_tree.h"
 
+#include "coderep/data_type/node.h"
 #include "coderep/macros.h"
 
 #include <string.h>
 
 struct word_tree {
 	struct allocator *allocator;
+	struct node **buckets;
+	size_t buckets_count;
+	size_t non_unique_hash;
 };
 
 struct word_tree *word_tree_from_table(struct allocator *allocator, const struct word_table *table_array, size_t table_array_l)
 {
-	struct word_tree *self = allocator->allocate(allocator->state, sizeof(struct word_table));
-	if (!self) goto defer;
+	struct node **buckets = allocator->allocate(allocator->state, sizeof(struct node *) * table_array_l);
+	struct word_tree *self = allocator->allocate(allocator->state, sizeof(struct word_tree));
+	if (!buckets || !self) goto defer;
+
+	memset(buckets, 0, sizeof(struct node *) * table_array_l);
+
+	*self = (struct word_tree) {
+		.allocator = allocator,
+		.buckets = buckets,
+		.buckets_count = table_array_l,
+	};
+
+	for (size_t i = 0; i < table_array_l; i++) {
+		struct string *value = string_from_cstr(allocator, table_array[i].word);
+		size_t index = string_hash(value) % table_array_l;
+		struct node *bucket = self->buckets[index];
+
+		if (bucket == NULL) {
+			bucket = node_alloc(self->allocator, &value);
+			self->buckets[index] = bucket;
+		} else {
+			bucket = node_push(bucket, self->allocator, &value);
+			self->non_unique_hash++;
+		}
+		bucket->count = table_array[i].id;
+	}
 
 	return self;
 defer:
+	allocator->deallocate(allocator->state, buckets);
+	allocator->deallocate(allocator->state, self);
 	MALLOC_ERR_EXIT("\tstruct bimap");
 }
 
-ssize_t categorize_word_via_tree(struct string *word, struct word_tree *table_array)
+const struct string *word_tree_get_by_id(struct word_tree *self, ssize_t id)
 {
-	return -1;
+	for (size_t i = 0; i < self->buckets_count; i++) {
+		struct node *bucket = self->buckets[i];
+		while (bucket != NULL) {
+			if (bucket->count == id) return bucket->value;
+			else bucket = bucket->_next;
+		}
+	}
+
+	return NULL;
+}
+
+ssize_t word_tree_categorize(struct word_tree *self, struct string *word)
+{
+	size_t index = string_hash(word) % self->buckets_count;
+	struct node *bucket = node_find(self->buckets[index], word);
+
+	if (bucket == NULL) return -1;
+	else return bucket->count;
 }
 

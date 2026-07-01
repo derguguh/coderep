@@ -4,12 +4,17 @@
 #include "coderep/cli/cli.h"
 #include "coderep/data_array.h"
 #include "coderep/macros.h"
+#include "coderep/timer.h"
 
+#include <time.h>
 #include <stdbool.h>
 #include <unistd.h>
 
+
 int main(int argc, const char **argv)
 {
+	struct timespec begin;
+	timer_start(&begin);
 	struct arena *arena = arena_alloc(8 * 1024 * 1024);
 
 	struct cli *cli = cli_alloc();
@@ -27,5 +32,6 @@ int main(int argc, const char **argv)
 
 	cli_drop(&cli);
 	arena_drop(&arena);
+	printf("Total time: %.3fs\n", timer_elapsed(&begin));
 }
 

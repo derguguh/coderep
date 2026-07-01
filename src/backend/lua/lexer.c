@@ -5,12 +5,40 @@
 
 #include "coderep/data_type/frequency.h"
 #include "coderep/data_type/string.h"
+#include "coderep/macros.h"
 #include "coderep/tool/file_buffer.h"
 #include "coderep/tool/file.h"
 
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+
+const struct word_table LUA_KEYWORD_TABLE[] = {
+	{ "and", 	LUA_TOKEN_TYPE_KW_AND },
+	{ "break", 	LUA_TOKEN_TYPE_KW_BREAK },
+	{ "do", 	LUA_TOKEN_TYPE_KW_DO },
+	{ "else", 	LUA_TOKEN_TYPE_KW_ELSE },
+	{ "elseif", 	LUA_TOKEN_TYPE_KW_ELSEIF },
+	{ "end", 	LUA_TOKEN_TYPE_KW_END },
+	{ "false", 	LUA_TOKEN_TYPE_KW_FALSE },
+	{ "for", 	LUA_TOKEN_TYPE_KW_FOR },
+	{ "function", 	LUA_TOKEN_TYPE_KW_FUNCTION },
+	{ "goto", 	LUA_TOKEN_TYPE_KW_GOTO },
+	{ "if", 	LUA_TOKEN_TYPE_KW_IF },
+	{ "in", 	LUA_TOKEN_TYPE_KW_IN },
+	{ "local", 	LUA_TOKEN_TYPE_KW_LOCAL },
+	{ "nil", 	LUA_TOKEN_TYPE_KW_NIL },
+	{ "not", 	LUA_TOKEN_TYPE_KW_NOT },
+	{ "or", 	LUA_TOKEN_TYPE_KW_OR },
+	{ "repeat", 	LUA_TOKEN_TYPE_KW_REPEAT },
+	{ "return", 	LUA_TOKEN_TYPE_KW_RETURN },
+	{ "then", 	LUA_TOKEN_TYPE_KW_THEN },
+	{ "true", 	LUA_TOKEN_TYPE_KW_TRUE },
+	{ "until", 	LUA_TOKEN_TYPE_KW_UNTIL },
+	{ "while", 	LUA_TOKEN_TYPE_KW_WHILE },
+};
+
+const size_t LUA_KEYWORD_TABLE_L = ARRAY_SIZE(LUA_KEYWORD_TABLE, struct word_table);
 
 bool lua_skip_block_comment(struct file *file)
 {
@@ -66,35 +94,6 @@ void lua_skip_blank(struct file *file)
 	}
 }
 
-enum lua_token_type lua_identifier_word(struct string *scratch_buffer)
-{
-	const char *const cstr = string_to_cstr(scratch_buffer);
-
-	if	(strcmp(cstr, "and") == 0)		return LUA_TOKEN_TYPE_KW_AND;
-	else if	(strcmp(cstr, "break") == 0)		return LUA_TOKEN_TYPE_KW_BREAK;
-	else if	(strcmp(cstr, "do") == 0)		return LUA_TOKEN_TYPE_KW_DO;
-	else if	(strcmp(cstr, "else") == 0)		return LUA_TOKEN_TYPE_KW_ELSE;
-	else if	(strcmp(cstr, "elseif") == 0)		return LUA_TOKEN_TYPE_KW_ELSEIF;
-	else if	(strcmp(cstr, "end") == 0)		return LUA_TOKEN_TYPE_KW_END;
-	else if	(strcmp(cstr, "false") == 0)		return LUA_TOKEN_TYPE_KW_FALSE;
-	else if	(strcmp(cstr, "for") == 0)		return LUA_TOKEN_TYPE_KW_FOR;
-	else if	(strcmp(cstr, "function") == 0)		return LUA_TOKEN_TYPE_KW_FUNCTION;
-	else if	(strcmp(cstr, "goto") == 0)		return LUA_TOKEN_TYPE_KW_GOTO;
-	else if	(strcmp(cstr, "if") == 0)		return LUA_TOKEN_TYPE_KW_IF;
-	else if	(strcmp(cstr, "in") == 0)		return LUA_TOKEN_TYPE_KW_IN;
-	else if	(strcmp(cstr, "local") == 0)		return LUA_TOKEN_TYPE_KW_LOCAL;
-	else if	(strcmp(cstr, "nil") == 0)		return LUA_TOKEN_TYPE_KW_NIL;
-	else if	(strcmp(cstr, "not") == 0)		return LUA_TOKEN_TYPE_KW_NOT;
-	else if	(strcmp(cstr, "or") == 0)		return LUA_TOKEN_TYPE_KW_OR;
-	else if	(strcmp(cstr, "repeat") == 0)		return LUA_TOKEN_TYPE_KW_REPEAT;
-	else if	(strcmp(cstr, "return") == 0)		return LUA_TOKEN_TYPE_KW_RETURN;
-	else if	(strcmp(cstr, "then") == 0)		return LUA_TOKEN_TYPE_KW_THEN;
-	else if	(strcmp(cstr, "true") == 0)		return LUA_TOKEN_TYPE_KW_TRUE;
-	else if	(strcmp(cstr, "until") == 0)		return LUA_TOKEN_TYPE_KW_UNTIL;
-	else if	(strcmp(cstr, "while") == 0)		return LUA_TOKEN_TYPE_KW_WHILE;
-	else						return LUA_TOKEN_TYPE_IDENTIFIER;
-}
-
 struct lua_token lua_lexer_word(struct lua_lexer *self, struct file *file, struct string *scratch_buffer)
 {
 	struct lua_token token = { 0 };
@@ -104,9 +103,9 @@ struct lua_token lua_lexer_word(struct lua_lexer *self, struct file *file, struc
 		push_and_advance(file, scratch_buffer);
 	}
 
-	token.type = lua_identifier_word(scratch_buffer);
+	token.type = word_tree_categorize(self->keyword_tree, scratch_buffer);
 
-	if (token.type == LUA_TOKEN_TYPE_IDENTIFIER) frequency_intern(self->identifier, scratch_buffer);
+	if (token.type == -1) frequency_intern(self->identifier, scratch_buffer);
 	else frequency_intern(self->keyword, scratch_buffer);
 
 	return token;
@@ -114,7 +113,7 @@ struct lua_token lua_lexer_word(struct lua_lexer *self, struct file *file, struc
 
 struct lua_token lua_block_string(struct file *file, struct string *scratch_buffer, size_t n)
 {
-	struct lua_token token = { .type = LUA_TOKEN_TYPE_MULTI_LINE_STRING };
+	struct lua_token token = { .type = LUA_TOKEN_TYPE_LIT_MULTI_LINE_STRING };
 	bool continue_ = true;
 
 	while (continue_) {
@@ -161,7 +160,7 @@ struct lua_token lua_lexer_handle_lbracket(struct lua_lexer *self, struct file *
 		frequency_intern(self->invalid, scratch_buffer);
 		frequency_intern(self->what_invalid, self->template_invalid_string);
 	} else if (token.type == LUA_TOKEN_TYPE_CHAR_LBRACKET) frequency_intern(self->character, scratch_buffer);
-	else frequency_intern(self->string, scratch_buffer);
+	else frequency_intern(self->block_string, scratch_buffer);
 
 	return token;
 }
@@ -170,10 +169,10 @@ enum lua_token_type lua_read_number(struct file *file, struct string *scratch_bu
 {
 	enum lua_token_type type = LUA_TOKEN_TYPE_LIT_INTEGER;
 
-	read_int(file, scratch_buffer);
+	read_int(file, scratch_buffer, false);
 	if (file->buffer->char_ == '.') {
 		push_and_advance(file, scratch_buffer);
-		read_int(file, scratch_buffer);
+		read_int(file, scratch_buffer, false);
 		type = LUA_TOKEN_TYPE_LIT_DECIMAL;
 	}
 
@@ -192,11 +191,11 @@ struct lua_token lua_lexer_number(struct lua_lexer *self, struct file *file, str
 	if (file->buffer->char_ == '0' && tolower(file_buffer_peek_n(file->buffer, 1)) == 'x') {
 		push_and_advance(file, scratch_buffer);
 
-		token.type = read_hex(file, scratch_buffer, true) ? LUA_TOKEN_TYPE_LIT_HEX : LUA_TOKEN_TYPE_INVALID;
+		token.type = read_hex(file, scratch_buffer, false, true) != -1 ? LUA_TOKEN_TYPE_LIT_HEX : LUA_TOKEN_TYPE_INVALID;
 	} else token.type = lua_read_number(file, scratch_buffer);
 
 	if (token.type != LUA_TOKEN_TYPE_INVALID && file->buffer->char_ == 'e') {
-		token.type = read_scientific_suffix(file, scratch_buffer, true) ? LUA_TOKEN_TYPE_LIT_SCIENTIFIC : LUA_TOKEN_TYPE_INVALID;
+		token.type = read_scientific_suffix(file, scratch_buffer, false,  true) != -1 ? LUA_TOKEN_TYPE_LIT_SCIENTIFIC : LUA_TOKEN_TYPE_INVALID;
 	}
 
 	if (token.type == LUA_TOKEN_TYPE_INVALID) {
@@ -209,23 +208,17 @@ struct lua_token lua_lexer_number(struct lua_lexer *self, struct file *file, str
 
 struct lua_token lua_lexer_string(struct lua_lexer *self, struct file *file, struct string *scratch_buffer, bool double_quotes)
 {
-	struct lua_token token = { .type = LUA_TOKEN_TYPE_STRING };
-	bool continue_ = false;
-	
-	do {
-		if (file->buffer->char_ == EOF || file->buffer->char_ == '\n') {
+	struct lua_token token = { .type = LUA_TOKEN_TYPE_LIT_STRING };
+	push_and_advance(file, scratch_buffer);
 
+	while (!(double_quotes && file->buffer->char_ == '"') && !(!double_quotes && file->buffer->char_ == '\'')) {
+		if (file->buffer->char_ == EOF || file->buffer->char_ == '\n') {
 			file_print_error(file, "Normal strings needs to be single lined, "
 					"and end with the same quotes (single or double) as it started",
 					scratch_buffer->length);
 			token.type = LUA_TOKEN_TYPE_INVALID;
 			break;
-		}
-		if (double_quotes) {
-			if (file->buffer->char_ == '"') continue_ = !continue_;
-		} else if (file->buffer->char_ == '\'') continue_ = !continue_;
-
-		if (file->buffer->char_ == '\\') {
+		} else if (file->buffer->char_ == '\\') {
 			char peek = file_buffer_peek_n(file->buffer, 1);
 			if (peek == '\n' || peek == '\'' || peek == '"' || peek == '\\') push_and_advance(file, scratch_buffer);
 			else if (peek == 'z') {
@@ -235,12 +228,16 @@ struct lua_token lua_lexer_string(struct lua_lexer *self, struct file *file, str
 		}
 
 		push_and_advance(file, scratch_buffer);
-	} while (continue_);
+	}
 
 	if (token.type == LUA_TOKEN_TYPE_INVALID) {
 		frequency_intern(self->invalid, scratch_buffer);
 		frequency_intern(self->what_invalid, self->template_invalid_string);
-	} else frequency_intern(self->string, scratch_buffer);
+	} else {
+		push_and_advance(file, scratch_buffer);
+		frequency_intern(self->string, scratch_buffer);
+	}
+	printf("\n");
 
 	return token;
 }

@@ -13,6 +13,8 @@
 
 #include <stdio.h>
 
+#define PROGRESS_BAR_SIZE 40
+
 const struct backend BACKEND_REGISTER[] = {
 	{ "Text", "text", text_request, text_init, text_parse_file, text_deinit },
 	{ "Lua", "lua", lua_request, lua_init, lua_parse_file, lua_deinit },
@@ -35,19 +37,20 @@ void *backend_fulfill_request(const struct backend *backend, struct arena *alloc
 
 void backend_print_reading_files(size_t current, size_t total)
 {
-	const size_t progress_bar = 40;
-	printf("\r" ANSI_GREEN "[Reading files [");
+	char bar_buffer[PROGRESS_BAR_SIZE + 1];
 
 	float tmp = (float)current / total;
-	size_t percent_complete = (size_t)(tmp * progress_bar);
+	size_t percent_complete = (size_t)(tmp * PROGRESS_BAR_SIZE);
 	
-	for (size_t i = 0; i < percent_complete; i++) putchar('=');
-	for (size_t i = percent_complete; i < progress_bar; i++) putchar(' ');
+	for (size_t i = 0; i < percent_complete; i++) bar_buffer[i] = '=';
+	for (size_t i = percent_complete; i < PROGRESS_BAR_SIZE; i++) bar_buffer[i] = ' ';
+	bar_buffer[PROGRESS_BAR_SIZE] = '\0';
 
-	printf( "]" ANSI_WHITE " %lu/%lu"
+	printf("\r" ANSI_GREEN "[Reading files ["
+		"%s"
+		"]" ANSI_WHITE " %lu/%lu"
 		ANSI_GREEN "]" ANSI_RESET,
-		current, total);
-
+		bar_buffer, current, total);
 	fflush(stdout);
 }
 

@@ -11,8 +11,8 @@ void push_and_advance(struct file *file, struct string *string);
 size_t read_word(struct file *file, struct string *buffer);
 
 size_t read_int(struct file *file, struct string *buffer, bool accept_underscore);
-bool read_hex(struct file *file, struct string *scratch_buffer, bool need_digits, bool accept_underscore);
-bool read_scientific_suffix(struct file *file, struct string *scratch_buffer, bool need_digits, bool accept_underscore);
+ssize_t read_hex(struct file *file, struct string *scratch_buffer, bool accept_underscore, bool need_digits);
+ssize_t read_scientific_suffix(struct file *file, struct string *scratch_buffer, bool accept_underscore, bool need_digits);
 
 void skip_shebang(struct file *file);
 size_t skip_blank(struct file *file);

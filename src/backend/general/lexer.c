@@ -20,7 +20,7 @@ size_t read_word(struct file *file, struct string *buffer)
 {
 	size_t amount = 0;
 
-	while (isalnum(file->buffer->char_) || file->buffer->char_ == '_') {
+	while (isalnum(file->buffer->char_) ||file->buffer->char_ == '_') {
 		push_and_advance(file, buffer);
 		amount++;
 	}
@@ -36,37 +36,44 @@ size_t read_int(struct file *file, struct string *buffer, bool accept_underscore
 	size_t amount = 0;
 	
 	while (isdigit(file->buffer->char_) || (accept_underscore && file->buffer->char_ == '_')) {
-		string_push(buffer, file->buffer->char_);
-		file_advance(file);
+		push_and_advance(file, buffer);
 		amount++;
 	}
 	return amount;
 }
 
-bool read_hex(struct file *file, struct string *scratch_buffer, bool need_digits, bool accept_underscore)
+ssize_t read_hex(struct file *file, struct string *scratch_buffer, bool accept_underscore, bool need_digits)
 {
-	while (isxdigit(file->buffer->char_) || (accept_underscore && file->buffer->char_ == '_')) push_and_advance(file, scratch_buffer);
+	ssize_t amount = 0;
+	while (isxdigit(file->buffer->char_) || (accept_underscore && file->buffer->char_ == '_')) {
+		push_and_advance(file, scratch_buffer);
+		amount++;
+	}
 
 	if (need_digits && !isxdigit(string_get(scratch_buffer, scratch_buffer->length - 1))) {
 		file_print_error(file,
 				"Hexadecimal numbers need to have at least one digit after the prefix '0x'/'0X'",
 				scratch_buffer->length);
-		return false;
-	} else return true;
+		return -1;
+	} else return amount;
 }
 
-bool read_scientific_suffix(struct file *file, struct string *scratch_buffer, bool need_digits, bool accept_underscore)
+ssize_t read_scientific_suffix(struct file *file, struct string *scratch_buffer, bool accept_underscore, bool need_digits)
 {
+	ssize_t amount = 0;
 	push_and_advance(file, scratch_buffer);
-	if (file->buffer->char_ == '+' || file->buffer->char_ == '-') push_and_advance(file, scratch_buffer);
+	if (file->buffer->char_ == '+' || file->buffer->char_ == '-') {
+		push_and_advance(file, scratch_buffer);
+		amount++;
+	}
 	read_int(file, scratch_buffer, accept_underscore);
 
 	if (need_digits && !isdigit(string_get(scratch_buffer, scratch_buffer->length - 1))) {
 		file_print_error(file,
 				"Scientific numbers need to have at least one digit after the prefix 'e', 'e+' or 'e-'",
 				scratch_buffer->length);
-		return false;
-	} else return true;
+		return -1;
+	} else return amount;
 }
 
 /*
