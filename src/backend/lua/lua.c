@@ -53,12 +53,12 @@ void lua_init(struct backend_data *data)
 	context->keyword_tree = word_tree_from_table(allocator, LUA_KEYWORD_TABLE, LUA_KEYWORD_TABLE_L);
 }
 
-void lua_parse_file(struct backend_data *data, struct arena *ignore, struct file *file)
+void lua_parse_file(struct backend_data *data, struct arena *tmp_allocator, struct file *file)
 {
 	skip_shebang(file);
 	struct lua_token token = { .type = LUA_TOKEN_TYPE_EOF };
 	do {
-		token = lua_lexer_next((struct lua_lexer *)data->context, file, data->scratch_buffer);
+		token = lua_lexer_next((struct lua_lexer *)data->context, file, data->scratch_buffer, tmp_allocator);
 	} while (token.type != LUA_TOKEN_TYPE_EOF);
 }
 

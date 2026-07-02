@@ -98,10 +98,7 @@ struct lua_token lua_lexer_word(struct lua_lexer *self, struct file *file, struc
 {
 	struct lua_token token = { 0 };
 
-	while (isalnum(file->buffer->char_) || file->buffer->char_ == '_') {
-
-		push_and_advance(file, scratch_buffer);
-	}
+	read_word(file, scratch_buffer);
 
 	token.type = word_tree_categorize(self->keyword_tree, scratch_buffer);
 
@@ -111,50 +108,35 @@ struct lua_token lua_lexer_word(struct lua_lexer *self, struct file *file, struc
 	return token;
 }
 
-struct lua_token lua_block_string(struct file *file, struct string *scratch_buffer, size_t n)
+struct lua_token lua_lexer_block_string(struct file *file, struct string *scratch_buffer, struct arena *tmp_allocator, size_t n)
 {
 	struct lua_token token = { .type = LUA_TOKEN_TYPE_LIT_MULTI_LINE_STRING };
-	bool continue_ = true;
-
-	while (continue_) {
-		if (file->buffer->char_ == EOF) {
-			file_print_error(file, "Multi lined strings need a clossing ']], "
-					"but founded EOF (End Of File)",
-					file->column);
-			token.type = LUA_TOKEN_TYPE_INVALID;
-			continue_ = false;
-		} else if (file->buffer->char_ == ']' && file_buffer_peek_n(file->buffer, n) == ']') {
-			push_and_advance(file, scratch_buffer);
-
-			size_t n_ = 1;
-			while (file->buffer->char_ == '=') {
-				push_and_advance(file, scratch_buffer);
-				n_++;
-			}
-
-			if (file->buffer->char_ == ']' && n_ == n) continue_ = false;
-		} else push_and_advance(file, scratch_buffer);
-	}
-
+	for (size_t i = 0; i < n; i++) push_and_advance(file, scratch_buffer);
 	push_and_advance(file, scratch_buffer);
+
+	struct string_handler handler = (struct string_handler) {
+		.end_sequence = string_clone(scratch_buffer, &tmp_allocator->abstract, true),
+		._escape_handler = NULL,
+		.escape_char = '\0',
+		.accept_new_line = true,
+	};
+	handler.end_sequence->chars[0] = ']';
+	handler.end_sequence->chars[handler.end_sequence->length - 1] = ']';
+
+	token.type = read_string(file, scratch_buffer, tmp_allocator, &handler) == -1 ? LUA_TOKEN_TYPE_INVALID : LUA_TOKEN_TYPE_LIT_MULTI_LINE_STRING;
+	string_append(scratch_buffer, handler.end_sequence);
 
 	return token;
 }
 
-struct lua_token lua_lexer_handle_lbracket(struct lua_lexer *self, struct file *file, struct string *scratch_buffer)
+struct lua_token lua_lexer_handle_lbracket(struct lua_lexer *self, struct file *file, struct string *scratch_buffer, struct arena *tmp_allocator)
 {
 	struct lua_token token = { .type = LUA_TOKEN_TYPE_CHAR_LBRACKET };
-
 	push_and_advance(file, scratch_buffer);
 
-	size_t n = 1;
-	while (file->buffer->char_ == '=') {
-
-		push_and_advance(file, scratch_buffer);
-		n++;
-	}
-
-	if (file->buffer->char_ == '[') token = lua_block_string(file, scratch_buffer, n);
+	size_t n = 0;
+	while (file_buffer_peek_n(file->buffer, n) == '=') n++;
+	if (file_buffer_peek_n(file->buffer, n) == '[') token = lua_lexer_block_string(file, scratch_buffer, tmp_allocator, n);
 
 	if (token.type == LUA_TOKEN_TYPE_INVALID) {
 		frequency_intern(self->invalid, scratch_buffer);
@@ -206,38 +188,43 @@ struct lua_token lua_lexer_number(struct lua_lexer *self, struct file *file, str
 	return token;
 }
 
-struct lua_token lua_lexer_string(struct lua_lexer *self, struct file *file, struct string *scratch_buffer, bool double_quotes)
+bool lua_escape_handler(struct file *file, struct string *_buffer, struct arena *tmp_allocator)
+{
+	if (_buffer == NULL) return false;
+	push_and_advance(file, _buffer);
+
+	switch (file->buffer->char_) {
+		case 'z':
+			push_and_advance(file, _buffer);
+			skip_whitespaces(file);
+		break;
+		default:
+			push_and_advance(file, _buffer);
+		break;
+	}
+
+	return true;
+}
+
+struct lua_token lua_lexer_string(struct lua_lexer *self, struct file *file, struct string *scratch_buffer, struct arena *tmp_allocator)
 {
 	struct lua_token token = { .type = LUA_TOKEN_TYPE_LIT_STRING };
 	push_and_advance(file, scratch_buffer);
+	struct string_handler handler = (struct string_handler) {
+		.end_sequence = string_clone(scratch_buffer, &tmp_allocator->abstract, true),
+		._escape_handler = lua_escape_handler,
+		.escape_char = '\\',
+		.accept_new_line = false,
+	};
 
-	while (!(double_quotes && file->buffer->char_ == '"') && !(!double_quotes && file->buffer->char_ == '\'')) {
-		if (file->buffer->char_ == EOF || file->buffer->char_ == '\n') {
-			file_print_error(file, "Normal strings needs to be single lined, "
-					"and end with the same quotes (single or double) as it started",
-					scratch_buffer->length);
-			token.type = LUA_TOKEN_TYPE_INVALID;
-			break;
-		} else if (file->buffer->char_ == '\\') {
-			char peek = file_buffer_peek_n(file->buffer, 1);
-			if (peek == '\n' || peek == '\'' || peek == '"' || peek == '\\') push_and_advance(file, scratch_buffer);
-			else if (peek == 'z') {
-				push_and_advance(file, scratch_buffer);
-				push_and_advance(file, scratch_buffer);
-			}
-		}
-
-		push_and_advance(file, scratch_buffer);
-	}
-
-	if (token.type == LUA_TOKEN_TYPE_INVALID) {
+	if (read_string(file, scratch_buffer, tmp_allocator, &handler) == -1) {
+		token.type = LUA_TOKEN_TYPE_INVALID;
 		frequency_intern(self->invalid, scratch_buffer);
 		frequency_intern(self->what_invalid, self->template_invalid_string);
 	} else {
-		push_and_advance(file, scratch_buffer);
+		string_append(scratch_buffer, handler.end_sequence);
 		frequency_intern(self->string, scratch_buffer);
 	}
-	printf("\n");
 
 	return token;
 }
@@ -338,17 +325,17 @@ struct lua_token lua_lexer_characters(struct lua_lexer *self, struct file *file,
 	return token;
 }
 
-struct lua_token lua_lexer_next(struct lua_lexer *self, struct file *file, struct string *scratch_buffer)
+struct lua_token lua_lexer_next(struct lua_lexer *self, struct file *file, struct string *scratch_buffer, struct arena *tmp_allocator)
 {
 	string_clear(scratch_buffer);
 	lua_skip_blank(file);
 
 	if	(file->buffer->char_ == EOF) return (struct lua_token) { .type=LUA_TOKEN_TYPE_EOF, .id=0 };
-	else if (file->buffer->char_ == '[') return lua_lexer_handle_lbracket(self, file, scratch_buffer);
+	else if (file->buffer->char_ == '[') return lua_lexer_handle_lbracket(self, file, scratch_buffer, tmp_allocator);
 	else if (isalpha(file->buffer->char_) || file->buffer->char_ == '_') return lua_lexer_word(self, file, scratch_buffer);
 	else if (isdigit(file->buffer->char_))	return lua_lexer_number(self, file, scratch_buffer);
-	else if (file->buffer->char_ == '\'')	return lua_lexer_string(self, file, scratch_buffer, false);
-	else if (file->buffer->char_ == '"')	return lua_lexer_string(self, file, scratch_buffer, true);
+	else if (  file->buffer->char_ == '\''
+		|| file->buffer->char_ == '"')	return lua_lexer_string(self, file, scratch_buffer, tmp_allocator);
 	else					return lua_lexer_characters(self, file, scratch_buffer);
 }
 

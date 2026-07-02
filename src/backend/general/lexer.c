@@ -3,6 +3,7 @@
 #include "coderep/data_type/string.h"
 
 #include <ctype.h>
+#include <stdio.h>
 #include <string.h>
 
 void push_and_advance(struct file *file, struct string *string)
@@ -42,38 +43,81 @@ size_t read_int(struct file *file, struct string *buffer, bool accept_underscore
 	return amount;
 }
 
-ssize_t read_hex(struct file *file, struct string *scratch_buffer, bool accept_underscore, bool need_digits)
+ssize_t read_hex(struct file *file, struct string *buffer, bool accept_underscore, bool need_digits)
 {
 	ssize_t amount = 0;
 	while (isxdigit(file->buffer->char_) || (accept_underscore && file->buffer->char_ == '_')) {
-		push_and_advance(file, scratch_buffer);
+		push_and_advance(file, buffer);
 		amount++;
 	}
 
-	if (need_digits && !isxdigit(string_get(scratch_buffer, scratch_buffer->length - 1))) {
+	if (need_digits && !isxdigit(string_get(buffer, buffer->length - 1))) {
 		file_print_error(file,
 				"Hexadecimal numbers need to have at least one digit after the prefix '0x'/'0X'",
-				scratch_buffer->length);
+				buffer->length);
 		return -1;
 	} else return amount;
 }
 
-ssize_t read_scientific_suffix(struct file *file, struct string *scratch_buffer, bool accept_underscore, bool need_digits)
+ssize_t read_scientific_suffix(struct file *file, struct string *buffer, bool accept_underscore, bool need_digits)
 {
 	ssize_t amount = 0;
-	push_and_advance(file, scratch_buffer);
+	push_and_advance(file, buffer);
 	if (file->buffer->char_ == '+' || file->buffer->char_ == '-') {
-		push_and_advance(file, scratch_buffer);
+		push_and_advance(file, buffer);
 		amount++;
 	}
-	read_int(file, scratch_buffer, accept_underscore);
+	read_int(file, buffer, accept_underscore);
 
-	if (need_digits && !isdigit(string_get(scratch_buffer, scratch_buffer->length - 1))) {
+	if (need_digits && !isdigit(string_get(buffer, buffer->length - 1))) {
 		file_print_error(file,
 				"Scientific numbers need to have at least one digit after the prefix 'e', 'e+' or 'e-'",
-				scratch_buffer->length);
+				buffer->length);
 		return -1;
 	} else return amount;
+}
+
+ssize_t read_string(struct file *file, struct string *_buffer, struct arena *tmp_allocator, struct string_handler *handler)
+{
+	struct string *tmp = string_alloc(&tmp_allocator->abstract, handler->end_sequence->length);
+	ssize_t amount_read = 0;
+
+	while (true) {
+redo:
+		string_clear(tmp);
+		for (size_t i = 0; i < handler->end_sequence->length; i++) {
+			if (string_get(handler->end_sequence, i) == file->buffer->char_) push_and_advance(file, tmp);
+			else {
+				if (_buffer != NULL) string_append(_buffer, tmp);
+				if (string_get(handler->end_sequence, 0) == file->buffer->char_) goto redo;
+			}
+		}
+		if (tmp->length == handler->end_sequence->length) break;
+
+		switch (file->buffer->char_) {
+			case EOF:
+				file_print_error(file, "Strings need to be finalized with their own end sequence, but EOF (End of File) was founded",
+						_buffer != NULL ? _buffer->length : 1);
+				return -1;
+			break;
+			case '\n':
+				if (!handler->accept_new_line) {
+					file_print_error(file, "This string don't accept new lines",
+							_buffer != NULL ? _buffer->length : 1);
+					return -1;
+				}
+			default:
+				if (handler->_escape_handler != NULL && file->buffer->char_ == handler->escape_char) {
+					if (!handler->_escape_handler(file, _buffer, tmp_allocator)) return -1;
+				} else {
+					if (_buffer != NULL) string_push(_buffer, file->buffer->char_);
+					file_advance(file);
+				}
+			break;
+		}
+	}
+
+	return amount_read;
 }
 
 /*

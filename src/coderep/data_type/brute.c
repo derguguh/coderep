@@ -28,17 +28,38 @@ defer:
 	MALLOC_ERR_EXIT("struct brute");
 }
 
+struct brute *brute_from_size_t(struct allocator *allocator, struct string **name, size_t value)
+{
+	struct string *tmp_str = string_alloc(allocator, sizeof(size_t) * 3);
+	tmp_str->length = snprintf(tmp_str->chars, sizeof(size_t) * 3, "%zu", value);
+
+	return brute_alloc(allocator, name, &tmp_str);
+}
+
+struct brute *brute_from_ssize_t(struct allocator *allocator, struct string **name, ssize_t value)
+{
+	struct string *tmp_str = string_alloc(allocator, sizeof(ssize_t) * 3);
+	tmp_str->length = snprintf(tmp_str->chars, sizeof(ssize_t) * 3, "%zi", value);
+
+	return brute_alloc(allocator, name, &tmp_str);
+}
+
 void brute_print(const struct brute *self, enum output_mode output_mode)
 {
 	if ((output_mode & OUTPUT_MODE_RAW) == OUTPUT_MODE_RAW) {
-
-		printf("(struct brute) { .name = %s, .value = %s }\n", string_to_cstr(self->name), string_to_cstr(self->value));
+		printf("(struct brute) { .name =");
+		string_print(self->name);
+		printf(", .value = ");
+		string_print(self->value);
+		putchar('}');
 	} else if ((output_mode & OUTPUT_MODE_VALUE) == OUTPUT_MODE_VALUE) {
-
-		printf("%s: %s\n", string_to_cstr(self->name), string_to_cstr(self->value));
+		string_print(self->name);
+		printf(": ");
+		string_print(self->value);
 	} else {
-		printf("%s\n", string_to_cstr(self->name));
+		string_print(self->name);
 	}
+	printf("\n");
 }
 
 void brute_drop(struct brute **self)

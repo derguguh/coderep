@@ -31,6 +31,9 @@ struct word_tree *word_tree_from_table(struct allocator *allocator, const struct
 		size_t index = string_hash(value) % table_array_l;
 		struct node *bucket = self->buckets[index];
 
+		printf("Making a node for: ");
+		string_print(value);
+		printf(", with hash %zu!\n", string_hash(value));
 		if (bucket == NULL) {
 			bucket = node_alloc(self->allocator, &value);
 			self->buckets[index] = bucket;
@@ -48,7 +51,7 @@ defer:
 	MALLOC_ERR_EXIT("\tstruct bimap");
 }
 
-const struct string *word_tree_get_by_id(struct word_tree *self, ssize_t id)
+const struct string *word_tree_get_by_id(const struct word_tree *self, ssize_t id)
 {
 	for (size_t i = 0; i < self->buckets_count; i++) {
 		struct node *bucket = self->buckets[i];
@@ -61,7 +64,7 @@ const struct string *word_tree_get_by_id(struct word_tree *self, ssize_t id)
 	return NULL;
 }
 
-ssize_t word_tree_categorize(struct word_tree *self, struct string *word)
+ssize_t word_tree_categorize(const struct word_tree *self, const struct string *word)
 {
 	size_t index = string_hash(word) % self->buckets_count;
 	struct node *bucket = node_find(self->buckets[index], word);

@@ -23,9 +23,13 @@ dependencies := $(objects:.o=.d)
 target := coderep
 commands := compile_commands.json
 
-.PHONY: all debug release analyse bear clean install
+.PHONY: all doall build debug release analyse bear clean install
 
 all: $(build_dir)/$(target)
+
+doall: clean build install analyse
+
+build: bear release
 
 debug:
 	$(MAKE) CFLAGS="$(DEBUG_CFLAGS)" build_dir="$(debug_build_dir)"
@@ -38,7 +42,7 @@ analyse:
 	$(build_dir)/$(target) --lang text --input $(sources) $(headers)
 
 bear:
-	bear -o build/$(commands) -- make all
+	bear -o build/$(commands) -- make debug
 
 $(build_dir)/$(target): $(objects)
 	$(CC) $(CFLAGS) $(objects) -o $@

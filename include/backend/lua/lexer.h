@@ -3,6 +3,7 @@
 
 #include "backend/general/word_tree.h"
 
+#include "coderep/allocator/arena.h"
 #include "coderep/tool/file.h"
 
 struct lua_lexer {
@@ -24,6 +25,6 @@ struct lua_lexer {
 extern const struct word_table LUA_KEYWORD_TABLE[];
 extern const size_t LUA_KEYWORD_TABLE_L;
 
-struct lua_token lua_lexer_next(struct lua_lexer *self, struct file *file, struct string *scratch_buffer);
+struct lua_token lua_lexer_next(struct lua_lexer *self, struct file *file, struct string *scratch_buffer, struct arena *tmp_allocator);
 
 #endif

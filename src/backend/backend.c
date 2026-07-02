@@ -56,19 +56,13 @@ void backend_print_reading_files(size_t current, size_t total)
 
 void backend_push_file_data(struct arena *allocator, struct data_array *array, size_t bytes_read, size_t total_lines)
 {
-	struct string *tmp_str = string_alloc(&allocator->abstract, sizeof(size_t) * 8);
-	snprintf(tmp_str->chars, sizeof(size_t) * 8, "%zu", bytes_read);
-
 	struct string *tmp_name = string_from_cstr(&allocator->abstract, "file.bytes_read");
-	struct brute *tmp_brute = brute_alloc(&allocator->abstract, &tmp_name, &tmp_str);
+	struct brute *tmp_brute = brute_from_size_t(&allocator->abstract, &tmp_name, bytes_read);
 
 	data_array_push_brute(array, &tmp_brute);
 
-	tmp_str = string_alloc(&allocator->abstract, sizeof(size_t) * 8);
-	snprintf(tmp_str->chars, sizeof(size_t) * 8, "%zu", total_lines);
-
 	tmp_name = string_from_cstr(&allocator->abstract, "file.lines");
-	tmp_brute = brute_alloc(&allocator->abstract, &tmp_name, &tmp_str);
+	tmp_brute = brute_from_size_t(&allocator->abstract, &tmp_name, total_lines);
 
 	data_array_push_brute(array, &tmp_brute);
 }

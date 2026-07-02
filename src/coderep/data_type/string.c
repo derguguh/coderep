@@ -35,7 +35,7 @@ defer:
 }
 struct string *string_from_cstr(struct allocator *allocator, const char *const cstr)
 {
-	size_t cstr_l = strlen(cstr) + 1;
+	size_t cstr_l = strlen(cstr);
 	struct string *self = string_alloc(allocator, cstr_l);
 
 	memcpy(self->chars, cstr, cstr_l);
