@@ -31,9 +31,6 @@ struct word_tree *word_tree_from_table(struct allocator *allocator, const struct
 		size_t index = string_hash(value) % table_array_l;
 		struct node *bucket = self->buckets[index];
 
-		printf("Making a node for: ");
-		string_print(value);
-		printf(", with hash %zu!\n", string_hash(value));
 		if (bucket == NULL) {
 			bucket = node_alloc(self->allocator, &value);
 			self->buckets[index] = bucket;

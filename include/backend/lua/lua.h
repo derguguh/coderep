@@ -7,10 +7,10 @@
 
 size_t lua_request();
 
-void lua_init(struct backend_data *data);
+void lua_init(struct backend_context *data);
 
-void lua_parse_file(struct backend_data *data, struct arena *file_allocator, struct file *file);
+void lua_parse_file(struct backend_context *data, struct arena *file_allocator, struct file *file);
 
-void lua_deinit(struct backend_data *data);
+void lua_deinit(struct backend_context *data);
 
 #endif

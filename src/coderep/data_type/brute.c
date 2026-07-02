@@ -30,17 +30,13 @@ defer:
 
 struct brute *brute_from_size_t(struct allocator *allocator, struct string **name, size_t value)
 {
-	struct string *tmp_str = string_alloc(allocator, sizeof(size_t) * 3);
-	tmp_str->length = snprintf(tmp_str->chars, sizeof(size_t) * 3, "%zu", value);
-
+	struct string *tmp_str = string_from_size_t(allocator, value);
 	return brute_alloc(allocator, name, &tmp_str);
 }
 
 struct brute *brute_from_ssize_t(struct allocator *allocator, struct string **name, ssize_t value)
 {
-	struct string *tmp_str = string_alloc(allocator, sizeof(ssize_t) * 3);
-	tmp_str->length = snprintf(tmp_str->chars, sizeof(ssize_t) * 3, "%zi", value);
-
+	struct string *tmp_str = string_from_ssize_t(allocator, value);
 	return brute_alloc(allocator, name, &tmp_str);
 }
 

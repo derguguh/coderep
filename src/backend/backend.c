@@ -7,7 +7,7 @@
 #include "coderep/allocator/allocator.h"
 #include "coderep/allocator/arena.h"
 #include "coderep/consts.h"
-#include "coderep/data_array.h"
+#include "coderep/report.h"
 #include "coderep/tool/file.h"
 #include "coderep/tool/file_buffer.h"
 
@@ -16,9 +16,12 @@
 #define PROGRESS_BAR_SIZE 40
 
 const struct backend BACKEND_REGISTER[] = {
-	{ "Text", "text", text_request, text_init, text_parse_file, text_deinit },
-	{ "Lua", "lua", lua_request, lua_init, lua_parse_file, lua_deinit },
-	{ "C", "c", c_request, c_init, c_parse_file, c_deinit },
+	{ "Text", "text", "General UTF8 text",
+		text_request, text_init, text_parse_file, text_deinit, false },
+	{ "Lua", "lua", "Lua programming language",
+		lua_request, lua_init, lua_parse_file, lua_deinit, false },
+	{ "C", "c", "ISO C programming language version",
+		c_request, c_init, c_parse_file, c_deinit, false },
 };
 
 const size_t BACKEND_REGISTER_L = sizeof(BACKEND_REGISTER) / sizeof(struct backend);
@@ -54,62 +57,75 @@ void backend_print_reading_files(size_t current, size_t total)
 	fflush(stdout);
 }
 
-void backend_push_file_data(struct arena *allocator, struct data_array *array, size_t bytes_read, size_t total_lines)
+void backend_push_brute(struct arena *allocator, struct report *report, const char *const cstr, size_t value)
 {
-	struct string *tmp_name = string_from_cstr(&allocator->abstract, "file.bytes_read");
-	struct brute *tmp_brute = brute_from_size_t(&allocator->abstract, &tmp_name, bytes_read);
-
-	data_array_push_brute(array, &tmp_brute);
-
-	tmp_name = string_from_cstr(&allocator->abstract, "file.lines");
-	tmp_brute = brute_from_size_t(&allocator->abstract, &tmp_name, total_lines);
-
-	data_array_push_brute(array, &tmp_brute);
+	struct string *name = string_from_cstr(&allocator->abstract, cstr);
+	struct brute *brute = brute_from_size_t(&allocator->abstract, &name, value);
+	report_push_brute(report, &brute);
 }
 
-struct data_array *backend_parse(const struct backend *backend, struct arena *arena, struct input *input)
+void backend_push_file_report(struct arena *allocator, struct report *report, struct file_report *context)
 {
-	struct data_array *data_array = data_array_alloc();
-	struct file *file = file_alloc(&arena->abstract);
-	struct arena *parsing_arena = arena_alloc(1024 * 1024);
-	struct allocator default_allocator = default_get_allocator();
+	backend_push_brute(allocator, report, "files.byte_reads", context->bytes_read);
 
-	struct backend_data data = (struct backend_data) {
+	struct string *is_binary;
+	if (context->binary) {
+		is_binary = string_from_cstr(&allocator->abstract, "true");
+	} else {
+		is_binary = string_from_cstr(&allocator->abstract, "false");
+		backend_push_brute(allocator, report, "files.lines", context->total_line);
+	}
+
+	struct string *name = string_from_cstr(&allocator->abstract, "files.binary");
+	struct brute *brute = brute_alloc(&allocator->abstract, &name, &is_binary);
+	report_push_brute(report, &brute);
+}
+
+struct report *backend_parse(const struct backend *backend, struct arena *arena, struct input *input)
+{
+	struct allocator default_allocator = default_get_allocator();
+	struct arena *parsing_arena = arena_alloc(1024 * 1024);
+	struct file *file = file_alloc(&arena->abstract);
+	struct report *report = report_alloc();
+
+	struct backend_context context = (struct backend_context) {
 		.allocator = arena,
-		.array = data_array,
-		.context = backend_fulfill_request(backend, arena),
+		.report = report,
+		.requested = backend_fulfill_request(backend, arena),
 		.scratch_buffer = string_alloc(&default_allocator, 128),
 	};
+	struct file_report file_report = (struct file_report) {
+		.total_reads = input->files_l,
+	};
 
-	if (backend->_init_function != NULL) backend->_init_function(&data);
+	if (backend->_init_function != NULL) backend->_init_function(&context);
 
-	size_t bytes_read = 0;
-	size_t total_lines = 0;
 
 	for (size_t i = 0; i < input->files_l; i++) {
-
 		backend_print_reading_files(i + 1, input->files_l);
 
 		arena_clear(parsing_arena);
-		string_clear(data.scratch_buffer);
+		string_clear(context.scratch_buffer);
 		file_open(file, input->files[i]);
-		if (file->buffer->_file == NULL) continue;
+		if (file->buffer->_file == NULL) {
+			file_report.failed_reads++;
+			continue;
+		}
 
-		backend->parsing_function(&data, parsing_arena, file);
+		backend->parsing_function(&context, parsing_arena, file);
 
-		bytes_read += file->buffer->block * BUFFER_SIZE + file->buffer->buffer_length;
-		total_lines += file->line;
+		file_report.bytes_read += file->buffer->block * BUFFER_SIZE + file->buffer->buffer_length;
+		file_report.total_line += file->line;
 	}
 	putchar('\n');
 
-	backend_push_file_data(arena, data_array, bytes_read, total_lines);
+	if (backend->_deinit_function != NULL) backend->_deinit_function(&context);
 
-	if (backend->_deinit_function != NULL) backend->_deinit_function(&data);
-
-	string_drop(&data.scratch_buffer);
+	backend_push_file_report(arena, report, &file_report);
+	string_drop(&context.scratch_buffer);
 	arena_drop(&parsing_arena);
 	file_drop(&file);
 
-	return data_array;
+	return report;
 }
 

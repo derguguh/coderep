@@ -33,6 +33,8 @@ extern const size_t STRING_DEFAULT_INITIAL_CAPACITY;
 // Allocations
 struct string *string_alloc(struct allocator *allocator, size_t initial_capacity);
 struct string *string_from_cstr(struct allocator *allocator, const char *const cstr);
+struct string *string_from_size_t(struct allocator *allocator, size_t value);
+struct string *string_from_ssize_t(struct allocator *allocator, ssize_t value);
 struct string *string_clone(const struct string *self, struct allocator *allocator, bool trimmed);
 
 // Resizing

@@ -33,6 +33,7 @@ defer:
 
 	MALLOC_ERR_EXIT("struct string");
 }
+
 struct string *string_from_cstr(struct allocator *allocator, const char *const cstr)
 {
 	size_t cstr_l = strlen(cstr);
@@ -40,6 +41,22 @@ struct string *string_from_cstr(struct allocator *allocator, const char *const c
 
 	memcpy(self->chars, cstr, cstr_l);
 	self->length = cstr_l;
+
+	return self;
+}
+
+struct string *string_from_size_t(struct allocator *allocator, size_t value)
+{
+	struct string *self = string_alloc(allocator, sizeof(size_t) * 3);
+	self->length = snprintf(self->chars, sizeof(size_t) * 3, "%zu", value);
+
+	return self;
+}
+
+struct string *string_from_ssize_t(struct allocator *allocator, ssize_t value)
+{
+	struct string *self = string_alloc(allocator, sizeof(ssize_t) * 3);
+	self->length = snprintf(self->chars, sizeof(ssize_t) * 3, "%zi", value);
 
 	return self;
 }

@@ -1,4 +1,4 @@
-#include "coderep/data_array.h"
+#include "coderep/report.h"
 
 #include "coderep/data_type/frequency.h"
 #include "coderep/data_type/output_mode.h"
@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const size_t DATA_ARRAY_DEFAULT_CAPACITY = 20;
+const size_t _DEFAULT_CAPACITY = 20;
 
 struct generic_array {
 	void **ptr;
@@ -15,21 +15,21 @@ struct generic_array {
 	size_t capacity;
 };
 
-struct data_array *data_array_alloc()
+struct report *report_alloc()
 {
-	struct brute **brutes = calloc(sizeof(struct brute *), DATA_ARRAY_DEFAULT_CAPACITY);
-	struct frequency **frequencies = calloc(sizeof(struct frequency *), DATA_ARRAY_DEFAULT_CAPACITY);
+	struct brute **brutes = calloc(sizeof(struct brute *), _DEFAULT_CAPACITY);
+	struct frequency **frequencies = calloc(sizeof(struct frequency *), _DEFAULT_CAPACITY);
 
-	struct data_array *self = malloc(sizeof(struct data_array));
+	struct report *self = malloc(sizeof(struct report));
 
 	if (!self || !brutes || !frequencies) goto defer;
 
-	*self = (struct data_array) {
+	*self = (struct report) {
 		.brutes = brutes,
 		.frequencies = frequencies,
 
-		.brutes_c = DATA_ARRAY_DEFAULT_CAPACITY,
-		.frequencies_c = DATA_ARRAY_DEFAULT_CAPACITY,
+		.brutes_c = _DEFAULT_CAPACITY,
+		.frequencies_c = _DEFAULT_CAPACITY,
 	};
 
 	return self;
@@ -38,7 +38,7 @@ defer:
 	free(brutes);
 	free(frequencies);
 
-	MALLOC_ERR_EXIT("struct data_array (backend outputs)");
+	MALLOC_ERR_EXIT("struct report (backend outputs)");
 }
 
 static inline void resize_generic_expand(struct generic_array *array)
@@ -52,7 +52,7 @@ static inline void resize_generic_expand(struct generic_array *array)
 
 	return;
 defer:
-	PRINT_ERR("Couldn't reallocate memory to resize a struct data_array");
+	PRINT_ERR("Couldn't reallocate memory to resize a struct report");
 	exit(ERROR_CODE_MEMORY_REALLOCATION);
 }
 
@@ -66,7 +66,7 @@ static inline void push_generic_array(struct generic_array *array, void **value)
 	*value = NULL;
 }
 
-void data_array_push_brute(struct data_array *self, struct brute **brute)
+void report_push_brute(struct report *self, struct brute **brute)
 {
 	struct generic_array array = {
 		.ptr = (void **)self->brutes,
@@ -80,7 +80,7 @@ void data_array_push_brute(struct data_array *self, struct brute **brute)
 	self->brutes_c = array.capacity;
 }
 
-void data_array_push_frequency(struct data_array *self, struct frequency **frequency)
+void report_push_frequency(struct report *self, struct frequency **frequency)
 {
 	struct generic_array array = {
 		.ptr = (void **)self->frequencies,
@@ -94,17 +94,20 @@ void data_array_push_frequency(struct data_array *self, struct frequency **frequ
 	self->frequencies_c = array.capacity;
 }
 
-void data_array_print(struct data_array *self, struct data *output_options)
+void report_print(struct report *self, struct data *output_options)
 {
+	printf("\n");
 	if (output_options->frequency != OUTPUT_MODE_NONE) {
 		for (size_t i = 0; i < self->frequencies_l; i++) frequency_print(self->frequencies[i], output_options->frequency);
+		printf("\n");
 	}
 	if (output_options->brute != OUTPUT_MODE_NONE) {
 		for (size_t i = 0; i < self->brutes_l; i++) brute_print(self->brutes[i], output_options->brute);
+		printf("\n");
 	}
 }
 
-void data_array_drop(struct data_array **self)
+void report_drop(struct report **self)
 {
 	if (!self || !(*self)) return;
 

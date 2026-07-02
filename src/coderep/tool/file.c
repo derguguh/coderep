@@ -85,7 +85,7 @@ size_t file_print_line_buffer(const struct file *self)
 	}
 	chars_printed += length;
 
-	fprintf(stderr, "%*s\n", (int)length, self->line_buffer->chars + offset);
+	fprintf(stderr, ANSI_GREEN "%.*s\n", (int)length, self->line_buffer->chars + offset);
 
 	return chars_printed;
 }
@@ -110,14 +110,14 @@ void file_print_error(const struct file *self, const char *const error_text, siz
 
 	size_t spaces = file_print_line_buffer(self) - error_length;
 
-	fprintf(stderr, PRINT_PREFIX);
+	fprintf(stderr, ANSI_RESET PRINT_PREFIX_ ANSI_MAGENTA);
 	size_t offset = file_get_offset(self);
 	for (size_t i = 0; i < spaces; i++) {
 		if (string_get(self->line_buffer, offset + i) == '\t') putc('\t', stderr);
 		else putc(' ', stderr);
 	}
 	for (size_t i = 0; i < error_length - 1; i++) putc('~', stderr);
-	fprintf(stderr, "^\n\n");
+	fprintf(stderr, "^" ANSI_RESET "\n\n");
 }
 
 void file_print(const struct file *self, bool trim_spaces)

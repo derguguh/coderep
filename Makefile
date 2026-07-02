@@ -27,9 +27,9 @@ commands := compile_commands.json
 
 all: $(build_dir)/$(target)
 
-doall: clean build install analyse
+doall: clean bear release install analyse
 
-build: bear release
+build: debug release
 
 debug:
 	$(MAKE) CFLAGS="$(DEBUG_CFLAGS)" build_dir="$(debug_build_dir)"
