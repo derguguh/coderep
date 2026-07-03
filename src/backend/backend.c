@@ -8,10 +8,12 @@
 #include "coderep/allocator/arena.h"
 #include "coderep/consts.h"
 #include "coderep/report.h"
+#include "coderep/timer.h"
 #include "coderep/tool/file.h"
 #include "coderep/tool/file_buffer.h"
 
 #include <stdio.h>
+#include <time.h>
 
 #define PROGRESS_BAR_SIZE 40
 
@@ -64,9 +66,19 @@ void backend_push_brute(struct arena *allocator, struct report *report, const ch
 	report_push_brute(report, &brute);
 }
 
+void backend_push_dbrute(struct arena *allocator, struct report *report, const char *const cstr, double value)
+{
+	struct string *name = string_from_cstr(&allocator->abstract, cstr);
+	struct brute *brute = brute_from_double(&allocator->abstract, &name, value);
+	report_push_brute(report, &brute);
+}
+
 void backend_push_file_report(struct arena *allocator, struct report *report, struct file_report *context)
 {
-	backend_push_brute(allocator, report, "files.byte_reads", context->bytes_read);
+	backend_push_brute(allocator, report, "files.read.total", context->total_reads);
+	backend_push_brute(allocator, report, "files.read.successful", context->total_reads - context->failed_reads);
+	backend_push_brute(allocator, report, "files.read.failed", context->failed_reads);
+	backend_push_brute(allocator, report, "files.read.bytes", context->bytes_read);
 
 	struct string *is_binary;
 	if (context->binary) {
@@ -79,6 +91,10 @@ void backend_push_file_report(struct arena *allocator, struct report *report, st
 	struct string *name = string_from_cstr(&allocator->abstract, "files.binary");
 	struct brute *brute = brute_alloc(&allocator->abstract, &name, &is_binary);
 	report_push_brute(report, &brute);
+	backend_push_dbrute(allocator, report, "backend.time.init", context->total_init_time);
+	backend_push_dbrute(allocator, report, "backend.time.parsing", context->total_file_parse_time);
+	backend_push_dbrute(allocator, report, "backend.time.parsing.avg", context->total_file_parse_time / (double)context->total_reads);
+	backend_push_dbrute(allocator, report, "backend.time.deinit", context->total_deinit_time);
 }
 
 struct report *backend_parse(const struct backend *backend, struct arena *arena, struct input *input)
@@ -93,13 +109,22 @@ struct report *backend_parse(const struct backend *backend, struct arena *arena,
 		.report = report,
 		.requested = backend_fulfill_request(backend, arena),
 		.scratch_buffer = string_alloc(&default_allocator, 128),
+		.profile = (struct bucket_profile) {
+			.baseline = 1024,
+			.light = 2 * 1024,
+			.medium = 8 * 1024,
+			.heavy = 32 * 1024,
+			.extreme = 128 * 1024,
+		}
 	};
 	struct file_report file_report = (struct file_report) {
 		.total_reads = input->files_l,
 	};
+	struct timespec timer;
 
+	timer_start(&timer);
 	if (backend->_init_function != NULL) backend->_init_function(&context);
-
+	file_report.total_init_time = timer_elapsed(&timer);
 
 	for (size_t i = 0; i < input->files_l; i++) {
 		backend_print_reading_files(i + 1, input->files_l);
@@ -111,15 +136,18 @@ struct report *backend_parse(const struct backend *backend, struct arena *arena,
 			file_report.failed_reads++;
 			continue;
 		}
-
+		timer_start(&timer);
 		backend->parsing_function(&context, parsing_arena, file);
+		file_report.total_file_parse_time += timer_elapsed(&timer);
 
 		file_report.bytes_read += file->buffer->block * BUFFER_SIZE + file->buffer->buffer_length;
 		file_report.total_line += file->line;
 	}
 	putchar('\n');
 
+	timer_start(&timer);
 	if (backend->_deinit_function != NULL) backend->_deinit_function(&context);
+	file_report.total_deinit_time = timer_elapsed(&timer);
 
 	backend_push_file_report(arena, report, &file_report);
 	string_drop(&context.scratch_buffer);

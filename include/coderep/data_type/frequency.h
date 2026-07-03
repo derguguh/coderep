@@ -17,10 +17,10 @@ struct frequency {
 
 struct stats {
 	bool have_something;
-	unsigned int min;
+	ssize_t min;
 	float avg;
-	unsigned int max;
-	unsigned int mode;
+	ssize_t max;
+	ssize_t mode;
 	const struct node *mode_node;
 	float median;
 	const struct node *media_node_low;
@@ -30,6 +30,7 @@ struct stats {
 extern const size_t FREQUENCY_DEFAULT_SIZE;
 
 struct frequency *frequency_alloc(struct allocator *allocator, struct string **name, size_t initial_capacity);
+struct frequency *frequency_from_cstr(struct allocator *allocator, const char *const cstr, size_t initial_capacity);
 
 bool frequency_has(struct frequency *self, const struct string *value);
 

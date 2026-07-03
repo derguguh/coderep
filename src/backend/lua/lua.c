@@ -27,25 +27,25 @@ void lua_init(struct backend_context *data)
 	context->template_invalid_char = string_from_cstr(allocator, "Invalid: character");
 
 	struct string *string = string_from_cstr(allocator, "lexer.keyword");
-	context->keyword = frequency_alloc(allocator, &string, 23);
+	context->keyword = frequency_alloc(allocator, &string, LUA_KEYWORD_TABLE_L);
 
 	string = string_from_cstr(allocator, "lexer.identifier");
-	context->identifier = frequency_alloc(allocator, &string, 16 * 1024);
+	context->identifier = frequency_alloc(allocator, &string, data->profile.extreme);
 
 	string = string_from_cstr(allocator, "lexer.character");
 	context->character = frequency_alloc(allocator, &string, 32);
 
 	string = string_from_cstr(allocator, "lexer.number");
-	context->number = frequency_alloc(allocator, &string, 4 * 1024);
+	context->number = frequency_alloc(allocator, &string, data->profile.medium);
 
 	string = string_from_cstr(allocator, "lexer.string");
-	context->string = frequency_alloc(allocator, &string, 4 * 1024);
+	context->string = frequency_alloc(allocator, &string, data->profile.light);
 
 	string = string_from_cstr(allocator, "lexer.block_string");
-	context->block_string = frequency_alloc(allocator, &string, 4 * 1024);
+	context->block_string = frequency_alloc(allocator, &string, data->profile.light);
 
 	string = string_from_cstr(allocator, "lexer.invalid");
-	context->invalid = frequency_alloc(allocator, &string, 1024);
+	context->invalid = frequency_alloc(allocator, &string, data->profile.baseline);
 
 	string = string_from_cstr(allocator, "lexer.invalid.what");
 	context->what_invalid = frequency_alloc(allocator, &string, 3);

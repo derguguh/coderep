@@ -40,6 +40,9 @@ struct backend {
 };
 
 struct file_report {
+	double total_init_time;
+	double total_file_parse_time;
+	double total_deinit_time;
 	// General
 	size_t bytes_read;
 	size_t total_reads;

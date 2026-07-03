@@ -14,6 +14,7 @@ struct brute {
 struct brute *brute_alloc(struct allocator *allocator, struct string **name, struct string **value);
 struct brute *brute_from_size_t(struct allocator *allocator, struct string **name, size_t value);
 struct brute *brute_from_ssize_t(struct allocator *allocator, struct string **name, ssize_t value);
+struct brute *brute_from_double(struct allocator *allocator, struct string **name, double value);
 
 void brute_print(const struct brute *self, enum output_mode output_mode);
 

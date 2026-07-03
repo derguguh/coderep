@@ -41,6 +41,12 @@ defer:
 	MALLOC_ERR_EXIT("struct frequency");
 }
 
+struct frequency *frequency_from_cstr(struct allocator *allocator, const char *const cstr, size_t initial_capacity)
+{
+	struct string *name = string_from_cstr(allocator, cstr);
+	return frequency_alloc(allocator, &name, initial_capacity);
+}
+
 bool frequency_has(struct frequency *self, const struct string *value)
 {
 	size_t bucket = string_hash(value) % self->buckets_count;
@@ -144,15 +150,15 @@ void frequency_print_stats(const struct frequency *self, enum output_mode output
 		sufix = ", ";
 	}
 
-	if ((output_mode & OUTPUT_MODE_MIN) == OUTPUT_MODE_MIN) printf("%smin = %d%s", prefix, stats.min, sufix);
+	if ((output_mode & OUTPUT_MODE_MIN) == OUTPUT_MODE_MIN) printf("%smin = %zi%s", prefix, stats.min, sufix);
 	if ((output_mode & OUTPUT_MODE_AVG) == OUTPUT_MODE_AVG) printf("%savg = %f%s", prefix, stats.avg, sufix);
-	if ((output_mode & OUTPUT_MODE_MAX) == OUTPUT_MODE_MAX) printf("%smax = %d%s", prefix, stats.max, sufix);
+	if ((output_mode & OUTPUT_MODE_MAX) == OUTPUT_MODE_MAX) printf("%smax = %zi%s", prefix, stats.max, sufix);
 
 	if ((output_mode & OUTPUT_MODE_MODE) == OUTPUT_MODE_MODE) {
 
 		printf("%smode = \"", prefix);
 		string_print(stats.mode_node->value);
-		printf("\"(%zu)%s", stats.mode_node->count, sufix);
+		printf("\"(%zi)%s", stats.mode_node->count, sufix);
 	}
 }
 

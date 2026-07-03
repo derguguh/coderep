@@ -61,6 +61,14 @@ struct string *string_from_ssize_t(struct allocator *allocator, ssize_t value)
 	return self;
 }
 
+struct string *string_from_double(struct allocator *allocator, double value)
+{
+	struct string *self = string_alloc(allocator, sizeof(double) * 8);
+	self->length = snprintf(self->chars, sizeof(double) * 8, "%.5lf", value);
+
+	return self;
+}
+
 struct string *string_clone(const struct string *self, struct allocator *allocator, bool trimmed)
 {
 	struct string *new = string_alloc(allocator, trimmed ? self->length : self->capacity);

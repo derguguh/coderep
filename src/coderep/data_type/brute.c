@@ -40,6 +40,12 @@ struct brute *brute_from_ssize_t(struct allocator *allocator, struct string **na
 	return brute_alloc(allocator, name, &tmp_str);
 }
 
+struct brute *brute_from_double(struct allocator *allocator, struct string **name, double value)
+{
+	struct string *tmp_str = string_from_double(allocator, value);
+	return brute_alloc(allocator, name, &tmp_str);
+}
+
 void brute_print(const struct brute *self, enum output_mode output_mode)
 {
 	if ((output_mode & OUTPUT_MODE_RAW) == OUTPUT_MODE_RAW) {

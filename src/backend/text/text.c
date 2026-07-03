@@ -22,16 +22,16 @@ void text_init(struct backend_context *data)
 	lexer->template_unknown_char = string_from_cstr(allocator, "Unknown: character");
 
 	struct string *string = string_from_cstr(allocator, "text.word");
-	lexer->word = frequency_alloc(allocator, &string, 64 * 1024);
+	lexer->word = frequency_alloc(allocator, &string, data->profile.extreme);
 
 	string = string_from_cstr(allocator, "text.character");
-	lexer->character = frequency_alloc(allocator, &string, 4 * 1024);
+	lexer->character = frequency_alloc(allocator, &string, data->profile.light);
 
 	string = string_from_cstr(allocator, "text.number");
-	lexer->number = frequency_alloc(allocator, &string, 16 * 1024);
+	lexer->number = frequency_alloc(allocator, &string, data->profile.medium);
 
 	string = string_from_cstr(allocator, "text.unknown");
-	lexer->unknown = frequency_alloc(allocator, &string, 1024);
+	lexer->unknown = frequency_alloc(allocator, &string, data->profile.baseline);
 }
 
 void text_parse_file(struct backend_context *data, struct arena *ignore, struct file *file)
