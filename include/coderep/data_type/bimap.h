@@ -4,25 +4,13 @@
 #include "coderep/allocator/allocator.h"
 #include "coderep/data_type/string.h"
 
-struct bimap {
-	struct allocator *allocator;
-	struct node **buckets;
-	size_t buckets_count;
-	size_t element_count;
-	struct block *block;
-	struct block *current;
-	size_t block_size;
-	size_t block_count;
-};
+struct bimap;
 
 struct bimap *bimap_alloc(struct allocator *allocator, size_t inital_capacity);
 
 bool bimap_has(const struct bimap *self, const struct string *value);
 
-static inline bool bimap_length(const struct bimap *self)
-{
-	return self->element_count;
-}
+bool bimap_length(const struct bimap *self);
 
 size_t bimap_intern(struct bimap *self, const struct string *value);
 

@@ -3,7 +3,19 @@
 #include "coderep/allocator/allocator.h"
 #include "coderep/allocator/block.h"
 #include "coderep/data_type/frequency.h"
+#include "coderep/data_type/node.h"
 #include "coderep/macros.h"
+
+struct bimap {
+	struct allocator *allocator;
+	struct node **buckets;
+	size_t buckets_count;
+	size_t element_count;
+	struct block *block;
+	struct block *current;
+	size_t block_size;
+	size_t block_count;
+};
 
 struct bimap *bimap_alloc(struct allocator *allocator, size_t initial_capacity)
 {
@@ -53,6 +65,11 @@ bool bimap_has(const struct bimap *self, const struct string *value)
 
 	if (bucket == NULL || node_find(bucket, value) == NULL) return false;
 	else return true;
+}
+
+bool bimap_length(const struct bimap *self)
+{
+	return self->element_count;
 }
 
 size_t bimap_intern(struct bimap *self, const struct string *value)

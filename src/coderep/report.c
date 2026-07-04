@@ -1,7 +1,6 @@
 #include "coderep/report.h"
 
 #include "coderep/data_type/frequency.h"
-#include "coderep/data_type/output_mode.h"
 #include "coderep/macros.h"
 
 #include <stdlib.h>
@@ -9,46 +8,64 @@
 
 const size_t _DEFAULT_CAPACITY = 20;
 
-struct generic_array {
-	void **ptr;
-	size_t length;
-	size_t capacity;
+enum report_entry_type {
+	REPORT_ENTRY_TYPE_FREQUENCY,
+	REPORT_ENTRY_TYPE_STATISTICS_DOUBLE,
+	REPORT_ENTRY_TYPE_STATISTICS_SSIZE_T,
+	REPORT_ENTRY_TYPE_STRING,
+	REPORT_ENTRY_TYPE_DOUBLE,
+	REPORT_ENTRY_TYPE_SSIZE_T,
+	REPORT_ENTRY_TYPE_BOOL,
 };
 
-struct report *report_alloc()
+struct report_entry {
+	enum report_entry_type type;
+	struct string *name;
+	union {
+		struct frequency *frequency;
+		struct string *string;
+		double double_;
+		ssize_t ssize_t_;
+		bool bool_;
+	};
+};
+
+struct report {
+	struct allocator *allocator;
+	struct report_entry *entries;
+	size_t entries_l;
+	size_t entries_c;
+};
+
+struct report *report_alloc(struct allocator *allocator)
 {
-	struct brute **brutes = calloc(sizeof(struct brute *), _DEFAULT_CAPACITY);
-	struct frequency **frequencies = calloc(sizeof(struct frequency *), _DEFAULT_CAPACITY);
+	struct report_entry *entries = allocator->allocate(allocator->allocate, sizeof(struct report_entry) * _DEFAULT_CAPACITY);
+	struct report *self = allocator->allocate(allocator->allocate, sizeof(struct report));
 
-	struct report *self = malloc(sizeof(struct report));
-
-	if (!self || !brutes || !frequencies) goto defer;
+	if (!self || !entries) goto defer;
 
 	*self = (struct report) {
-		.brutes = brutes,
-		.frequencies = frequencies,
-
-		.brutes_c = _DEFAULT_CAPACITY,
-		.frequencies_c = _DEFAULT_CAPACITY,
+		.allocator = allocator,
+		.entries = entries,
+		.entries_c = _DEFAULT_CAPACITY,
 	};
 
 	return self;
 defer:
 	free(self);
-	free(brutes);
-	free(frequencies);
+	free(entries);
 
 	MALLOC_ERR_EXIT("struct report (backend outputs)");
 }
 
-static inline void resize_generic_expand(struct generic_array *array)
+static inline void report_expand(struct report *self)
 {
-	array->capacity *= 2;
-	void **tmp = realloc(array->ptr, sizeof(void *) * array->capacity);
+	self->entries_c *= 2;
+	struct report_entry *tmp = self->allocator->reallocate(self->allocator->state, self->entries, sizeof(struct report) * self->entries_c);
 
 	if (!tmp) goto defer;
 
-	array->ptr = tmp;
+	self->entries = tmp;
 
 	return;
 defer:
@@ -56,68 +73,91 @@ defer:
 	exit(ERROR_CODE_MEMORY_REALLOCATION);
 }
 
-static inline void push_generic_array(struct generic_array *array, void **value)
+static inline void report_push(struct report *self, struct report_entry value)
 {
-	if (array->length >= array->capacity) resize_generic_expand(array);
+	if (self->entries_l >= self->entries_c) report_expand(self);
 
-	array->ptr[array->length] = *value;
-	array->length++;
+	self->entries[self->entries_l] = value;
+	self->entries_l++;
+}
 
+void report_push_cstr(struct report *self, const char *const name, const char *const value)
+{
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name),
+		.type = REPORT_ENTRY_TYPE_STRING,
+		.string = string_from_cstr(self->allocator, value),
+	};
+	report_push(self, entry);
+}
+
+void report_push_string(struct report *self, const char *const name, struct string **value)
+{
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name),
+		.type = REPORT_ENTRY_TYPE_STRING,
+		.string = *value,
+	};
+	report_push(self, entry);
 	*value = NULL;
 }
 
-void report_push_brute(struct report *self, struct brute **brute)
+void report_push_bool(struct report *self, const char *const name, bool value)
 {
-	struct generic_array array = {
-		.ptr = (void **)self->brutes,
-		.length = self->brutes_l,
-		.capacity = self->brutes_c,
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name),
+		.type = REPORT_ENTRY_TYPE_BOOL,
+		.bool_ = value,
 	};
-	push_generic_array(&array, (void **)brute);
-
-	self->brutes = (struct brute **)array.ptr;
-	self->brutes_l = array.length;
-	self->brutes_c = array.capacity;
+	report_push(self, entry);
 }
 
-void report_push_frequency(struct report *self, struct frequency **frequency)
+void report_push_ssize_t(struct report *self, const char *const name, ssize_t value)
 {
-	struct generic_array array = {
-		.ptr = (void **)self->frequencies,
-		.length = self->frequencies_l,
-		.capacity = self->frequencies_c,
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name),
+		.type = REPORT_ENTRY_TYPE_SSIZE_T,
+		.ssize_t_ = value,
 	};
-	push_generic_array(&array, (void **)frequency);
+	report_push(self, entry);
+}
 
-	self->frequencies = (struct frequency **)array.ptr;
-	self->frequencies_l = array.length;
-	self->frequencies_c = array.capacity;
+void report_push_double(struct report *self, const char *const name, double value)
+{
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name),
+		.type = REPORT_ENTRY_TYPE_DOUBLE,
+		.double_ = value,
+	};
+	report_push(self, entry);
+}
+
+
+void report_push_frequency(struct report *self, const char *const name, struct frequency **value)
+{
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name),
+		.type = REPORT_ENTRY_TYPE_FREQUENCY,
+		.frequency = *value,
+	};
+	report_push(self, entry);
+	*value = NULL;
 }
 
 void report_print(struct report *self, struct data *output_options)
 {
 	printf("\n");
-	if (output_options->frequency != OUTPUT_MODE_NONE) {
-		for (size_t i = 0; i < self->frequencies_l; i++) frequency_print(self->frequencies[i], output_options->frequency);
-		printf("\n");
-	}
-	if (output_options->brute != OUTPUT_MODE_NONE) {
-		for (size_t i = 0; i < self->brutes_l; i++) brute_print(self->brutes[i], output_options->brute);
-		printf("\n");
-	}
 }
 
 void report_drop(struct report **self)
 {
 	if (!self || !(*self)) return;
+	struct allocator *allocator = (*self)->allocator;
+	struct report *tmp = *self;
 
-	for (size_t i = 0; i < (*self)->brutes_l; i++) brute_drop(&(*self)->brutes[i]);
-	for (size_t i = 0; i < (*self)->frequencies_l; i++) frequency_drop(&(*self)->frequencies[i]);
-	free((*self)->brutes);
-	free((*self)->frequencies);
-	(*self)->brutes = NULL;
-	(*self)->frequencies = NULL;
+	allocator->deallocate(allocator->state, tmp);
 
-	free(*self);
+	allocator->deallocate(allocator->state, tmp);
+	*self = NULL;
 }
 

@@ -7,12 +7,13 @@
 
 struct data {
 	enum output_mode frequency;
+	enum output_mode statistic;
 	enum output_mode brute;
-	enum output_mode list;
 };
 
 struct flag_opt {
 	char *cstr;
+	char *description;
 	enum output_mode flag;
 };
 

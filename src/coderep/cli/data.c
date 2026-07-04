@@ -10,20 +10,20 @@
 #include <string.h>
 
 const struct flag_opt FLAGS_OPTS[] = {
-	{ "none",		OUTPUT_MODE_NONE },
-	{ "raw",		OUTPUT_MODE_RAW },
-	{ "min",		OUTPUT_MODE_MIN },
-	{ "avg",		OUTPUT_MODE_AVG },
-	{ "max",		OUTPUT_MODE_MAX },
-	{ "mode",		OUTPUT_MODE_MODE },
-	{ "median",		OUTPUT_MODE_MEDIAN },
-	{ "value",		OUTPUT_MODE_VALUE },
-	{ "frequency",		OUTPUT_MODE_FREQUENCY },
-	{ "count",		OUTPUT_MODE_COUNT },
+	{ "none", "Disable an type of data", OUTPUT_MODE_NONE },
+	{ "raw", "Show the internal structure of the data", OUTPUT_MODE_RAW },
+	{ "min", "Show the minimal value", OUTPUT_MODE_MIN },
+	{ "avg", "Show the avarage value", OUTPUT_MODE_AVG },
+	{ "max", "Show the maximum value", OUTPUT_MODE_MAX },
+	{ "mode", "Show the most common value", OUTPUT_MODE_MODE },
+	{ "median", "Show the value in middle", OUTPUT_MODE_MEDIAN },
+	{ "value", "Show the values (warning: this may output a lot of data)", OUTPUT_MODE_VALUE },
+	{ "frequency", "Show the frequency of values", OUTPUT_MODE_FREQUENCY },
+	{ "count", "Show the counting of values", OUTPUT_MODE_COUNT },
 	// Mixs
-	{ "distribution",	OUTPUT_MIX_DISTRIBUTION},
-	{ "stats",		OUTPUT_MIX_STATS},
-	{ "all",		OUTPUT_MIX_ALL},
+	{ "distribution", "Show the values and their frequency (value | frequency)", OUTPUT_MIX_DISTRIBUTION },
+	{ "stats", "Show all the data is possible to get with the distribution (min | avg | max | mode | median)", OUTPUT_MIX_STATS },
+	{ "all", "Show all the data, including raw structure", OUTPUT_MIX_ALL },
 };
 
 const size_t FLAGS_OPTS_L = sizeof(FLAGS_OPTS) / sizeof(struct flag_opt);
@@ -64,6 +64,7 @@ struct data data_create()
 {
 	struct data data = {
 		.frequency = OUTPUT_DEFAULT_FREQUENCY,
+		.statistic = OUTPUT_DEFAULT_STATISTIC,
 		.brute = OUTPUT_DEFAULT_BRUTE,
 	};
 
@@ -74,9 +75,9 @@ struct data data_create()
 void data_put_in(struct data *self, enum output_mode flag, const struct string_slice type)
 {
 	enum output_mode *f = NULL;
-	if	(strncasecmp("frequency", type.chars, 9) == 0) f = &self->frequency;
-	else if (strncasecmp("brute", type.chars, 5) == 0) f = &self->brute;
-	//else if (strncasecmp("list", type.chars, 4) == 0) f = &self->list; // list removed, should have bimap in the future
+	if	(strcasecmp("frequency", type.chars) == 0) f = &self->frequency;
+	else if (strcasecmp("statistic", type.chars) == 0) f = &self->statistic;
+	else if (strcasecmp("brute", type.chars) == 0) f = &self->brute;
 	else {
 		fprintf(stderr, ANSI_ERR "\"");
 		for (size_t i = 0; i < type.length ; i++) putc(type.chars[i], stderr);
@@ -94,8 +95,7 @@ int data_parse(struct data *self, const char **const argv, int argc, int index)
 		PRINT_ERR("'--data' option expects at least one flag");
 		return index;
 	}
-	self->frequency = OUTPUT_MODE_NONE;
-	self->brute = OUTPUT_MODE_NONE;
+	*self = (struct data) {0};
 
 	struct allocator allocator = default_get_allocator();
 	struct string *arg = string_alloc(&allocator, 12);

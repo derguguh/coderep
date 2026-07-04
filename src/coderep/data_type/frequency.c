@@ -9,9 +9,29 @@
 #include <stdlib.h>
 #include <string.h>
 
+struct frequency {
+	struct allocator *allocator;
+	struct node **buckets;
+	size_t buckets_count;
+	size_t element_count;
+	size_t count_total;
+};
+
+struct stats {
+	bool have_something;
+	ssize_t min;
+	float avg;
+	ssize_t max;
+	ssize_t mode;
+	const struct node *mode_node;
+	float median;
+	const struct node *media_node_low;
+	const struct node *media_node_high;
+};
+
 const size_t FREQUENCY_DEFAULT_SIZE = 20;
 
-struct frequency *frequency_alloc(struct allocator *allocator, struct string **name, size_t initial_capacity)
+struct frequency *frequency_alloc(struct allocator *allocator, size_t initial_capacity)
 {
 	if (initial_capacity == 0) initial_capacity = FREQUENCY_DEFAULT_SIZE;
 
@@ -26,25 +46,15 @@ struct frequency *frequency_alloc(struct allocator *allocator, struct string **n
 		.allocator = allocator,
 		.buckets_count = initial_capacity,
 		.buckets = nodes,
-		.name = *name,
 	};
 
-	*name = NULL;
-	
 	return frequency;
 
 defer:
-	string_drop(name);
 	allocator->deallocate(allocator->state, frequency);
 	allocator->deallocate(allocator->state, nodes);
 
 	MALLOC_ERR_EXIT("struct frequency");
-}
-
-struct frequency *frequency_from_cstr(struct allocator *allocator, const char *const cstr, size_t initial_capacity)
-{
-	struct string *name = string_from_cstr(allocator, cstr);
-	return frequency_alloc(allocator, &name, initial_capacity);
 }
 
 bool frequency_has(struct frequency *self, const struct string *value)
@@ -164,9 +174,7 @@ void frequency_print_stats(const struct frequency *self, enum output_mode output
 
 void frequency_print_raw(const struct frequency *self, enum output_mode output_mode)
 {
-	printf("(struct frequency) {\n\t.name = \"");
-	string_print(self->name);
-	puts("\",");
+	printf("(struct frequency) {\n");
 	printf("\t.buckets_count = %zu,\n", self->buckets_count);
 	printf("\t.element_count = %zu,\n", self->element_count);
 
@@ -200,8 +208,6 @@ void frequency_print_raw(const struct frequency *self, enum output_mode output_m
 
 void frequency_print_normal(const struct frequency *self, enum output_mode output_mode)
 {
-	string_print(self->name);
-	printf(": ");
 	if ((output_mode & OUTPUT_MIX_STATS) != 0) frequency_print_stats(self, output_mode, false);
 
 	if ((output_mode & OUTPUT_MIX_DISTRIBUTION) !=  0) {
@@ -242,7 +248,6 @@ void frequency_drop(struct frequency **self)
 	tmp->allocator->deallocate(tmp->allocator->state, tmp->buckets);
 	tmp->buckets = NULL;
 
-	string_drop(&tmp->name);
 	tmp->allocator->deallocate(tmp->allocator->state, *self);
 	*self = NULL;
 }
