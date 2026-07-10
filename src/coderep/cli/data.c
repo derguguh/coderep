@@ -75,13 +75,13 @@ struct data data_create()
 void data_put_in(struct data *self, enum output_mode flag, const struct string_slice type)
 {
 	enum output_mode *f = NULL;
-	if	(strcasecmp("frequency", type.chars) == 0) f = &self->frequency;
-	else if (strcasecmp("statistic", type.chars) == 0) f = &self->statistic;
-	else if (strcasecmp("brute", type.chars) == 0) f = &self->brute;
+	if	(strncasecmp("frequency", type.chars, 9) == 0) f = &self->frequency;
+	else if (strncasecmp("statistic", type.chars, 9) == 0) f = &self->statistic;
+	else if (strncasecmp("brute", type.chars, 5) == 0) f = &self->brute;
 	else {
 		fprintf(stderr, ANSI_ERR "\"");
 		for (size_t i = 0; i < type.length ; i++) putc(type.chars[i], stderr);
-		fprintf(stderr, "\"" ANSI_ESC ANSI_RESET "\n");
+		fprintf(stderr, "\" is not a valid --data flag" ANSI_RESET "\n");
 		return;
 	}
 

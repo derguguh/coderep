@@ -166,9 +166,9 @@ void frequency_print_stats(const struct frequency *self, enum output_mode output
 
 	if ((output_mode & OUTPUT_MODE_MODE) == OUTPUT_MODE_MODE) {
 
-		printf("%smode = \"", prefix);
+		printf("%smode = \"" ANSI_CYAN, prefix);
 		string_print(stats.mode_node->value);
-		printf("\"(%zi)%s", stats.mode_node->count, sufix);
+		printf(ANSI_RESET "\"(" ANSI_YELLOW "%zi" ANSI_RESET ")%s", stats.mode_node->count, sufix);
 	}
 }
 
@@ -203,7 +203,7 @@ void frequency_print_raw(const struct frequency *self, enum output_mode output_m
 		puts("\t},");
 	}
 
-	puts("}");
+	putchar('}');
 }
 
 void frequency_print_normal(const struct frequency *self, enum output_mode output_mode)
@@ -228,8 +228,6 @@ void frequency_print_normal(const struct frequency *self, enum output_mode outpu
 		putchar(']');
 	}
 	if ((output_mode & OUTPUT_MODE_COUNT) == OUTPUT_MODE_COUNT) printf("(unique: %zu, total: %zu)", self->element_count, self->count_total);
-
-	putchar('\n');
 }
 
 void frequency_print(const struct frequency *self, enum output_mode output_mode)

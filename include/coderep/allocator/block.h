@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 
-#define DEFAULT_BLOCK_SIZE 8 * 1024 * 1024
+#define DEFAULT_BLOCK_SIZE sizeof(void *) * 1024 * 1024
 
 struct block {
 	struct block *_next;

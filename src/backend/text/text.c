@@ -21,17 +21,13 @@ void text_init(struct backend_context *data)
 
 	lexer->template_unknown_char = string_from_cstr(allocator, "Unknown: character");
 
-	struct string *string = string_from_cstr(allocator, "text.word");
-	lexer->word = frequency_alloc(allocator, &string, data->profile.extreme);
+	lexer->word = frequency_alloc(allocator, data->profile.extreme);
 
-	string = string_from_cstr(allocator, "text.character");
-	lexer->character = frequency_alloc(allocator, &string, data->profile.light);
+	lexer->character = frequency_alloc(allocator, data->profile.light);
 
-	string = string_from_cstr(allocator, "text.number");
-	lexer->number = frequency_alloc(allocator, &string, data->profile.medium);
+	lexer->number = frequency_alloc(allocator, data->profile.medium);
 
-	string = string_from_cstr(allocator, "text.unknown");
-	lexer->unknown = frequency_alloc(allocator, &string, data->profile.baseline);
+	lexer->unknown = frequency_alloc(allocator, data->profile.minimal);
 }
 
 void text_parse_file(struct backend_context *data, struct arena *ignore, struct file *file)
@@ -46,9 +42,9 @@ void text_deinit(struct backend_context *data)
 {
 	struct text_lexer *lexer = (struct text_lexer *)data->requested;
 
-	report_push_frequency(data->report, &lexer->word);
-	report_push_frequency(data->report, &lexer->number);
-	report_push_frequency(data->report, &lexer->character);
-	report_push_frequency(data->report, &lexer->unknown);
+	report_push_frequency(data->report, "text.word", &lexer->word);
+	report_push_frequency(data->report, "text.number", &lexer->number);
+	report_push_frequency(data->report, "text.character", &lexer->character);
+	report_push_frequency(data->report, "text.unknown", &lexer->unknown);
 }
 

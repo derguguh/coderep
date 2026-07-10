@@ -2,6 +2,7 @@
 #define CODEREP_BACKEND_BACKEND_H
 
 #include "coderep/cli/input.h"
+#include "coderep/data_type/string.h"
 #include "coderep/tool/file.h"
 
 #include <stddef.h>
@@ -11,7 +12,7 @@ struct bucket_profile {
 	size_t heavy;
 	size_t medium;
 	size_t light;
-	size_t baseline;
+	size_t minimal;
 };
 
 struct backend_context {
@@ -39,24 +40,10 @@ struct backend {
 	bool binary;
 };
 
-struct file_report {
-	double total_init_time;
-	double total_file_parse_time;
-	double total_deinit_time;
-	// General
-	size_t bytes_read;
-	size_t total_reads;
-	size_t failed_reads;
-	bool binary;
-	// Binary (struct file_buffer) only
-	size_t total_line;
-	// Standard (struct file) only
-};
-
 extern const struct backend BACKEND_REGISTER[];
 
 extern const size_t BACKEND_REGISTER_L;
 
-struct report *backend_parse(const struct backend *backend, struct arena *allocator, struct input *input);
+struct report *backend_parse(const struct backend *backend, struct allocator *default_allocator, struct arena *arena, struct input *input);
 
 #endif

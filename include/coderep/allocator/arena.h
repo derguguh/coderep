@@ -7,7 +7,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define PACKET_SIZE sizeof(size_t)
+#define PACKET_SIZE sizeof(void *)
 #define PACKET_ALIGN(size) (((size) + PACKET_SIZE - 1) & ~(PACKET_SIZE - 1))
 
 struct arena {

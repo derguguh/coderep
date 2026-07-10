@@ -78,12 +78,12 @@ size_t file_print_line_buffer(const struct file *self)
 	size_t length = self->line_buffer->length;
 	size_t chars_printed = 0;
 
-	if (self->line_buffer->length > RING_LINE_BUFFER_SIZE) {
+	if (length > RING_LINE_BUFFER_SIZE) {
 		fprintf(stderr, "...");
 		chars_printed = 3;
 		length = RING_LINE_BUFFER_SIZE;
 	}
-	chars_printed += length;
+	chars_printed += 3;
 
 	fprintf(stderr, ANSI_GREEN "%.*s\n", (int)length, self->line_buffer->chars + offset);
 
