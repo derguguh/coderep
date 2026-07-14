@@ -1,4 +1,4 @@
-#include "backend/general/word_tree.h"
+#include "backend/generic/word_tree.h"
 
 #include "coderep/data_type/node.h"
 #include "coderep/macros.h"

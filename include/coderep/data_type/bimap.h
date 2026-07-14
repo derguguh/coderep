@@ -10,7 +10,7 @@ struct bimap *bimap_alloc(struct allocator *allocator, size_t inital_capacity);
 
 bool bimap_has(const struct bimap *self, const struct string *value);
 
-bool bimap_length(const struct bimap *self);
+size_t bimap_count(const struct bimap *self);
 
 size_t bimap_intern(struct bimap *self, const struct string *value);
 

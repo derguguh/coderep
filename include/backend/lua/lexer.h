@@ -1,7 +1,7 @@
 #ifndef BACKEND_LUA_LEXER_H
 #define BACKEND_LUA_LEXER_H
 
-#include "backend/general/word_tree.h"
+#include "backend/generic/word_tree.h"
 
 #include "coderep/allocator/arena.h"
 #include "coderep/tool/file.h"

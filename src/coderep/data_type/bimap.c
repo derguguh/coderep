@@ -67,7 +67,7 @@ bool bimap_has(const struct bimap *self, const struct string *value)
 	else return true;
 }
 
-bool bimap_length(const struct bimap *self)
+size_t bimap_count(const struct bimap *self)
 {
 	return self->element_count;
 }

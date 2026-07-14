@@ -1,6 +1,6 @@
 #include "backend/lua/lexer.h"
 
-#include "backend/general/lexer.h"
+#include "backend/generic/lexer.h"
 #include "backend/lua/token.h"
 
 #include "coderep/data_type/frequency.h"

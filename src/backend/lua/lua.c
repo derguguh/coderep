@@ -1,7 +1,7 @@
 #include "backend/lua/lua.h"
 
 #include "backend/backend.h"
-#include "backend/general/lexer.h"
+#include "backend/generic/lexer.h"
 #include "backend/lua/lexer.h"
 #include "backend/lua/token.h"
 #include "coderep/allocator/allocator.h"
@@ -26,21 +26,14 @@ void lua_init(struct backend_context *data)
 	context->template_invalid_string = string_from_cstr(allocator, "Invalid: string");
 	context->template_invalid_char = string_from_cstr(allocator, "Invalid: character");
 
-	context->keyword = frequency_alloc(allocator, LUA_KEYWORD_TABLE_L);
-
-	context->identifier = frequency_alloc(allocator, data->profile.extreme);
-
-	context->character = frequency_alloc(allocator, 32);
-
-	context->number = frequency_alloc(allocator, data->profile.medium);
-
-	context->string = frequency_alloc(allocator, data->profile.light);
-
-	context->block_string = frequency_alloc(allocator, data->profile.light);
-
-	context->invalid = frequency_alloc(allocator, data->profile.minimal);
-
 	context->what_invalid = frequency_alloc(allocator, 3);
+	context->character = frequency_alloc(allocator, 32);
+	context->keyword = frequency_alloc(allocator, LUA_KEYWORD_TABLE_L);
+	context->invalid = frequency_alloc(allocator, data->profile.minimal);
+	context->string = frequency_alloc(allocator, data->profile.light);
+	context->block_string = frequency_alloc(allocator, data->profile.light);
+	context->number = frequency_alloc(allocator, data->profile.medium);
+	context->identifier = frequency_alloc(allocator, data->profile.extreme);
 
 	context->keyword_tree = word_tree_from_table(allocator, LUA_KEYWORD_TABLE, LUA_KEYWORD_TABLE_L);
 }

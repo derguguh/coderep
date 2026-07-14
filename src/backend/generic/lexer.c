@@ -1,4 +1,4 @@
-#include "backend/general/lexer.h"
+#include "backend/generic/lexer.h"
 
 #include "coderep/data_type/string.h"
 

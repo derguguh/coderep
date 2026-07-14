@@ -25,9 +25,9 @@ struct backend_context {
 };
 
 typedef size_t (*request_t)();
-typedef void (*init_t)(struct backend_context *data);
-typedef void (*parse_file_t)(struct backend_context *data, struct arena *temp_allocator, struct file *file);
-typedef void (*deinit_t)(struct backend_context *data);
+typedef void (*init_t)(struct backend_context *context);
+typedef void (*parse_file_t)(struct backend_context *context, struct arena *temp_allocator, struct file *file);
+typedef void (*deinit_t)(struct backend_context *context);
 
 struct backend {
 	const char *const name;

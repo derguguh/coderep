@@ -1,5 +1,5 @@
-#ifndef BACKEND_GENERAL_LEXER_H
-#define BACKEND_GENERAL_LEXER_H
+#ifndef BACKEND_GENERIC_LEXER_H
+#define BACKEND_GENERIC_LEXER_H
 
 #include "coderep/allocator/arena.h"
 #include "coderep/tool/file.h"

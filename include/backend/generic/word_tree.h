@@ -1,5 +1,5 @@
-#ifndef BACKEND_GENERAL_WORD_TREE_H
-#define BACKEND_GENERAL_WORD_TREE_H
+#ifndef BACKEND_GENERIC_WORD_TREE_H
+#define BACKEND_GENERIC_WORD_TREE_H
 
 #include "coderep/data_type/string.h"
 
