@@ -24,12 +24,18 @@ const struct backend BACKEND_REGISTER[] = {
 		text_request, text_init, text_parse_file, text_deinit, false },
 	{ "Lua", "lua", "Lua programming language",
 		lua_request, lua_init, lua_parse_file, lua_deinit, false },
-	{ "C", "c", "ISO C programming language version",
-		c_request, c_init, c_parse_file, c_deinit, false },
 	{ "Key counter", "keycount", "Single and digraphs counting",
 		keycount_request, keycount_init, keycount_parse_file, keycount_deinit, false},
-	{ "Key counter (alpha numeric only)", "keycount.alnum", "Single and digraphs counting on alpha numeric",
+	{ "alpha numeric", "keycount.alnum", "Single and digraphs counting on alpha numeric",
 		keycount_request, keycount_init, keycount_alnum_parse_file, keycount_deinit, false},
+	{ "alpha numeric", "keycount.alnum", "Single and digraphs counting on alpha numeric",
+		keycount_request, keycount_init, keycount_alnum_parse_file, keycount_deinit, false},
+	{ "alpha numeric", "keycount.alnum", "Single and digraphs counting on alpha numeric",
+		keycount_request, keycount_init, keycount_alnum_parse_file, keycount_deinit, false},
+	{ "alpha numeric", "keycount.alnum", "Single and digraphs counting on alpha numeric",
+		keycount_request, keycount_init, keycount_alnum_parse_file, keycount_deinit, false},
+	{ "C", "c", "ISO C programming language version",
+		c_request, c_init, c_parse_file, c_deinit, false },
 };
 
 const size_t BACKEND_REGISTER_L = sizeof(BACKEND_REGISTER) / sizeof(struct backend);

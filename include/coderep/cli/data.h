@@ -12,8 +12,8 @@ struct data {
 };
 
 struct flag_opt {
-	char *cstr;
-	char *description;
+	const char *const name;
+	const char *const description;
 	enum output_mode flag;
 };
 

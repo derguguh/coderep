@@ -30,7 +30,7 @@ const size_t FLAGS_OPTS_L = sizeof(FLAGS_OPTS) / sizeof(struct flag_opt);
 
 enum output_mode parse_flag(const struct string_slice slice)
 {
-	for (size_t i = 0; i < FLAGS_OPTS_L; i++) if (strncasecmp(slice.chars, FLAGS_OPTS[i].cstr, slice.length) == 0) return FLAGS_OPTS[i].flag;
+	for (size_t i = 0; i < FLAGS_OPTS_L; i++) if (strncasecmp(slice.chars, FLAGS_OPTS[i].name, slice.length) == 0) return FLAGS_OPTS[i].flag;
 
 	fprintf(stderr, ANSI_ERR "\"");
 	for (size_t i = 0; i < slice.length ; i++) putc(slice.chars[i], stderr);

@@ -2,41 +2,70 @@
 
 #include "backend/backend.h"
 #include "coderep/cli/data.h"
+#include "coderep/cli/option_entry.h"
 
 #include <stdio.h>
+#include <string.h>
 
-int help_print(void *_ignore, const char **const argv, int argc, int index)
+#define SPACE "    "
+
+void print_backend(const struct backend *backend, const struct backend *_next, bool start, bool end)
+{
+	bool sub_flag = strchr(backend->identifier, '.') != NULL;
+	bool is_next_sub_flag = _next == NULL ? false : strchr(_next->identifier, '.') != NULL;
+
+	printf(SPACE SPACE);
+	if (sub_flag) {
+		if (start)	printf("┌─");
+		else if (end)	printf("└─");
+		else		printf("│ ");
+	} else {
+		if (start)	printf("┌─");
+		else if (end)	printf("└─");
+		else		printf("├─");
+	}
+
+	if (sub_flag) {
+		if (is_next_sub_flag) printf("├─%-18.20s", backend->name);
+		else printf("└─%-18.20s", backend->name);
+	} else printf("%-20.20s", backend->name);
+
+	printf("%-20.20s", backend->identifier);
+	printf("%s\n", backend->description);
+}
+
+struct option_state help_print(void *null, struct argument_list *ignore)
 {
 	printf("-- Help menu start --\n\n");
 
-	printf("\t--help: show this menu\n");
-	printf("\t--input: add files to the analysis\n\n");
+	printf(SPACE "--help: show this menu\n");
+	printf(SPACE "--input: add files to the analysis\n\n");
 
-	printf("\t--lang: select the language backend (a compiler front-end)\n");
-	printf("\t\tThe current backends are: ");
+	printf(SPACE "--filter: add a filter to what data to output\n");
+	printf(SPACE SPACE "Filter flag is not implemented yet\n\n");
 
-	printf("%s (%s)", BACKEND_REGISTER[0].name, BACKEND_REGISTER[0].identifier);
-	for (size_t i = 1; i < BACKEND_REGISTER_L; i++) printf(", %s (%s)", BACKEND_REGISTER[i].name, BACKEND_REGISTER[i].identifier);
-	putchar('\n');
-	putchar('\n');
+	printf(SPACE "--lang: select the language backend (a compiler front-end)\n");
+	printf(SPACE SPACE "The current backends are:\n\n");
 
-	printf("\t--filter: add a filter to what data to output\n");
-	printf("\t\tFilter flag is not implemented yet\n\n");
+	for (size_t i = 0; i < BACKEND_REGISTER_L - 1; i++) print_backend(&BACKEND_REGISTER[i], &BACKEND_REGISTER[i + 1], i == 0, false);
+	print_backend(&BACKEND_REGISTER[BACKEND_REGISTER_L - 1], NULL, false, true);
+	printf("\n\n");
 
-	printf("\t--data: changes how the data types should output\n");
-	printf("\t\tExist 'frequency' and 'brute'. 'bimap' is a TODO type\n");
-	printf("\t\tEach one needs a flag that show how to output the data, and this can be selected with '.'\n");
-	printf("\t\tYou can also mix one more flags with ':'\n");
-	printf("\t\tFor example, 'frequency.distribution:avg' shows the distribution and the average value\n");
-	printf("\t\tthe current flags are: ");
+	printf(SPACE "--data: changes how the data types should output\n");
+	printf(SPACE SPACE "The current flags are:\n\n");
 
-	printf("%s", FLAGS_OPTS[0].cstr);
-	for (size_t i = 1; i < FLAGS_OPTS_L; i++) printf(", %s", FLAGS_OPTS[i].cstr);
+	for (size_t i = 0; i < FLAGS_OPTS_L; i++) {
+		printf(SPACE SPACE "");
+		if (i == 0) printf("┌─");
+		else if (i < FLAGS_OPTS_L - 1) printf("├─");
+		else printf("└─");
+		printf("%-20.20s", FLAGS_OPTS[i].name);
+		printf("%s\n", FLAGS_OPTS[i].description);
+	}
+	printf("\n\n");
 
-	putchar('\n');
+	printf("-- Help menu end --\n");
 
-	printf("\n-- Help menu end --\n");
-
-	return index;
+	return (struct option_state) {};
 }
 
