@@ -36,7 +36,7 @@ struct arena *arena_alloc(size_t block_size)
 
 	return self;
 defer:
-	MALLOC_ERR_EXIT("struct arena (allocator)");
+	ALLOC_ERR_EXIT("struct arena (allocator)");
 }
 
 void *arena_allocate(struct arena *self, size_t size)

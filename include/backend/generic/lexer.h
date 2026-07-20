@@ -7,11 +7,11 @@
 #include <stddef.h>
 #include <sys/types.h>
 
-typedef bool (*handle_escape_sequence_t)(struct file *file, struct string *_buffer, struct arena *tmp_allocator);
+typedef bool (*handle_escape_sequence_fn)(struct file *file, struct string *_buffer, struct arena *tmp_allocator);
 
 struct string_handler {
 	struct string *end_sequence;
-	handle_escape_sequence_t _escape_handler;
+	handle_escape_sequence_fn _escape_handler;
 	char escape_char;
 	bool accept_new_line;
 };

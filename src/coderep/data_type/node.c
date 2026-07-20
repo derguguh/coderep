@@ -22,7 +22,7 @@ struct node *node_alloc(struct allocator *allocator, struct string **value)
 	return node;
 
 defer:
-	MALLOC_ERR_EXIT("struct node");
+	ALLOC_ERR_EXIT("struct node");
 }
 
 bool node_has(const struct node *self, const struct string *value)

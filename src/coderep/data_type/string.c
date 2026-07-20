@@ -31,7 +31,7 @@ defer:
 	allocator->deallocate(allocator->state, self);
 	allocator->deallocate(allocator->state, chars);
 
-	MALLOC_ERR_EXIT("struct string");
+	ALLOC_ERR_EXIT("struct string");
 }
 
 struct string *string_from_cstr(struct allocator *allocator, const char *const cstr)
@@ -174,7 +174,7 @@ struct string_slice string_slice(const struct string *self, size_t from, size_t 
 char string_get(const struct string *self, size_t index)
 {
 	if (self->length > index) return self->chars[index];
-	else return '\n';
+	else return '\0';
 }
 
 char *string_to_cstr(struct string *self)

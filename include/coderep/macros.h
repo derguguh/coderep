@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 
-#define ANSI_F(color, text)	"\n" color ANSI_BOLD "[" text "]: " ANSI_RESET
+#define ANSI_F(color, text)	color ANSI_BOLD "[" text "]: " ANSI_RESET
 #define ANSI_DEBUG		ANSI_F(ANSI_DEBUG, "Debug")
 #define ANSI_LOG		ANSI_F(ANSI_CYAN, "Log")
 #define ANSI_WARN		ANSI_F(ANSI_YELLOW, "Warn")
@@ -25,7 +25,7 @@
 #define PRINT_ERR(err)		PRINT_ANSI(stderr, ANSI_ERR, err)
 #define PRINTF_ERR(err, ...)	PRINTF_ANSI(stderr, ANSI_ERR, err, __VA_ARGS__)
 
-#define MALLOC_ERR_EXIT(name) do { \
+#define ALLOC_ERR_EXIT(name) do { \
 		PRINT_ERR("Couldn't allocate memory for" name); \
 		exit(ERROR_CODE_MEMORY_ALLOCATION); \
 		return NULL; \

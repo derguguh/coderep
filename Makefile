@@ -23,7 +23,7 @@ dependencies := $(objects:.o=.d)
 target := coderep
 commands := compile_commands.json
 
-.PHONY: all doall build debug release analyse bear clean install
+.PHONY: all doall build debug release analyse bear clean install install-dev
 
 all: $(build_dir)/$(target)
 
@@ -39,7 +39,7 @@ release:
 
 # Change "text" to "c" later
 analyse:
-	$(build_dir)/$(target) --lang text --input $(sources) $(headers)
+	$(build_dir)/$(target) --lang c --input $(sources) $(headers)
 
 bear:
 	bear -o build/$(commands) -- make debug
@@ -58,6 +58,11 @@ install:
 	mkdir -p $(install_prefix)
 	cp $(release_build_dir)/$(target) $(install_prefix)/$(target)
 	cp $(debug_build_dir)/$(target) $(install_prefix)/$(target)-debug
+
+install-dev:
+	mkdir -p $(install_prefix)
+	cp $(release_build_dir)/$(target) $(install_prefix)/$(target)-dev
+	cp $(debug_build_dir)/$(target) $(install_prefix)/$(target)-dev-debug
 
 -include $(dependencies)
 

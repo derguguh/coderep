@@ -13,7 +13,7 @@ struct file_buffer *file_buffer_alloc(struct allocator *allocator)
 {
 	struct file_buffer *self = allocator->allocate(allocator->state, sizeof(struct file_buffer));
 
-	if (!self) MALLOC_ERR_EXIT("struct file_buffer");
+	if (!self) ALLOC_ERR_EXIT("struct file_buffer");
 
 	*self = (struct file_buffer) {
 		.allocator = allocator,

@@ -19,7 +19,7 @@ struct block *block_alloc(struct allocator *allocator, size_t block_size)
 
 	return self;
 defer:
-	MALLOC_ERR_EXIT("struct block");
+	ALLOC_ERR_EXIT("struct block");
 }
 
 void block_drop(struct allocator *allocator, struct block **self)

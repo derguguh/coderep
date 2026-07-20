@@ -64,7 +64,7 @@ defer:
 	free(self);
 	free(entries);
 
-	MALLOC_ERR_EXIT("struct report (backend outputs)");
+	ALLOC_ERR_EXIT("struct report (backend outputs)");
 }
 
 static inline void report_expand(struct report *self)

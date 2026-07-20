@@ -45,7 +45,7 @@ struct word_tree *word_tree_from_table(struct allocator *allocator, const struct
 defer:
 	allocator->deallocate(allocator->state, buckets);
 	allocator->deallocate(allocator->state, self);
-	MALLOC_ERR_EXIT("\tstruct bimap");
+	ALLOC_ERR_EXIT("\tstruct bimap");
 }
 
 const struct string *word_tree_get_by_id(const struct word_tree *self, ssize_t id)

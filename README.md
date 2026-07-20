@@ -26,6 +26,9 @@ coderep --lang text --input $(find . -name "*.c")
 
   - `text` processes any UTF-8 readable file as plain text, collecting character, word, and number frequencies. It serves as the fallback backend for formats without a dedicated implementation
   - `lua` provides a complete Lua lexer, recognizing all keywords, operators, string literals, numeric literals, and identifiers according to the Lua 5.4 specification, including long strings and long comments with arbitrary bracket levels. It currently don't have syntax data extraction
+  - `keycount` provides a view on digraph and character counting
+  - `keycount.alnum` a specialization of `keycount` to work only on ASCII English alpha numeric characters
+  - `c`, `c.23` and `c.99` are backends for C language and different versions of it. Currently, they don't work
 
 ## Performance
 
@@ -43,7 +46,7 @@ Beyond that, the following conventions are specific to this project and must be 
 
 All allocation beyond CLI goes through the allocator interface. Backends and data types do not call malloc or free directly.
 
-The main branch always reflects the most recent release. Active development happens on dev. Feature and fix branches must be prefixed with dev-.
+The master branch always reflects the most recent release. Active development happens on dev. Feature and fix branches must be prefixed with dev-.
 
 ## Roadmap
 

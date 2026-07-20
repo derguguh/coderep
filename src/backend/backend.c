@@ -1,11 +1,5 @@
 #include "backend/backend.h"
 
-#include "backend/lua/lua.h"
-#include "backend/text/text.h"
-#include "backend/c/c.h"
-#include "backend/keycount/keycount.h"
-#include "backend/keycount/alnum.h"
-
 #include "coderep/allocator/allocator.h"
 #include "coderep/allocator/arena.h"
 #include "coderep/consts.h"
@@ -19,31 +13,12 @@
 
 #define PROGRESS_BAR_SIZE 40
 
-const struct backend BACKEND_REGISTER[] = {
-	{ "Text", "text", "General UTF8 text",
-		text_request, text_init, text_parse_file, text_deinit, false },
-	{ "Lua", "lua", "Lua programming language",
-		lua_request, lua_init, lua_parse_file, lua_deinit, false },
-	{ "Key counter", "keycount", "Single and digraphs counting",
-		keycount_request, keycount_init, keycount_parse_file, keycount_deinit, false},
-	{ "alpha numeric", "keycount.alnum", "Single and digraphs counting on alpha numeric",
-		keycount_request, keycount_init, keycount_alnum_parse_file, keycount_deinit, false},
-	{ "alpha numeric", "keycount.alnum", "Single and digraphs counting on alpha numeric",
-		keycount_request, keycount_init, keycount_alnum_parse_file, keycount_deinit, false},
-	{ "alpha numeric", "keycount.alnum", "Single and digraphs counting on alpha numeric",
-		keycount_request, keycount_init, keycount_alnum_parse_file, keycount_deinit, false},
-	{ "alpha numeric", "keycount.alnum", "Single and digraphs counting on alpha numeric",
-		keycount_request, keycount_init, keycount_alnum_parse_file, keycount_deinit, false},
-	{ "C", "c", "ISO C programming language version",
-		c_request, c_init, c_parse_file, c_deinit, false },
-};
-
-const size_t BACKEND_REGISTER_L = sizeof(BACKEND_REGISTER) / sizeof(struct backend);
+// Register moved to backend_register.c
 
 void *backend_fulfill_request(const struct backend *backend, struct arena *allocator)
 {
 	size_t size_to_alloc;
-	if (backend->_request_function != NULL) size_to_alloc = backend->_request_function();
+	if (backend->_request != NULL) size_to_alloc = backend->_request();
 	else size_to_alloc = 0;
 
 	void *ptr = NULL;
@@ -96,7 +71,7 @@ struct report *backend_parse(const struct backend *backend, struct allocator *de
 	struct timespec timer;
 
 	timer_start(&timer);
-	if (backend->_init_function != NULL) backend->_init_function(&context);
+	if (backend->_init != NULL) backend->_init(&context);
 	statistics_double_push(&file_report.total_init_time, timer_elapsed(&timer));
 
 	for (size_t i = 0; i < input->files_l; i++) {
@@ -110,7 +85,7 @@ struct report *backend_parse(const struct backend *backend, struct allocator *de
 			continue;
 		}
 		timer_start(&timer);
-		backend->parsing_function(&context, parsing_arena, file);
+		backend->parsing(&context, parsing_arena, file);
 		statistics_double_push(&file_report.total_file_parse_time, timer_elapsed(&timer));
 
 		statistics_size_t_push(&file_report.bytes_read, file->buffer->block * BUFFER_SIZE + file->buffer->buffer_length);
@@ -119,7 +94,7 @@ struct report *backend_parse(const struct backend *backend, struct allocator *de
 	putchar('\n');
 
 	timer_start(&timer);
-	if (backend->_deinit_function != NULL) backend->_deinit_function(&context);
+	if (backend->_deinit != NULL) backend->_deinit(&context);
 	statistics_double_push(&file_report.total_deinit_time, timer_elapsed(&timer));
 
 	report_push_file_report(report, &file_report);

@@ -2,12 +2,22 @@
 
 #include "backend/backend.h"
 #include "coderep/cli/data.h"
-#include "coderep/cli/option_entry.h"
 
 #include <stdio.h>
 #include <string.h>
 
 #define SPACE "    "
+
+struct option help_entry()
+{
+	return (struct option) {
+		.structure = NULL,
+		.flag_name = "help",
+		.short_name = 'h',
+		.parsing = help_print,
+		.type = COMPOSABLE,
+	};
+}
 
 void print_backend(const struct backend *backend, const struct backend *_next, bool start, bool end)
 {
@@ -17,18 +27,16 @@ void print_backend(const struct backend *backend, const struct backend *_next, b
 	printf(SPACE SPACE);
 	if (sub_flag) {
 		if (start)	printf("┌─");
-		else if (end)	printf("└─");
 		else		printf("│ ");
+
+		if (is_next_sub_flag) printf("├─%-18.20s", backend->name);
+		else printf("└─%-18.20s", backend->name);
 	} else {
 		if (start)	printf("┌─");
 		else if (end)	printf("└─");
 		else		printf("├─");
+		printf("%-20.20s", backend->name);
 	}
-
-	if (sub_flag) {
-		if (is_next_sub_flag) printf("├─%-18.20s", backend->name);
-		else printf("└─%-18.20s", backend->name);
-	} else printf("%-20.20s", backend->name);
 
 	printf("%-20.20s", backend->identifier);
 	printf("%s\n", backend->description);
@@ -42,20 +50,26 @@ struct option_state help_print(void *null, struct argument_list *ignore)
 	printf(SPACE "--input: add files to the analysis\n\n");
 
 	printf(SPACE "--filter: add a filter to what data to output\n");
-	printf(SPACE SPACE "Filter flag is not implemented yet\n\n");
+	printf(SPACE SPACE "Filter option is not implemented yet\n\n");
 
 	printf(SPACE "--lang: select the language backend (a compiler front-end)\n");
-	printf(SPACE SPACE "The current backends are:\n\n");
+	printf(SPACE SPACE "Available backends:\n");
 
 	for (size_t i = 0; i < BACKEND_REGISTER_L - 1; i++) print_backend(&BACKEND_REGISTER[i], &BACKEND_REGISTER[i + 1], i == 0, false);
-	print_backend(&BACKEND_REGISTER[BACKEND_REGISTER_L - 1], NULL, false, true);
+	if (BACKEND_REGISTER_L > 0) print_backend(&BACKEND_REGISTER[BACKEND_REGISTER_L - 1], NULL, false, true);
 	printf("\n\n");
 
-	printf(SPACE "--data: changes how the data types should output\n");
-	printf(SPACE SPACE "The current flags are:\n\n");
+	printf(SPACE "--data: configure report data output\n");
+	printf(SPACE SPACE "Syntax:\n");
+	printf(SPACE SPACE SPACE "group.flag_1:flag_2:...:flag_n\n\n");
+	printf(SPACE SPACE "Available groups:\n");
+	printf(SPACE SPACE SPACE "frequency: data related to frequency\n");
+	printf(SPACE SPACE SPACE "brute: data related to brute (single) values\n");
+	printf(SPACE SPACE SPACE "bimap: data related to binary maps\n\n");
+	printf(SPACE SPACE "Available flags:\n");
 
 	for (size_t i = 0; i < FLAGS_OPTS_L; i++) {
-		printf(SPACE SPACE "");
+		printf(SPACE SPACE);
 		if (i == 0) printf("┌─");
 		else if (i < FLAGS_OPTS_L - 1) printf("├─");
 		else printf("└─");

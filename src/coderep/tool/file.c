@@ -29,7 +29,7 @@ struct file *file_alloc(struct allocator *allocator)
 
 	return self;
 defer:
-	MALLOC_ERR_EXIT("struct file_buffer");
+	ALLOC_ERR_EXIT("struct file_buffer");
 }
 
 bool file_open(struct file *self, const char *const file_path)

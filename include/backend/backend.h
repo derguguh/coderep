@@ -24,19 +24,19 @@ struct backend_context {
 	struct bucket_profile profile;
 };
 
-typedef size_t (*request_t)();
-typedef void (*init_t)(struct backend_context *context);
-typedef void (*parse_file_t)(struct backend_context *context, struct arena *temp_allocator, struct file *file);
-typedef void (*deinit_t)(struct backend_context *context);
+typedef size_t (*request_fn)();
+typedef void (*init_fn)(struct backend_context *context);
+typedef void (*parse_file_fn)(struct backend_context *context, struct arena *temp_allocator, struct file *file);
+typedef void (*deinit_fn)(struct backend_context *context);
 
 struct backend {
 	const char *const name;
 	const char *const identifier;
 	const char *const description;
-	request_t _request_function;
-	init_t _init_function;
-	parse_file_t parsing_function;
-	deinit_t _deinit_function;
+	request_fn _request;
+	init_fn _init;
+	parse_file_fn parsing;
+	deinit_fn _deinit;
 	bool binary;
 };
 

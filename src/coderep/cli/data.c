@@ -10,19 +10,19 @@
 #include <string.h>
 
 const struct flag_opt FLAGS_OPTS[] = {
-	{ "none", "Disable an type of data", OUTPUT_MODE_NONE },
+	{ "none", "Disable a data type", OUTPUT_MODE_NONE },
 	{ "raw", "Show the internal structure of the data", OUTPUT_MODE_RAW },
 	{ "min", "Show the minimal value", OUTPUT_MODE_MIN },
-	{ "avg", "Show the avarage value", OUTPUT_MODE_AVG },
+	{ "avg", "Show the average value", OUTPUT_MODE_AVG },
 	{ "max", "Show the maximum value", OUTPUT_MODE_MAX },
 	{ "mode", "Show the most common value", OUTPUT_MODE_MODE },
-	{ "median", "Show the value in middle", OUTPUT_MODE_MEDIAN },
+	{ "median", "Show the middle value", OUTPUT_MODE_MEDIAN },
 	{ "value", "Show the values (warning: this may output a lot of data)", OUTPUT_MODE_VALUE },
 	{ "frequency", "Show the frequency of values", OUTPUT_MODE_FREQUENCY },
-	{ "count", "Show the counting of values", OUTPUT_MODE_COUNT },
+	{ "count", "Show the count", OUTPUT_MODE_COUNT },
 	// Mixs
 	{ "distribution", "Show the values and their frequency (value | frequency)", OUTPUT_MIX_DISTRIBUTION },
-	{ "stats", "Show all the data is possible to get with the distribution (min | avg | max | mode | median)", OUTPUT_MIX_STATS },
+	{ "stats", "Show all the data that can be derived from the distribution (min | avg | max | mode | median)", OUTPUT_MIX_STATS },
 	{ "all", "Show all the data, including raw structure", OUTPUT_MIX_ALL },
 };
 

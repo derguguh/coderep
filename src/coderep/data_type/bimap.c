@@ -40,7 +40,7 @@ defer:
 	allocator->deallocate(allocator->state, buckets);
 	allocator->deallocate(allocator->state, block);
 	allocator->deallocate(allocator->state, self);
-	MALLOC_ERR_EXIT("\tstruct bimap");
+	ALLOC_ERR_EXIT("\tstruct bimap");
 }
 
 void bimap_expand_if_need(struct bimap *self)

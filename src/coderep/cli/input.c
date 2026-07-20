@@ -19,7 +19,7 @@ struct input *input_alloc()
 	return self;
 
 defer:
-	MALLOC_ERR_EXIT("struct input (for CLI)");
+	ALLOC_ERR_EXIT("struct input (for CLI)");
 }
 
 void input_expand(struct input *self)

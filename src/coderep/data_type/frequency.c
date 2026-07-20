@@ -54,7 +54,7 @@ defer:
 	allocator->deallocate(allocator->state, frequency);
 	allocator->deallocate(allocator->state, nodes);
 
-	MALLOC_ERR_EXIT("struct frequency");
+	ALLOC_ERR_EXIT("struct frequency");
 }
 
 bool frequency_has(struct frequency *self, const struct string *value)
