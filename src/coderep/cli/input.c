@@ -1,87 +1,35 @@
 #include "coderep/cli/input.h"
 
+#include "coderep/cli/option.h"
+#include "coderep/data_type/string.h"
 #include "coderep/macros.h"
 
 #include <stdlib.h>
 
-struct input *input_alloc()
+void input_expand(struct config *config)
 {
-	struct input *self = malloc(sizeof(struct input));
-	const char **files = calloc(sizeof(char *), FILES_DEFAULT_CAPACITY);
-
-	if (!self) goto defer;
-
-	*self = (struct input) {
-		.files = files,
-		.files_c = FILES_DEFAULT_CAPACITY,
-	};
-
-	return self;
-
-defer:
-	ALLOC_ERR_EXIT("struct input (for CLI)");
-}
-
-void input_expand(struct input *self)
-{
-	self->files_c *= 2;
-	const char **tmp = realloc(self->files, sizeof(char *) * self->files_c);
+	config->paths_c *= 2;
+	struct string **tmp = config->allocator->reallocate(config->allocator->state, config->paths, sizeof(char *) * config->paths_c);
 
 	if (!tmp) goto defer;
 
-	self->files = tmp;
+	config->paths = tmp;
 
 	return;
 defer:
-	PRINT_ERR("Couldn't reallocate memory to handle all files passed");
+	PRINT_ERR("Couldn't reallocate memory to handle all paths passed");
 	exit(ERROR_CODE_MEMORY_REALLOCATION);
 }
 
-void input_push_file(struct input *self, const char *file)
+bool input_parse(struct config *config, struct argument_list *_list)
 {
-	if (self->files_l >= self->files_c) input_expand(self);
-	self->files[self->files_l] = file;
+	for (size_t i = 0; i < _list->arguments_l; i++) {
+		if (config->paths_l >= config->paths_c) input_expand(config);
+		config->paths[config->paths_l] = string_from_cstr(config->allocator, _list->arguments[i]);
 
-	self->files_l++;
-}
-
-int input_parse(struct input *self, const char **argv, int argc, int index)
-{
-	if (index >= argc) {
-
-		PRINT_ERR("'--input' option expects at least one flag");
-		return index;
+		config->paths_l++;
 	}
 
-	while (index < argc) {
-
-		const char *arg = argv[index];
-		if (arg[0] == '-') break;
-
-		FILE *file = fopen(arg, "r");
-
-		if (!file) {
-			PRINT_ERR("'--input' option expects a valid path for every input");
-			return index;
-		}
-
-		fclose(file);
-		input_push_file(self, arg);
-
-		index++;
-	}
-
-	return index;
-}
-
-void input_drop(struct input **self)
-{
-	if (!self || !(*self)) return;
-
-	free((*self)->files);
-	(*self)->files = NULL;
-
-	free(*self);
-	*self = NULL;
+	return true;
 }
 

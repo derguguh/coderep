@@ -142,7 +142,8 @@ struct stats frequency_calculate_stats(const struct frequency *self)
 		}
 	}
 
-	stats.avg = (float)self->count_total / self->element_count;
+	if (self->element_count == 0) stats.avg = 0;
+	else stats.avg = (float)self->count_total / self->element_count;
 
 	return stats;
 }

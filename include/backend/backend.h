@@ -1,8 +1,8 @@
 #ifndef CODEREP_BACKEND_BACKEND_H
 #define CODEREP_BACKEND_BACKEND_H
 
-#include "coderep/cli/input.h"
 #include "coderep/data_type/string.h"
+#include "coderep/report.h"
 #include "coderep/tool/file.h"
 
 #include <stddef.h>
@@ -18,6 +18,7 @@ struct bucket_profile {
 struct backend_context {
 	struct arena *allocator;
 	struct report *report;
+	struct file_report file_report;
 	void *requested;
 	// Common utilities
 	struct string *scratch_buffer;
@@ -43,7 +44,5 @@ struct backend {
 extern const struct backend BACKEND_REGISTER[];
 
 extern const size_t BACKEND_REGISTER_L;
-
-struct report *backend_parse(const struct backend *backend, struct allocator *default_allocator, struct arena *arena, struct input *input);
 
 #endif

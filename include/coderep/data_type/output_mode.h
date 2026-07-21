@@ -22,4 +22,10 @@ enum output_mode {
 	OUTPUT_DEFAULT_BRUTE		= OUTPUT_MODE_VALUE,
 };
 
+struct data {
+	enum output_mode frequency;
+	enum output_mode statistic;
+	enum output_mode brute;
+};
+
 #endif

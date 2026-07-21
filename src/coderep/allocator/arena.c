@@ -1,6 +1,7 @@
 #include "coderep/allocator/arena.h"
 
 #include "coderep/allocator/allocator.h"
+#include "coderep/allocator/c_allocator.h"
 #include "coderep/consts.h"
 #include "coderep/macros.h"
 
@@ -10,26 +11,25 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct arena *arena_alloc(size_t block_size)
+struct arena *arena_alloc(struct c_allocator *c_allocator, size_t block_sizeize)
 {
-	block_size = PACKET_ALIGN(block_size);
+	block_sizeize = PACKET_ALIGN(block_sizeize);
 
-	struct allocator default_ = default_get_allocator();
-	struct block *block = block_alloc(&default_, block_size);
-	struct arena *self = default_.allocate(default_.state, sizeof(struct arena));
+	struct block *block = block_alloc(&c_allocator->abstract, block_sizeize);
+	struct arena *self = c_allocator_allocate(c_allocator, sizeof(struct arena));
 	if (!self) goto defer;
 
 	*self = (struct arena) {
 		.abstract = (struct allocator) {
 			.state = self,
-			.allocate = (allocate_t)arena_allocate,
-			.reallocate = (reallocate_t)arena_reallocate,
-			.deallocate = (deallocate_t)arena_deallocate,
+			.allocate = (allocate_fn)arena_allocate,
+			.reallocate = (reallocate_fn)arena_reallocate,
+			.deallocate = (deallocate_fn)arena_deallocate,
 		},
-		.default_ = default_,
+		.allocator = c_allocator,
 		.block = block,
 		.active_block = block,
-		.block_size = block_size,
+		.block_size = block_sizeize,
 		.current_block = 1,
 		.block_count = 1,
 	};
@@ -46,7 +46,7 @@ void *arena_allocate(struct arena *self, size_t size)
 
 	if (self->block_offset + size > self->block_size) {
 		if (self->active_block->_next == NULL) {
-			self->active_block->_next = block_alloc(&self->default_, self->block_size);
+			self->active_block->_next = block_alloc(&self->allocator->abstract, self->block_size);
 			self->block_count++;
 		}
 
@@ -87,9 +87,9 @@ void  arena_drop(struct arena **self)
 	if (!self || !(*self)) return;
 
 	(*self)->active_block = NULL;
-	block_drop(&(*self)->default_, &(*self)->block);
+	block_drop(&(*self)->allocator->abstract, &(*self)->block);
 
-	default_deallocate(NULL, *self);
+	c_allocator_deallocate((*self)->allocator, *self);
 	*self = NULL;
 }
 

@@ -1,36 +1,17 @@
 #include "coderep/cli/lang.h"
-
 #include "coderep/macros.h"
 
 #include <string.h>
 
-struct lang lang_create()
+bool lang_parse(struct config *config, struct argument_list *_list)
 {
-	struct lang lang = {
-		._backend = NULL,
-	};
-
-	return lang;
-}
-
-int lang_parse(struct lang *self, const char **argv, int argc, int index)
-{
-	if (index >= argc) {
-
-		PRINT_ERR("'--lang' option expects one flag");
-		return index;
-	}
-	self->_backend = NULL;
-
 	for (size_t i = 0; i < BACKEND_REGISTER_L; i++) {
-
-		if (strcmp(BACKEND_REGISTER[i].identifier, argv[index]) == 0) self->_backend = &BACKEND_REGISTER[i];
+		if (strcmp(BACKEND_REGISTER[i].identifier, _list->arguments[0]) == 0) config->_backend = &BACKEND_REGISTER[i];
 	}
 
-	if (self->_backend == NULL) {
-
-		PRINTF_ERR("'%s' is not a valid language identifier", argv[index]);
-		return index;
-	} else return index + 1;
+	if (config->_backend == NULL) {
+		PRINTF_ERR("'%s' is not a valid language identifier", _list->arguments[0]);
+		return false;
+	} else return true;
 }
 

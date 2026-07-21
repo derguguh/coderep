@@ -48,8 +48,8 @@ struct report {
 
 struct report *report_alloc(struct allocator *allocator)
 {
-	struct report_entry *entries = allocator->allocate(allocator->allocate, sizeof(struct report_entry) * _DEFAULT_CAPACITY);
-	struct report *self = allocator->allocate(allocator->allocate, sizeof(struct report));
+	struct report_entry *entries = allocator->allocate(allocator->state, sizeof(struct report_entry) * _DEFAULT_CAPACITY);
+	struct report *self = allocator->allocate(allocator->state, sizeof(struct report));
 
 	if (!self || !entries) goto defer;
 
@@ -90,7 +90,7 @@ static inline void report_push(struct report *self, struct report_entry value)
 	self->entries_l++;
 }
 
-void report_push_file_report(struct report *report, struct file_report *context)
+void report_push_file_report(struct report *report, struct file_report *context, bool push_times)
 {
 	report_push_size_t(report, "files.read.total", context->total_reads);
 	report_push_size_t(report, "files.read.successful", context->total_reads - context->failed_reads);
@@ -103,9 +103,11 @@ void report_push_file_report(struct report *report, struct file_report *context)
 	}
 
 	report_push_bool(report, "file.is_binary", context->is_binary);
-	report_push_statistics_double(report, "backend.time.init", &context->total_init_time);
-	report_push_statistics_double(report, "backend.time.parsing", &context->total_file_parse_time);
-	report_push_statistics_double(report, "backend.time.deinit", &context->total_deinit_time);
+	if (push_times) {
+		report_push_statistics_double(report, "backend.time.init", &context->total_init_time);
+		report_push_statistics_double(report, "backend.time.parsing", &context->total_file_parse_time);
+		report_push_statistics_double(report, "backend.time.deinit", &context->total_deinit_time);
+	}
 }
 
 void report_push_cstr(struct report *self, const char *const name, const char *const value)
@@ -211,7 +213,7 @@ void report_push_statistics_size_t(struct report *self, const char *const name, 
 	report_push(self, entry);
 }
 
-void report_entry_print(struct report_entry *entry, struct data *output_options)
+void report_entry_print(const struct report_entry *entry, const struct data *output_options, bool color)
 {
 	string_print(entry->name);
 	printf(": ");
@@ -228,15 +230,16 @@ void report_entry_print(struct report_entry *entry, struct data *output_options)
 		if ((output_options->brute & OUTPUT_MODE_RAW) == OUTPUT_MODE_RAW) printf("(brute) ");
 		switch (entry->type) {
 			case REPORT_ENTRY_TYPE_STRING:
-				printf(ANSI_CYAN);
+				if (color) printf(ANSI_CYAN);
 				string_print(entry->string);
 			break;
 			case REPORT_ENTRY_TYPE_DOUBLE:	printf(ANSI_YELLOW "%.5f", entry->double_);	break;
 			case REPORT_ENTRY_TYPE_SSIZE_T:	printf(ANSI_YELLOW "%zi", entry->ssize_t_);	break;
 			case REPORT_ENTRY_TYPE_SIZE_T:	printf(ANSI_YELLOW "%zu", entry->size_t_);	break;
 			case REPORT_ENTRY_TYPE_BOOL:
-				if (entry->bool_ == true) printf(ANSI_BLUE "true");
-				else printf(ANSI_BLUE "false");
+				if (color) printf(ANSI_BLUE);
+				if (entry->bool_ == true) printf("true");
+				else printf("false");
 			break;
 			default: break;
 		}
@@ -244,13 +247,11 @@ void report_entry_print(struct report_entry *entry, struct data *output_options)
 	printf(ANSI_RESET "\n");
 }
 
-void report_print(struct report *self, struct data *output_options)
+void report_print(const struct report *self, const struct data *output_options, bool color)
 {
 	printf("\n");
 
-	for (size_t i = 0; i < self->entries_l; i++) {
-		report_entry_print(&self->entries[i], output_options);
-	}
+	for (size_t i = 0; i < self->entries_l; i++) report_entry_print(&self->entries[i], output_options, color);
 }
 
 void report_drop(struct report **self)

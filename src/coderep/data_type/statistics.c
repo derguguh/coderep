@@ -12,7 +12,9 @@
 \
 void statistics_##type##_print(const struct statistics_##type *self, enum output_mode mode) \
 { \
-	type avg = self->total / (type)self->count; \
+	type avg; \
+	if (self->count == 0) avg = 0; \
+	else avg = self->total / (type)self->count; \
 \
 	if ((mode & OUTPUT_MODE_RAW) == OUTPUT_MODE_RAW) { \
 		printf("(struct statistics_" #type ") {\n"); \

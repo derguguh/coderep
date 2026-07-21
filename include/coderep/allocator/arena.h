@@ -3,6 +3,7 @@
 
 #include "coderep/allocator/allocator.h"
 #include "coderep/allocator/block.h"
+#include "coderep/allocator/c_allocator.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -12,7 +13,7 @@
 
 struct arena {
 	struct allocator abstract;
-	struct allocator default_;
+	struct c_allocator *allocator;
 	struct block *block;
 	struct block *active_block;
 	size_t block_size;
@@ -24,7 +25,7 @@ struct arena {
 	size_t deallocation_tries;
 };
 
-struct arena *arena_alloc(size_t block_size);
+struct arena *arena_alloc(struct c_allocator *c_allocator, size_t block_size);
 
 void *arena_allocate(struct arena *self, size_t size);
 

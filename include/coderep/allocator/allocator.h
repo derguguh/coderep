@@ -4,15 +4,15 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-typedef void *(*allocate_t)(void *state, size_t size);
-typedef void *(*reallocate_t)(void *state, void *original_pointer, size_t new_size);
-typedef void  (*deallocate_t)(void *state, void *pointer);
+typedef void *(*allocate_fn)(void *state, size_t size);
+typedef void *(*reallocate_fn)(void *state, void *original_pointer, size_t new_size);
+typedef void  (*deallocate_fn)(void *state, void *pointer);
 
 struct allocator {
 	void *state;
-	allocate_t allocate;
-	reallocate_t reallocate;
-	deallocate_t deallocate;
+	allocate_fn allocate;
+	reallocate_fn reallocate;
+	deallocate_fn deallocate;
 };
 
 static inline void *default_allocate(void *ignore, size_t size)

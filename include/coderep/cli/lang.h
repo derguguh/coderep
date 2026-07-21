@@ -1,16 +1,8 @@
 #ifndef CODEREP_LANG_H
 #define CODEREP_LANG_H
 
-#include "backend/backend.h"
+#include "coderep/cli/option.h"
 
-#include <stdbool.h>
-
-struct lang {
-	const struct backend *_backend;
-};
-
-struct lang lang_create();
-
-int lang_parse(struct lang *self, const char **argv, int argc, int index);
+bool lang_parse(struct config *config, struct argument_list *_list);
 
 #endif

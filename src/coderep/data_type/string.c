@@ -36,11 +36,11 @@ defer:
 
 struct string *string_from_cstr(struct allocator *allocator, const char *const cstr)
 {
-	size_t cstr_l = strlen(cstr);
+	size_t cstr_l = strlen(cstr) + 1;
 	struct string *self = string_alloc(allocator, cstr_l);
 
 	memcpy(self->chars, cstr, cstr_l);
-	self->length = cstr_l;
+	self->length = cstr_l - 1;
 
 	return self;
 }
@@ -121,11 +121,12 @@ void string_append(struct string *self, const struct string *str)
 
 void string_append_cstr(struct string *self, const char *const cstr)
 {
-	int cstr_s = strlen(cstr);
+	int cstr_s = strlen(cstr) + 1;
 	const struct string str = {
 		.chars	  = (char *const) cstr,
 		.length	 = cstr_s,
-		.capacity   = cstr_s, };
+		.capacity   = cstr_s,
+	};
 
 	string_append(self, &str);
 }

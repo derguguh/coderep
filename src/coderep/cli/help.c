@@ -8,17 +8,6 @@
 
 #define SPACE "    "
 
-struct option help_entry()
-{
-	return (struct option) {
-		.structure = NULL,
-		.flag_name = "help",
-		.short_name = 'h',
-		.parsing = help_print,
-		.type = COMPOSABLE,
-	};
-}
-
 void print_backend(const struct backend *backend, const struct backend *_next, bool start, bool end)
 {
 	bool sub_flag = strchr(backend->identifier, '.') != NULL;
@@ -42,7 +31,7 @@ void print_backend(const struct backend *backend, const struct backend *_next, b
 	printf("%s\n", backend->description);
 }
 
-struct option_state help_print(void *null, struct argument_list *ignore)
+bool help_print(struct config *ignore, struct argument_list *ignore_)
 {
 	printf("-- Help menu start --\n\n");
 
@@ -80,6 +69,6 @@ struct option_state help_print(void *null, struct argument_list *ignore)
 
 	printf("-- Help menu end --\n");
 
-	return (struct option_state) {};
+	return false;
 }
 

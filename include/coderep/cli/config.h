@@ -1,0 +1,33 @@
+#ifndef CODEREP_CLI_CONFIG_H
+#define CODEREP_CLI_CONFIG_H
+
+#include "coderep/allocator/allocator.h"
+#include "backend/backend.h"
+#include "coderep/data_type/output_mode.h"
+
+#include <stdbool.h>
+#include <stddef.h>
+
+enum verbosity {
+	QUIET,
+	NORMAL,
+	VERBOSE,
+};
+
+struct config {
+	struct allocator *allocator;
+	struct backend *_backend;
+	struct string **paths;
+	struct data data;
+	size_t bucket_baseline;
+	size_t paths_l;
+	size_t paths_c;
+	enum verbosity verbosity;
+	bool color;
+	bool time;
+	bool procced;
+};
+
+static const size_t FILES_DEFAULT_CAPACITY = 20;
+
+#endif
