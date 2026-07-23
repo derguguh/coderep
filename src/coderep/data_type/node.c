@@ -71,18 +71,24 @@ struct node *node_find(struct node *self, const struct string *value)
 	return NULL;
 }
 
-void node_print(const struct node *self, bool show_value, bool show_frequency)
+void node_print(const struct node *self, bool show_value, bool show_frequency, bool do_color)
 {
 	if (show_value) {
-		printf(ANSI_CYAN);
+		if (do_color) printf(ANSI_CYAN);
 		string_print(self->value);
-		printf(ANSI_RESET);
+		if (do_color) printf(ANSI_RESET);
 	}
-	if (show_frequency) printf("(" ANSI_YELLOW "%zu" ANSI_RESET ")", self->count);
+	if (show_frequency) {
+		printf("(");
+		if (do_color) printf(ANSI_YELLOW);
+		printf("%zu", self->count);
+		if (do_color) printf(ANSI_RESET);
+		printf(")");
+	}
 
 	if (self->_next != NULL) {
 		printf(", ");
-		node_print(self->_next, show_value, show_frequency);
+		node_print(self->_next, show_value, show_frequency, do_color);
 	}
 }
 

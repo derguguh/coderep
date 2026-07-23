@@ -27,23 +27,28 @@ void *backend_fulfill_request(const struct backend *backend, struct arena *alloc
 	return ptr;
 }
 
-void backend_print_reading_files(size_t current, size_t total)
+void backend_print_reading_files(size_t current, size_t total, bool do_color, bool in_new_line)
 {
-	char bar_buffer[PROGRESS_BAR_SIZE + 1];
+	char bar_buffer[PROGRESS_BAR_SIZE];
 
 	float tmp = (float)current / total;
 	size_t percent_complete = (size_t)(tmp * PROGRESS_BAR_SIZE);
 	
 	for (size_t i = 0; i < percent_complete; i++) bar_buffer[i] = '=';
 	for (size_t i = percent_complete; i < PROGRESS_BAR_SIZE; i++) bar_buffer[i] = ' ';
-	bar_buffer[PROGRESS_BAR_SIZE] = '\0';
 
-	printf("\r" ANSI_GREEN "[Reading files ["
-		"%s"
-		"]" ANSI_WHITE " %lu/%lu"
-		ANSI_GREEN "]" ANSI_RESET,
-		bar_buffer, current, total);
-	fflush(stdout);
+	if (!in_new_line) printf("\r");
+	if (do_color) printf(ANSI_GREEN);
+	printf("[Reading files ["
+		"%*s"
+		"]", PROGRESS_BAR_SIZE, bar_buffer);
+	if (do_color) printf(ANSI_WHITE);
+	printf(" %lu/%lu", current, total);
+	if (do_color) printf(ANSI_GREEN);
+	printf("]");
+	if (do_color) printf(ANSI_RESET);
+	if (in_new_line) printf("\n");
+	else fflush(stdout);
 }
 
 void parse_file(const struct config *config, struct backend_context *context, struct arena *temporary_arena)
@@ -55,7 +60,7 @@ void parse_file(const struct config *config, struct backend_context *context, st
 	timer_start(&timer);
 
 	for (size_t i = 0; i < paths_l; i++) {
-		if (config->verbosity != QUIET) backend_print_reading_files(i + 1, paths_l);
+		if (config->verbosity != QUIET) backend_print_reading_files(i + 1, paths_l, config->do_color, config->verbosity == VERBOSE);
 
 		arena_clear(temporary_arena);
 		string_clear(context->scratch_buffer);
@@ -113,9 +118,9 @@ void parse_backend(const struct config *config, struct c_allocator *allocator)
 	if (config->_backend->_deinit != NULL) config->_backend->_deinit(&context);
 	statistics_double_push(&context.file_report.total_deinit_time, timer_elapsed(&timer));
 
-	report_push_file_report(report, &context.file_report, config->time);
+	report_push_file_report(report, &context.file_report, config->show_time);
 
-	report_print(report, &config->data, config->color);
+	report_print(report, &config->data, config->do_color);
 
 	string_drop(&context.scratch_buffer);
 	report_drop(&report);

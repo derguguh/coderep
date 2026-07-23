@@ -34,7 +34,7 @@ void frequency_push_string(struct frequency *self, struct string **value);
 
 struct stats frequency_calculate_stats(const struct frequency *self);
 
-void frequency_print(const struct frequency *self, enum output_mode output_mode);
+void frequency_print(const struct frequency *self, enum output_mode output_mode, bool do_color);
 
 void frequency_drop(struct frequency **self);
 

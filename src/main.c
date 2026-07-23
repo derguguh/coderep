@@ -33,9 +33,10 @@ int main(int argc, const char **argv)
 	}
 
 	enum verbosity verbosity = config->verbosity;
+	bool show_time = config->show_time;
 	cli_drop(&cli);
 	if (verbosity == VERBOSE) c_allocator_print(c_allocator);
 	c_allocator_drop(&c_allocator);
-	printf("Total time: %.3fs\n", timer_elapsed(&begin));
+	if (show_time) printf("Total show_time: %.5fs\n", timer_elapsed(&begin));
 }
 

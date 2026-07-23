@@ -21,7 +21,7 @@ struct node *node_push(struct node *self, struct allocator *allocator, struct st
 
 struct node *node_find(struct node *_self, const struct string *value);
 
-void node_print(const struct node *self, bool show_value, bool show_frequency);
+void node_print(const struct node *self, bool show_value, bool show_frequency, bool do_color);
 
 void node_drop(struct node **self, struct allocator *allocator);
 

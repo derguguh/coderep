@@ -6,7 +6,8 @@
 
 bool color_set(struct config *config, struct argument_list *ignore_)
 {
-	config->color = true;
+	config->do_color = true;
+	return true;
 }
 
 #endif

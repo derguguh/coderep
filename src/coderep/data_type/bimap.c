@@ -143,8 +143,9 @@ struct string *bimap_get_value_of(struct bimap *self, size_t id)
 	return bimap_get_node_of(self, id)->value;
 }
 
-void bimap_print(const struct bimap *self)
+void bimap_print(const struct bimap *self, bool do_color)
 {
+	const char *number_color = do_color ? ANSI_YELLOW : "";
 	printf("(struct bimap) {\n");
 	printf("\t.buckets:\n");
 	for (size_t i = 0; i < self->buckets_count; i++) {
@@ -152,18 +153,18 @@ void bimap_print(const struct bimap *self)
 
 		printf("\t\t[%zu] = [", i);
 
-		if (node != NULL) node_print(node, true, true);
+		if (node != NULL) node_print(node, true, true, do_color);
 		else printf("(!)");
 
 		puts("]");
 	}
 	puts("\t]");
-	printf("\t.buckets_count: %zu\n", self->buckets_count);
-	printf("\t.element_count: %zu\n", self->element_count);
+	printf("\t.buckets_count: %s%zu\n", number_color, self->buckets_count);
+	printf("\t.element_count: %s%zu\n", number_color, self->element_count);
 	printf("\t.block:   %p\n", self->block);
 	printf("\t.current: %p\n", self->current);
-	printf("\t.block_size:  %zub (%zu elements)\n", self->block_size, self->block_size / sizeof(struct node *));
-	printf("\t.block_count: %zu\n", self->block_count);
+	printf("\t.block_size:  %s%zub (%s%zu elements)\n", number_color, self->block_size, number_color, self->block_size / sizeof(struct node *));
+	printf("\t.block_count: %s%zu\n", number_color, self->block_count);
 	puts("}");
 }
 

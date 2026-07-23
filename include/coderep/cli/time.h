@@ -5,7 +5,7 @@
 
 bool time_set(struct config *config, struct argument_list *ignore_)
 {
-	config->time = true;
+	config->show_time = true;
 	return true;
 }
 

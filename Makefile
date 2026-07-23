@@ -1,7 +1,7 @@
 CC = clang
 
 base_flags := -MMD -MP -I include/ -Wall -Wextra
-DEBUG_CFLAGS := $(base_flags) -DDEBUG -g
+DEBUG_CFLAGS := $(base_flags) -DDEBUG -g -O2
 RELEASE_CFLAGS := $(base_flags) -O2
 
 CFLAGS ?= $(DEBUG_CFLAGS)
@@ -39,7 +39,7 @@ release:
 
 # Change "text" to "c" later
 analyse:
-	$(build_dir)/$(target) --lang c --input $(sources) $(headers)
+	$(build_dir)/$(target) -qc -l text -i $(sources) $(headers)
 
 bear:
 	bear -o build/$(commands) -- make debug

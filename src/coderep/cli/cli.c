@@ -87,14 +87,14 @@ struct argument_list get_args(const char **argv, size_t argc)
 	};
 }
 
-struct option *cli_get_option(struct cli *self, const char *arg, bool long_)
+struct option *cli_get_option(struct cli *self, const char *arg, size_t index, bool long_)
 {
 	if (long_) {
 		for (size_t i = 0; i < self->entries_l; i++) {
 			if (strcmp(arg + 2, self->entries[i].flag_name) == 0) return &self->entries[i];
 		}
 	} else {
-		char c = arg[1];
+		char c = arg[index];
 		for (size_t i = 0; i < self->entries_l; i++) {
 			if (c == self->entries[i].short_name) return &self->entries[i];
 		}
@@ -108,13 +108,15 @@ void cli_handle_composition(struct cli *self, const char *arg)
 	size_t index = 2;
 	char c = arg[index];
 	while (c != '\0') {
-		struct option *option = cli_get_option(self, arg, false);
+		struct option *option = cli_get_option(self, arg, index, false);
 		if (option == NULL) {
 			PRINTF_ERR("'%c' is not a known composable flag", c);
+			self->config->procced = false;
 		} else if (option->type == COMPOSABLE) {
 			if (!option->parsing(self->config, NULL)) self->config->procced = false;
 		} else {
 			PRINTF_ERR("'%c' is not composable, you can't write as '%s'", c, arg);
+			self->config->procced = false;
 		}
 
 		index++;
@@ -131,6 +133,7 @@ size_t cli_handle_option(struct cli *self, struct option *option, const char *ar
 	} else {
 		if (argc < 2) {
 			PRINTF_ERR("'%s' needs at least one argument", arg);
+			self->config->procced = false;
 			return 0;
 		}
 		struct argument_list list;
@@ -152,13 +155,15 @@ size_t cli_parse_arg(struct cli *self, const char *arg, const char **argv, size_
 	
 	if (arg_l < 2 || arg[0] != '-') {
 		PRINTF_ERR("'%s' is not handled by Code Report CLI", arg);
+		self->config->procced = false;
 		return 0;
 	}
 
 	bool long_ = arg[1] == '-';
-	struct option *option = cli_get_option(self, arg, long_);
+	struct option *option = cli_get_option(self, arg, 1, long_);
 	if (option == NULL) {
 		PRINTF_ERR("'%s' is not handled by Code Report CLI", arg);
+		self->config->procced = false;
 		return 0;
 	}
 

@@ -102,7 +102,7 @@ void report_push_file_report(struct report *report, struct file_report *context,
 		report_push_statistics_size_t(report, "files.lines", &context->total_line);
 	}
 
-	report_push_bool(report, "file.is_binary", context->is_binary);
+	report_push_bool(report, "backend.is_binary", context->is_binary);
 	if (push_times) {
 		report_push_statistics_double(report, "backend.time.init", &context->total_init_time);
 		report_push_statistics_double(report, "backend.time.parsing", &context->total_file_parse_time);
@@ -213,13 +213,33 @@ void report_push_statistics_size_t(struct report *self, const char *const name, 
 	report_push(self, entry);
 }
 
-void report_entry_print(const struct report_entry *entry, const struct data *output_options, bool color)
+void print_do_color(enum report_entry_type type)
+{
+	switch (type) {
+		case REPORT_ENTRY_TYPE_STRING:
+			printf(ANSI_CYAN);
+		break;
+		case REPORT_ENTRY_TYPE_DOUBLE:
+		case REPORT_ENTRY_TYPE_SSIZE_T:
+		case REPORT_ENTRY_TYPE_SIZE_T:
+			printf(ANSI_YELLOW);
+		break;
+		case REPORT_ENTRY_TYPE_BOOL:
+			printf(ANSI_BLUE);
+		break;
+		default:
+			printf(ANSI_MAGENTA);
+		break;
+	}
+}
+
+void report_entry_print(const struct report_entry *entry, const struct data *output_options, bool do_color)
 {
 	string_print(entry->name);
 	printf(": ");
 	
 	if (entry->type == REPORT_ENTRY_TYPE_FREQUENCY && output_options->frequency != OUTPUT_MODE_NONE) {
-		frequency_print(entry->frequency, output_options->frequency);
+		frequency_print(entry->frequency, output_options->frequency, do_color);
 	} else if (entry->type == REPORT_ENTRY_TYPE_STATISTICS_DOUBLE && output_options->statistic != OUTPUT_MODE_NONE) {
 		statistics_double_print(&entry->statistics_double, output_options->statistic);
 	} else if (entry->type == REPORT_ENTRY_TYPE_STATISTICS_SSIZE_T && output_options->statistic != OUTPUT_MODE_NONE) {
@@ -228,16 +248,13 @@ void report_entry_print(const struct report_entry *entry, const struct data *out
 		statistics_size_t_print(&entry->statistics_size_t, output_options->statistic);
 	} else if (output_options->brute != OUTPUT_MODE_NONE) {
 		if ((output_options->brute & OUTPUT_MODE_RAW) == OUTPUT_MODE_RAW) printf("(brute) ");
+		if (do_color) print_do_color(entry->type);
 		switch (entry->type) {
-			case REPORT_ENTRY_TYPE_STRING:
-				if (color) printf(ANSI_CYAN);
-				string_print(entry->string);
-			break;
-			case REPORT_ENTRY_TYPE_DOUBLE:	printf(ANSI_YELLOW "%.5f", entry->double_);	break;
-			case REPORT_ENTRY_TYPE_SSIZE_T:	printf(ANSI_YELLOW "%zi", entry->ssize_t_);	break;
-			case REPORT_ENTRY_TYPE_SIZE_T:	printf(ANSI_YELLOW "%zu", entry->size_t_);	break;
+			case REPORT_ENTRY_TYPE_STRING:	string_print(entry->string);	break;
+			case REPORT_ENTRY_TYPE_DOUBLE:	printf("%.5f", entry->double_);	break;
+			case REPORT_ENTRY_TYPE_SSIZE_T:	printf("%zi", entry->ssize_t_);	break;
+			case REPORT_ENTRY_TYPE_SIZE_T:	printf("%zu", entry->size_t_);	break;
 			case REPORT_ENTRY_TYPE_BOOL:
-				if (color) printf(ANSI_BLUE);
 				if (entry->bool_ == true) printf("true");
 				else printf("false");
 			break;
@@ -247,11 +264,11 @@ void report_entry_print(const struct report_entry *entry, const struct data *out
 	printf(ANSI_RESET "\n");
 }
 
-void report_print(const struct report *self, const struct data *output_options, bool color)
+void report_print(const struct report *self, const struct data *output_options, bool do_color)
 {
 	printf("\n");
 
-	for (size_t i = 0; i < self->entries_l; i++) report_entry_print(&self->entries[i], output_options, color);
+	for (size_t i = 0; i < self->entries_l; i++) report_entry_print(&self->entries[i], output_options, do_color);
 }
 
 void report_drop(struct report **self)

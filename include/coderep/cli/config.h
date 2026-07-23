@@ -23,8 +23,8 @@ struct config {
 	size_t paths_l;
 	size_t paths_c;
 	enum verbosity verbosity;
-	bool color;
-	bool time;
+	bool do_color;
+	bool show_time;
 	bool procced;
 };
 
