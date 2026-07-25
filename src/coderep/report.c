@@ -233,8 +233,10 @@ void print_do_color(enum report_entry_type type)
 	}
 }
 
-void report_entry_print(const struct report_entry *entry, const struct data *output_options, bool do_color)
+void report_entry_print(const struct report_entry *entry, struct string *filter, const struct data *output_options, bool do_color)
 {
+	if (filter->length > 0 && string_check_glob(entry->name, filter) == 0) return;
+
 	string_print(entry->name);
 	printf(": ");
 	
@@ -264,11 +266,11 @@ void report_entry_print(const struct report_entry *entry, const struct data *out
 	printf(ANSI_RESET "\n");
 }
 
-void report_print(const struct report *self, const struct data *output_options, bool do_color)
+void report_print(const struct report *self, struct string *filter, const struct data *output_options, bool do_color)
 {
 	printf("\n");
 
-	for (size_t i = 0; i < self->entries_l; i++) report_entry_print(&self->entries[i], output_options, do_color);
+	for (size_t i = 0; i < self->entries_l; i++) report_entry_print(&self->entries[i], filter, output_options, do_color);
 }
 
 void report_drop(struct report **self)

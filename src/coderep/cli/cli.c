@@ -4,12 +4,14 @@
 #include "coderep/cli/color.h"
 #include "coderep/cli/config.h"
 #include "coderep/cli/data.h"
+#include "coderep/cli/filter.h"
 #include "coderep/cli/help.h"
 #include "coderep/cli/input.h"
 #include "coderep/cli/lang.h"
 #include "coderep/cli/option.h"
 #include "coderep/cli/profile.h"
 #include "coderep/cli/quiet.h"
+#include "coderep/cli/source.h"
 #include "coderep/cli/time.h"
 #include "coderep/cli/verbose.h"
 #include "coderep/data_type/output_mode.h"
@@ -32,6 +34,8 @@ const struct option OPTIONS[] = {
 	{ "time",	't', time_set,		COMPOSABLE },
 	{ "lang",	'l', lang_parse,	ONE_INPUT },
 	{ "profile",	'p', profile_parse,	ONE_INPUT },
+	{ "filter",	'f', filter_parse,	ONE_INPUT },
+	{ "source",	's', source_parse,	ONE_INPUT },
 	{ "input",	'i', input_parse,	MULTIPLE_INPUT },
 	{ "data",	'd', data_parse,	MULTIPLE_INPUT },
 };
@@ -40,6 +44,7 @@ const size_t OPTIONS_L = ARRAY_SIZE(OPTIONS, struct option);
 
 struct cli *cli_alloc(struct allocator *allocator)
 {
+	struct string *filter = string_alloc(allocator, 16);
 	struct option *entries = allocator->allocate(allocator->state, sizeof(struct option) * OPTIONS_L);
 	struct config *config = allocator->allocate(allocator->state, sizeof(struct config));
 	struct string **paths = allocator->allocate(allocator->state, sizeof(struct string *) * FILES_DEFAULT_CAPACITY);
@@ -57,6 +62,7 @@ struct cli *cli_alloc(struct allocator *allocator)
 		},
 		.verbosity = NORMAL,
 		.bucket_baseline = 1024,
+		.filter = filter,
 		.paths = paths,
 		.paths_c = FILES_DEFAULT_CAPACITY,
 		.paths_l = 0,
@@ -185,6 +191,7 @@ void cli_drop(struct cli **self)
 	for (size_t i = 0; i < cli->config->paths_l; i++) string_drop(&cli->config->paths[i]);
 	allocator->deallocate(allocator->state, cli->config->paths);
 	cli->config->paths = NULL;
+	string_drop(&cli->config->filter);
 	allocator->deallocate(allocator->state, cli->config);
 	cli->config = NULL;
 	allocator->deallocate(allocator->state, cli->entries);

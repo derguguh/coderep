@@ -38,7 +38,7 @@ void report_push_statistics_double(struct report *self, const char *const name, 
 void report_push_statistics_ssize_t(struct report *self, const char *const name, struct statistics_ssize_t *value);
 void report_push_statistics_size_t(struct report *self, const char *const name, struct statistics_size_t *value);
 
-void report_print(const struct report *self, const struct data *output_options, bool color);
+void report_print(const struct report *self, struct string *filter, const struct data *output_options, bool color);
 
 void report_drop(struct report **self);
 

@@ -92,7 +92,7 @@ void parse_backend(const struct config *config, struct c_allocator *allocator)
 		.allocator = persistent_arena,
 		.report = report,
 		.file_report = {
-			.total_reads = config->paths_c,
+			.total_reads = config->paths_l,
 		},
 		.requested = backend_fulfill_request(config->_backend, persistent_arena),
 		.scratch_buffer = string_alloc(&allocator->abstract, 128),
@@ -120,7 +120,7 @@ void parse_backend(const struct config *config, struct c_allocator *allocator)
 
 	report_push_file_report(report, &context.file_report, config->show_time);
 
-	report_print(report, &config->data, config->do_color);
+	report_print(report, config->filter, &config->data, config->do_color);
 
 	string_drop(&context.scratch_buffer);
 	report_drop(&report);

@@ -18,6 +18,7 @@ struct config {
 	struct allocator *allocator;
 	struct backend *_backend;
 	struct string **paths;
+	struct string *filter;
 	struct data data;
 	size_t bucket_baseline;
 	size_t paths_l;
@@ -29,5 +30,7 @@ struct config {
 };
 
 static const size_t FILES_DEFAULT_CAPACITY = 20;
+
+void config_input_expand(struct config *config);
 
 #endif

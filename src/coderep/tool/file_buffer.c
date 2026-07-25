@@ -24,31 +24,44 @@ struct file_buffer *file_buffer_alloc(struct allocator *allocator)
 
 bool file_buffer_open(struct file_buffer *self, const char *const file_path)
 {
-	if (self->_file != NULL) fclose(self->_file);
+	FILE *file = fopen(file_path, "r");
+	if (file == NULL) goto defer;
+	self->_file_name = file_path;
+
+	return file_buffer_open_stream(self, &file);
+defer:
+	if (file) fclose(file);
+
+	PRINTF_ERR("File \"%s\" don't meet the criteria. It needs to exist, be possible to read, and be not empty", file_path);
+	self->_file_name = NULL;
 	self->_file = NULL;
+	self->char_ = EOF;
+
+	return false;
+}
+
+bool file_buffer_open_stream(struct file_buffer *self, FILE **stream)
+{
+	if (self->_file != NULL) fclose(self->_file);
+	self->_file = *stream;
+	*stream = NULL;
 
 	self->buffer_cursor = 0;
 	self->block = 0;
 
-	FILE *file = fopen(file_path, "r");
-	if (file == NULL) goto defer;
-
-	self->buffer_length = fread(self->buffer, 1, BUFFER_SIZE, file);
+	self->buffer_length = fread(self->buffer, 1, BUFFER_SIZE, self->_file);
 	if (self->buffer_length == 0) goto defer;
 
-	self->_file = file;
-	self->_file_name = file_path;
 	self->char_ = self->buffer[0];
 
 	return true;
 defer:
-	if (file) fclose(file);
+	if (self->_file) fclose(self->_file);
 
+	PRINTF_ERR("File \"%s\" don't meet the criteria. It needs to exist, be possible to read, and be not empty", self->_file_name == NULL ? "" : self->_file_name);
 	self->_file_name = NULL;
 	self->_file = NULL;
 	self->char_ = EOF;
-	
-	PRINTF_ERR("File \"%s\" don't meet the criteria. It needs to exist, be possible to read (permission to read), and be not empty", file_path);
 
 	return false;
 }

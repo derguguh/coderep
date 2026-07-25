@@ -37,6 +37,6 @@ int main(int argc, const char **argv)
 	cli_drop(&cli);
 	if (verbosity == VERBOSE) c_allocator_print(c_allocator);
 	c_allocator_drop(&c_allocator);
-	if (show_time) printf("Total show_time: %.5fs\n", timer_elapsed(&begin));
+	if (show_time) printf("Total time: %.5fs\n", timer_elapsed(&begin));
 }
 

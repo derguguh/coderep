@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <fnmatch.h>
 
 const size_t STRING_DEFAULT_INITIAL_CAPACITY = 8;
 
@@ -140,6 +141,11 @@ bool string_is_equal(const struct string *self, const struct string *str)
 {
 	if (self->length == str->length) return memcmp(self->chars, str->chars, self->length) == 0;
 	else return false;
+}
+
+bool string_check_glob(struct string *self, struct string *glob)
+{
+	return fnmatch(string_to_cstr(glob), string_to_cstr(self), 0) == 0;
 }
 
 unsigned long string_hash(const struct string *self)

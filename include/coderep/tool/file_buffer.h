@@ -24,6 +24,7 @@ struct file_buffer {
 struct file_buffer *file_buffer_alloc(struct allocator *allocator);
 
 bool file_buffer_open(struct file_buffer *self, const char *const file_path);
+bool file_buffer_open_stream(struct file_buffer *self, FILE **stream);
 
 void file_buffer_advance(struct file_buffer *self);
 

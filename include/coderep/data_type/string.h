@@ -59,6 +59,7 @@ void string_append_cstr(struct string *self, const char *const cstr);
 // From it
 bool string_is_empty(const struct string *self);
 bool string_is_equal(const struct string *self, const struct string *str);
+bool string_check_glob(struct string *self, struct string *glob);
 unsigned long string_hash(const struct string *self);
 int string_count(const struct string *self, char char_);
 size_t string_find(const struct string *self, char char_);

@@ -1,15 +1,9 @@
 #include "coderep/cli/filter.h"
 
-struct filter filter_create()
+bool filter_parse(struct config *config, struct argument_list *_list)
 {
-	struct filter filter = {
-		.all = true
-	};
-
-	return filter;
+	string_clear(config->filter);
+	string_append_cstr(config->filter, _list->arguments[0]);
+	return true;
 }
 
-int filter_parse(struct filter *self, const char **argv, int argc, int index)
-{
-	return index;
-}

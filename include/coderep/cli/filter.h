@@ -1,14 +1,8 @@
-#ifndef CODEREP_FILTER_H
-#define CODEREP_FILTER_H
+#ifndef CODEREP_CLI_FILTER_H
+#define CODEREP_CLI_FILTER_H
 
-#include <stdbool.h>
+#include "coderep/cli/option.h"
 
-struct filter {
-	bool all;
-};
-
-struct filter filter_create();
-
-int filter_parse(struct filter *self, const char **argv, int argc, int index);
+bool filter_parse(struct config *config, struct argument_list *_list);
 
 #endif
