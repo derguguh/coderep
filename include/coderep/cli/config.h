@@ -16,7 +16,7 @@ enum verbosity {
 
 struct config {
 	struct allocator *allocator;
-	struct backend *_backend;
+	const struct backend *_backend;
 	struct string **paths;
 	struct string *filter;
 	struct data data;

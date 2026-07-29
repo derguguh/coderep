@@ -1,14 +1,15 @@
 #include "backend/lua/lua.h"
 
 #include "backend/backend.h"
-#include "backend/generic/lexer.h"
 #include "backend/lua/lexer.h"
 #include "backend/lua/token.h"
+
 #include "coderep/allocator/allocator.h"
 #include "coderep/allocator/arena.h"
-#include "coderep/report.h"
 #include "coderep/data_type/frequency.h"
 #include "coderep/data_type/string.h"
+#include "coderep/report.h"
+#include "coderep/tool/common_readers.h"
 
 size_t lua_request()
 {

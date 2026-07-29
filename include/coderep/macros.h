@@ -26,7 +26,7 @@
 #define PRINTF_ERR(err, ...)	PRINTF_ANSI(stderr, ANSI_ERR, err, __VA_ARGS__)
 
 #define ALLOC_ERR_EXIT(name) do { \
-		PRINT_ERR("Couldn't allocate memory for" name); \
+		PRINT_ERR("Couldn't allocate memory for " name); \
 		exit(ERROR_CODE_MEMORY_ALLOCATION); \
 		return NULL; \
 } while (0)

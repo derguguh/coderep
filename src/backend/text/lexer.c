@@ -1,6 +1,6 @@
 #include "backend/text/lexer.h"
 
-#include "backend/generic/lexer.h"
+#include "coderep/tool/common_readers.h"
 #include "backend/text/token.h"
 
 #include "coderep/data_type/frequency.h"

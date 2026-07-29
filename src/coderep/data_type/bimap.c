@@ -45,7 +45,7 @@ defer:
 
 void bimap_expand_if_need(struct bimap *self)
 {
-	if (self->element_count % self->buckets_count == 0) {
+	if ((self->element_count % self->buckets_count) == 0) {
 		if (self->current->_next == NULL) self->current->_next = block_alloc(self->allocator, self->block_size);
 
 		self->current = self->current->_next;
@@ -76,11 +76,10 @@ size_t bimap_intern(struct bimap *self, const struct string *value)
 {
 	size_t index = string_hash(value) % self->buckets_count;
 	struct node *bucket = self->buckets[index];
-	struct node *last = bucket == NULL ? NULL : node_find(bucket, value);
+	struct node *last = node_find(bucket, value);
 
 	if (!(bucket && last)) {
 		struct string *cloned = string_clone(value, self->allocator, true);
-
 		if (bucket == NULL) {
 			self->buckets[index] = node_alloc(self->allocator, &cloned);
 			last = self->buckets[index];
@@ -88,9 +87,9 @@ size_t bimap_intern(struct bimap *self, const struct string *value)
 
 		last->count = self->element_count;
 		self->element_count++;
-		bimap_expand_if_need(self);
 
-		struct node **loc = (struct node **)(self->current->mem + sizeof(struct node *) * last->count);
+		bimap_expand_if_need(self);
+		struct node **loc = (struct node **)(self->current->mem + sizeof(struct node *) * (last->count % self->buckets_count));
 		*loc = last;
 	}
 	return last->count;
@@ -98,7 +97,8 @@ size_t bimap_intern(struct bimap *self, const struct string *value)
 
 size_t bimap_push(struct bimap *self, struct string **value)
 {
-	struct node *node = bimap_bucket_of(self, *value);
+	size_t index = string_hash(*value) % self->buckets_count;
+	struct node *node = self->buckets[index];
 
 	if (node == NULL) node = node_alloc(self->allocator, value);
 	else node = node_push(node, self->allocator, value);
@@ -106,9 +106,9 @@ size_t bimap_push(struct bimap *self, struct string **value)
 	if (node->count == 1) {
 		node->count = self->element_count;
 		self->element_count++;
-		bimap_expand_if_need(self);
 
-		struct node **loc = (struct node **)(self->current->mem + sizeof(struct node *) * node->count);
+		bimap_expand_if_need(self);
+		struct node **loc = (struct node **)(self->current->mem + sizeof(struct node *) * (node->count % self->buckets_count));
 		*loc = node;
 		*value = NULL;
 	} else node->count--;

@@ -1,6 +1,6 @@
 #include "backend/keycount/keycount.h"
 
-#include "backend/generic/lexer.h"
+#include "coderep/tool/common_readers.h"
 #include "coderep/allocator/arena.h"
 #include "coderep/data_type/frequency.h"
 #include "coderep/report.h"

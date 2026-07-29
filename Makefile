@@ -1,7 +1,11 @@
 CC = clang
 
-base_flags := -MMD -MP -I include/ -Wall -Wextra
-DEBUG_CFLAGS := $(base_flags) -DDEBUG -g -O2
+#
+# Some backends or flags don't use some parameters
+# Qualifiers in returns are more about helping with usage via definition than real usage
+#
+base_flags := -MMD -MP -I include/ -Wall -Wextra -Wno-unused-parameter -Wno-ignored-qualifiers
+DEBUG_CFLAGS := $(base_flags) -DDEBUG -g -O0
 RELEASE_CFLAGS := $(base_flags) -O2
 
 CFLAGS ?= $(DEBUG_CFLAGS)
@@ -45,7 +49,7 @@ bear:
 	bear -o build/$(commands) -- make debug
 
 $(build_dir)/$(target): $(objects)
-	$(CC) $(CFLAGS) $(objects) -o $@
+	$(CC) $(CFLAGS) $^ -o $@
 
 $(objects_dir)/%.o: %.c
 	@mkdir -p $(@D)
