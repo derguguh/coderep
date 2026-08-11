@@ -8,6 +8,7 @@
 #include "coderep/macros.h"
 #include "coderep/tool/file_buffer.h"
 #include "coderep/tool/file.h"
+#include "coderep/tool/string_reader.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -115,7 +116,7 @@ struct lua_token lua_lexer_block_string(struct file *file, struct string *scratc
 	push_and_advance(file, scratch_buffer);
 
 	struct string_handler handler = (struct string_handler) {
-		.end_sequence = string_clone(scratch_buffer, &tmp_allocator->abstract, true),
+		.end_sequence = string_clone(&tmp_allocator->abstract, scratch_buffer, true),
 		._escape_handler = NULL,
 		.escape_char = '\0',
 		.accept_new_line = true,
@@ -123,7 +124,7 @@ struct lua_token lua_lexer_block_string(struct file *file, struct string *scratc
 	handler.end_sequence->chars[0] = ']';
 	handler.end_sequence->chars[handler.end_sequence->length - 1] = ']';
 
-	token.type = read_string(file, scratch_buffer, tmp_allocator, &handler) == -1 ? LUA_TOKEN_TYPE_INVALID : LUA_TOKEN_TYPE_LIT_MULTI_LINE_STRING;
+	token.type = string_handler_read(&handler, file, scratch_buffer, tmp_allocator) == -1 ? LUA_TOKEN_TYPE_INVALID : LUA_TOKEN_TYPE_LIT_MULTI_LINE_STRING;
 	string_append(scratch_buffer, handler.end_sequence);
 
 	return token;
@@ -211,13 +212,13 @@ struct lua_token lua_lexer_string(struct lua_lexer *self, struct file *file, str
 	struct lua_token token = { .type = LUA_TOKEN_TYPE_LIT_STRING };
 	push_and_advance(file, scratch_buffer);
 	struct string_handler handler = (struct string_handler) {
-		.end_sequence = string_clone(scratch_buffer, &tmp_allocator->abstract, true),
+		.end_sequence = string_clone(&tmp_allocator->abstract, scratch_buffer, true),
 		._escape_handler = lua_escape_handler,
 		.escape_char = '\\',
 		.accept_new_line = false,
 	};
 
-	if (read_string(file, scratch_buffer, tmp_allocator, &handler) == -1) {
+	if (string_handler_read(&handler, file, scratch_buffer, tmp_allocator) == -1) {
 		token.type = LUA_TOKEN_TYPE_INVALID;
 		frequency_intern(self->invalid, scratch_buffer);
 		frequency_intern(self->what_invalid, self->template_invalid_string);

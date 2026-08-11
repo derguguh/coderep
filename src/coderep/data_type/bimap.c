@@ -21,9 +21,9 @@ struct bimap *bimap_alloc(struct allocator *allocator, size_t initial_capacity)
 {
 	if (initial_capacity == 0) initial_capacity = FREQUENCY_DEFAULT_SIZE;
 
+	struct bimap *self = allocator->allocate(allocator->state, sizeof(struct bimap));
 	struct node **buckets = allocator->allocate(allocator->state, sizeof(struct node *) * initial_capacity);
 	struct block *block = block_alloc(allocator, sizeof(struct node *) * initial_capacity);
-	struct bimap *self = allocator->allocate(allocator->state, sizeof(struct bimap));
 	if (!buckets || !block || !self) goto defer;
 
 	*self = (struct bimap) {
@@ -79,7 +79,7 @@ size_t bimap_intern(struct bimap *self, const struct string *value)
 	struct node *last = node_find(bucket, value);
 
 	if (!(bucket && last)) {
-		struct string *cloned = string_clone(value, self->allocator, true);
+		struct string *cloned = string_clone(self->allocator, value, true);
 		if (bucket == NULL) {
 			self->buckets[index] = node_alloc(self->allocator, &cloned);
 			last = self->buckets[index];
@@ -88,9 +88,9 @@ size_t bimap_intern(struct bimap *self, const struct string *value)
 		last->count = self->element_count;
 		self->element_count++;
 
-		bimap_expand_if_need(self);
 		struct node **loc = (struct node **)(self->current->mem + sizeof(struct node *) * (last->count % self->buckets_count));
 		*loc = last;
+		bimap_expand_if_need(self);
 	}
 	return last->count;
 }
@@ -107,38 +107,42 @@ size_t bimap_push(struct bimap *self, struct string **value)
 		node->count = self->element_count;
 		self->element_count++;
 
-		bimap_expand_if_need(self);
 		struct node **loc = (struct node **)(self->current->mem + sizeof(struct node *) * (node->count % self->buckets_count));
 		*loc = node;
 		*value = NULL;
+		bimap_expand_if_need(self);
 	} else node->count--;
 
 	return node->count;
 }
 
-size_t bimap_get_id_of(struct bimap *self, struct string *value)
+size_t bimap_get_id_of(const struct bimap *self, const struct string *value)
 {
 	struct node *bucket = bimap_bucket_of(self, value);
 
 	return node_find(bucket, value)->count;
 }
 
-struct node *bimap_get_node_of(struct bimap *self, size_t id)
+struct node *bimap_get_node_of(const struct bimap *self, size_t id)
 {
-	size_t what_block = id * sizeof(struct node *) / self->block_size;
+	if (id > self->element_count) {
+		PRINTF_ERR("Value '%zu' is out of boundary", id);
+		exit(ERROR_CODE_ACCESS_OUT_BOUNDARY);
+	}
+	size_t what_block = id / self->buckets_count;
 	size_t real_id = id % self->buckets_count;
 	struct block *block = self->block;
 	for (size_t i = 0; i < what_block; i++) {
 		if (block->_next == NULL) {
 			PRINTF_ERR("Value '%zu' is out of boundary", id);
-			if (real_id > self->element_count) real_id = self->element_count;
+			exit(ERROR_CODE_ACCESS_OUT_BOUNDARY);
 		} else block = block->_next;
 	}
-	
-	return *(struct node **)(self->current->mem + sizeof(struct node *) * real_id);
+
+	return *(struct node **)(block->mem + sizeof(struct node *) * real_id);
 }
 
-struct string *bimap_get_value_of(struct bimap *self, size_t id)
+struct string *bimap_get_value_of(const struct bimap *self, size_t id)
 {
 	return bimap_get_node_of(self, id)->value;
 }

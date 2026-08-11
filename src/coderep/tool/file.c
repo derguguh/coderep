@@ -1,6 +1,7 @@
 #include "coderep/tool/file.h"
 
 #include "coderep/allocator/allocator.h"
+#include "coderep/consts.h"
 #include "coderep/data_type/string.h"
 #include "coderep/tool/file_buffer.h"
 #include "coderep/macros.h"
@@ -61,8 +62,8 @@ void file_advance(struct file *self)
 		if (self->line_buffer->length > RING_LINE_BUFFER_SIZE * 2) file_reset_line_buffer(self);
 
 		string_push(self->line_buffer, self->buffer->char_);
-		self->column++;
-	}
+	} else string_push(self->line_buffer, ' ');
+	self->column++;
 }
 
 size_t file_get_offset(const struct file *self)
@@ -76,18 +77,14 @@ size_t file_print_line_buffer(const struct file *self)
 	fprintf(stderr, PRINT_PREFIX);
 	size_t offset = file_get_offset(self);
 	size_t length = self->line_buffer->length;
-	size_t chars_printed = 0;
 
 	if (length > RING_LINE_BUFFER_SIZE) {
 		fprintf(stderr, "...");
-		chars_printed = 3;
 		length = RING_LINE_BUFFER_SIZE;
 	}
-	chars_printed += 3;
 
-	fprintf(stderr, ANSI_GREEN "%.*s\n", (int)length, self->line_buffer->chars + offset);
-
-	return chars_printed;
+	fprintf(stderr, ANSI_GREEN);
+	return fprintf(stderr, "%.*s\n", (int)length, self->line_buffer->chars + offset);
 }
 
 void file_print_error(const struct file *self, const char *const error_text, size_t error_length)
@@ -106,17 +103,18 @@ void file_print_error(const struct file *self, const char *const error_text, siz
 		error_length = 1;
 	}
 
-	PRINTF_ERR("%zu;%zu in %-60s\n" PRINT_PREFIX_ "%s\n", self->line, self->column, self->buffer->_file_name, error_text);
+	PRINTF_ERR("%zu;%zu in %-60s\n" PRINT_PREFIX_ "%s", self->line, self->column, self->buffer->_file_name, error_text);
 
 	size_t spaces = file_print_line_buffer(self) - error_length;
 
 	fprintf(stderr, ANSI_RESET PRINT_PREFIX_ ANSI_MAGENTA);
 	size_t offset = file_get_offset(self);
-	for (size_t i = 0; i < spaces; i++) {
-		if (string_get(self->line_buffer, offset + i) == '\t') putc('\t', stderr);
+	if (offset != 0) fprintf(stderr, "   ");
+	for (size_t i = 1; i < spaces; i++) {
+		if (string_get(self->line_buffer, offset + i - 1) == '\t') putc('\t', stderr);
 		else putc(' ', stderr);
 	}
-	for (size_t i = 0; i < error_length - 1; i++) putc('~', stderr);
+	for (size_t i = 1; i < error_length; i++) putc('~', stderr);
 	fprintf(stderr, "^" ANSI_RESET "\n\n");
 }
 

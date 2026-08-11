@@ -86,14 +86,14 @@ bool frequency_intern(struct frequency *self, const struct string *value)
 
 	self->count_total++;
 	if (bucket == NULL) {
-		struct string *cloned = string_clone(value, self->allocator, true);
+		struct string *cloned = string_clone(self->allocator, value, true);
 		self->buckets[index] = node_alloc(self->allocator, &cloned);
 		self->element_count++;
 		return true;
 	} else {
 		struct node *node = node_find(bucket, value);
 		if (node == NULL) {
-			struct string *cloned = string_clone(value, self->allocator, true);
+			struct string *cloned = string_clone(self->allocator, value, true);
 			node_push(bucket, self->allocator, &cloned);
 			self->element_count++;
 			return true;

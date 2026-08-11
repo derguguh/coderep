@@ -36,7 +36,7 @@ struct string *string_from_cstr(struct allocator *allocator, const char *const c
 struct string *string_from_size_t(struct allocator *allocator, size_t value);
 struct string *string_from_ssize_t(struct allocator *allocator, ssize_t value);
 struct string *string_from_double(struct allocator *allocator, double value);
-struct string *string_clone(const struct string *self, struct allocator *allocator, bool trimmed);
+struct string *string_clone(struct allocator *allocator, const struct string *self, bool trimmed);
 
 // Resizing
 void string_resize(struct string *self, size_t new_capacity);

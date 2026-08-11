@@ -3,6 +3,7 @@
 #include "coderep/allocator/allocator.h"
 #include "coderep/macros.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fnmatch.h>
@@ -70,7 +71,7 @@ struct string *string_from_double(struct allocator *allocator, double value)
 	return self;
 }
 
-struct string *string_clone(const struct string *self, struct allocator *allocator, bool trimmed)
+struct string *string_clone(struct allocator *allocator, const struct string *self, bool trimmed)
 {
 	struct string *new = string_alloc(allocator, trimmed ? self->length : self->capacity);
 

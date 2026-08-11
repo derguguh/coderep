@@ -34,7 +34,7 @@ bool source_parse(struct config *config, struct argument_list *_list)
 		}
 		
 		if (config->paths_l >= config->paths_c) config_input_expand(config);
-		config->paths[config->paths_l] = string_clone(scratch_buffer, config->allocator, true);
+		config->paths[config->paths_l] = string_clone(config->allocator, scratch_buffer, true);
 		string_clear(scratch_buffer);
 
 		config->paths_l++;

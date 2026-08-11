@@ -45,7 +45,7 @@ struct word_tree *word_tree_from_table(struct allocator *allocator, const struct
 defer:
 	allocator->deallocate(allocator->state, buckets);
 	allocator->deallocate(allocator->state, self);
-	ALLOC_ERR_EXIT("\tstruct bimap");
+	ALLOC_ERR_EXIT("struct bimap");
 }
 
 const struct string *word_tree_get_by_id(const struct word_tree *self, ssize_t id)
@@ -68,5 +68,18 @@ ssize_t word_tree_categorize(const struct word_tree *self, const struct string *
 
 	if (bucket == NULL) return -1;
 	else return bucket->count;
+}
+
+void word_tree_drop(struct word_tree **self)
+{
+	if (!self || !(*self)) return;
+	struct allocator *allocator = (*self)->allocator;
+
+	for (size_t i = 0; i < (*self)->buckets_count; i++) node_drop(&(*self)->buckets[i], allocator);
+
+	allocator->deallocate(allocator->state, (*self)->buckets);
+	(*self)->buckets = NULL;
+	allocator->deallocate(allocator->state, (*self));
+	*self = NULL;
 }
 

@@ -16,9 +16,9 @@ size_t bimap_intern(struct bimap *self, const struct string *value);
 
 size_t bimap_push(struct bimap *self, struct string **value);
 
-size_t bimap_get_id_of(struct bimap *self, struct string *value);
-struct node *bimap_get_node_of(struct bimap *self, size_t id);
-struct string *bimap_get_value_of(struct bimap *self, size_t id);
+size_t bimap_get_id_of(const struct bimap *self, const struct string *value);
+struct node *bimap_get_node_of(const struct bimap *self, size_t id);
+struct string *bimap_get_value_of(const struct bimap *self, size_t id);
 
 void bimap_print(const struct bimap *self, bool do_color);
 

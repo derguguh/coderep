@@ -11,7 +11,6 @@
 #include <stdbool.h>
 #include <unistd.h>
 
-
 int main(int argc, const char **argv)
 {
 	if (argc < 2) {
