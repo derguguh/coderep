@@ -1,5 +1,5 @@
 #include "coderep/cli/lang.h"
-#include "coderep/macros.h"
+#include "coderep/printer/printer.h"
 
 #include <string.h>
 
@@ -10,7 +10,7 @@ bool lang_parse(struct config *config, struct argument_list *_list)
 	}
 
 	if (config->_backend == NULL) {
-		PRINTF_ERR("'%s' is not a valid language identifier", _list->arguments[0]);
+		printf_err("'%s' is not a valid language identifier", _list->arguments[0]);
 		return false;
 	} else return true;
 }

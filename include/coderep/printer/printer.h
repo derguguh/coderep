@@ -1,9 +1,9 @@
 #ifndef CODEREP_PRINTER_PRINTER_H
 #define CODEREP_PRINTER_PRINTER_H
 
-#include "coderep/allocator/c_allocator.h"
-
+#include "coderep/data_type/string.h"
 #include <stdbool.h>
+#include <stddef.h>
 
 // checker for "format" attribute
 #ifndef __has_attribute
@@ -24,8 +24,13 @@ void print_err(const char *const err);
 void printf_err(const char *const format, ...) FORMAT_ATTR(1, 2);
 void print_set_color(bool color);
 void println(const char *const text);
+void print_line();
 void print(const char *const text);
 void print_clean_line();
+void print_cstr(const char *text, size_t length);
+void print_string(struct string *text);
+void print_pointer(void *ptr);
+void print_char(char c);
 void print_size_t(size_t number);
 void print_ssize_t(size_t number);
 void print_double(double number);

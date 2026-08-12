@@ -2,6 +2,7 @@
 
 #include "coderep/allocator/allocator.h"
 #include "coderep/macros.h"
+#include "coderep/printer/printer.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -93,7 +94,7 @@ void string_resize(struct string *self, size_t new_capacity)
 defer:
 	string_drop(&self);
 
-	PRINT_ERR("Couldn't reallocate memory to resize a struct string");
+	print_err("Couldn't reallocate memory to resize a struct string");
 	exit(ERROR_CODE_MEMORY_REALLOCATION);
 }
 

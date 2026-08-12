@@ -41,13 +41,27 @@ void  c_allocator_deallocate(struct c_allocator *self, void *pointer)
 
 void c_allocator_print(struct c_allocator *self)
 {
-	printf("(struct c_allocator) {\n");
-	printf("\t.bytes_allocated_n = %zu,\n", self->bytes_allocated_n);
-	printf("\t.bytes_reallocated_n = %zu,\n", self->bytes_reallocated_n);
-	printf("\t.allocation_n = %zu,\n", self->allocation_n);
-	printf("\t.realloc_n = %zu,\n", self->realloc_n);
-	printf("\t.free_n = %zu,\n", self->free_n);
-	printf("}\n");
+	println("(struct c_allocator) {");
+
+	print("\t.bytes_allocated_n = ");
+	print_size_t(self->bytes_allocated_n);
+	println("");
+
+	print("\t.bytes_reallocated_n = ");
+	print_size_t(self->bytes_reallocated_n);
+	println("");
+
+	print("\t.allocation_n = ");
+	print_size_t(self->allocation_n);
+	println("");
+
+	print("\t.realloc_n = ");
+	print_size_t(self->realloc_n);
+	println("");
+
+	print("\t.free_n = ");
+	print_size_t(self->free_n);
+	println("\n}");
 }
 
 void c_allocator_drop(struct c_allocator **self)

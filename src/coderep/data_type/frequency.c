@@ -1,7 +1,6 @@
 #include "coderep/data_type/frequency.h"
 
 #include "coderep/allocator/allocator.h"
-#include "coderep/consts.h"
 #include "coderep/data_type/node.h"
 #include "coderep/data_type/output_mode.h"
 #include "coderep/macros.h"
@@ -155,43 +154,54 @@ void frequency_print_stats(const struct frequency *self, enum output_mode output
 
 	struct stats stats = frequency_calculate_stats(self);
 
-	const char *number_color = do_color ? ANSI_YELLOW : "";
-	const char *reset_color = do_color ? ANSI_RESET : "";
 	const char *prefix = "\t\t";
-	const char *sufix = ",\n";
+	const char *suffix = ",\n";
 	if (!one_per_line) {
 		prefix = "";
-		sufix = ", ";
+		suffix = ", ";
 	}
 
-	if ((output_mode & OUTPUT_MODE_MIN) == OUTPUT_MODE_MIN) printf("%smin = %s%zi%s%s", prefix, number_color, stats.min, reset_color, sufix);
-	if ((output_mode & OUTPUT_MODE_AVG) == OUTPUT_MODE_AVG) printf("%savg = %s%f%s%s", prefix, number_color, stats.avg, reset_color, sufix);
-	if ((output_mode & OUTPUT_MODE_MAX) == OUTPUT_MODE_MAX) printf("%smax = %s%zi%s%s", prefix, number_color, stats.max, reset_color, sufix);
-
+	if ((output_mode & OUTPUT_MODE_MIN) == OUTPUT_MODE_MIN) {
+		print(prefix);
+		print("min = ");
+		print_size_t(stats.min);
+		print(suffix);
+	}
+	if ((output_mode & OUTPUT_MODE_AVG) == OUTPUT_MODE_AVG) {
+		print(prefix);
+		print("avg = ");
+		print_size_t(stats.avg);
+		print(suffix);
+	}
+	if ((output_mode & OUTPUT_MODE_MAX) == OUTPUT_MODE_MAX) {
+		print(prefix);
+		print("max = ");
+		print_size_t(stats.max);
+		print(suffix);
+	}
 
 	if ((output_mode & OUTPUT_MODE_MODE) == OUTPUT_MODE_MODE) {
-
-		printf("%smode = \"", prefix);
-		if (do_color) printf(ANSI_CYAN);
-		string_print(stats.mode_node->value);
-		if (do_color) printf(ANSI_RESET);
-		printf("\"(");
-		if (do_color) printf(ANSI_YELLOW);
-		printf("%zi", stats.mode_node->count);
-		if (do_color) printf(ANSI_RESET);
-		printf(")%s", sufix);
+		print(prefix);
+		print("mode = \"");
+		print_string(stats.mode_node->value);
+		print("\"(");
+		print_ssize_t(stats.mode_node->count);
+		print(")");
+		print(suffix);
 	}
 }
 
 void frequency_print_raw(const struct frequency *self, enum output_mode output_mode, bool do_color)
 {
-	const char *number_color = do_color ? ANSI_YELLOW : "";
-	const char *reset_color = do_color ? ANSI_RESET : "";
-	printf("(struct frequency) {\n");
-	printf("\t.buckets_count = %s%zu,%s\n", number_color, self->buckets_count, reset_color);
-	printf("\t.element_count = %s%zu,%s\n", number_color, self->element_count, reset_color);
+	println("(struct frequency) {");
+	print("\t.buckets_count = ");
+	print_size_t(self->buckets_count);
+	println("");
+	print("\t.element_count = ");
+	print_size_t(self->element_count);
+	println("");
 
-	printf("\t.buckets");
+	print("\t.buckets");
 	if ((output_mode & OUTPUT_MIX_DISTRIBUTION) !=  0) {
 		puts(" = [");
 		bool show_value = (output_mode & OUTPUT_MODE_VALUE) == OUTPUT_MODE_VALUE;
@@ -200,23 +210,25 @@ void frequency_print_raw(const struct frequency *self, enum output_mode output_m
 		for (size_t i = 0; i < self->buckets_count; i++) {
 			struct node *node = self->buckets[i];
 
-			printf("\t\t[%zu] = [", i);
+			print("\t\t[");
+			print_size_t(i);
+			print("] = [");
 
 			if (node != NULL) node_print(node, show_value, show_frequency, do_color);
-			else printf("(!)");
+			else print("(!)");
 
-			puts("]");
+			println("]");
 		}
-		puts("\t]");
-	} else puts(",");
+		println("\t]");
+	} else println(",");
 
 	if ((output_mode & OUTPUT_MIX_STATS) != 0) {
-		puts("\tstats {");
+		println("\tstats {");
 		frequency_print_stats(self, output_mode, true, do_color);
-		puts("\t},");
+		println("\t},");
 	}
 
-	putchar('}');
+	print("}");
 }
 
 void frequency_print_normal(const struct frequency *self, enum output_mode output_mode, bool do_color)
@@ -232,7 +244,7 @@ void frequency_print_normal(const struct frequency *self, enum output_mode outpu
 			struct node *node = self->buckets[i];
 
 			if (node != NULL) {
-				if (!first) printf(", ");
+				if (!first) print(", ");
 				node_print(node, show_value, show_frequency, do_color);
 
 				first = false;
@@ -241,11 +253,11 @@ void frequency_print_normal(const struct frequency *self, enum output_mode outpu
 		putchar(']');
 	}
 	if ((output_mode & OUTPUT_MODE_COUNT) == OUTPUT_MODE_COUNT) {
-		const char *number_color = do_color ? ANSI_YELLOW : "";
-		const char *reset_color = do_color ? ANSI_RESET : "";
-		printf("(unique: %s%zu%s, total: %s%zu%s)",
-				number_color, self->element_count, reset_color,
-				number_color, self->count_total, reset_color);
+		print("(unique: ");
+		print_size_t(self->element_count);
+		print(", total: ");
+		print_size_t(self->count_total);
+		print(")");
 	}
 }
 

@@ -1,7 +1,6 @@
 #include "coderep/data_type/node.h"
 
 #include "coderep/allocator/allocator.h"
-#include "coderep/consts.h"
 #include "coderep/data_type/string.h"
 #include "coderep/macros.h"
 
@@ -74,16 +73,12 @@ struct node *node_find(struct node *self, const struct string *value)
 void node_print(const struct node *self, bool show_value, bool show_frequency, bool do_color)
 {
 	if (show_value) {
-		if (do_color) printf(ANSI_CYAN);
-		string_print(self->value);
-		if (do_color) printf(ANSI_RESET);
+		print_string(self->value);
 	}
 	if (show_frequency) {
-		printf("(");
-		if (do_color) printf(ANSI_YELLOW);
-		printf("%zu", self->count);
-		if (do_color) printf(ANSI_RESET);
-		printf(")");
+		print("(");
+		print_size_t(self->count);
+		print(")");
 	}
 
 	if (self->_next != NULL) {

@@ -16,6 +16,7 @@
 #include "coderep/cli/verbose.h"
 #include "coderep/data_type/output_mode.h"
 #include "coderep/macros.h"
+#include "coderep/printer/printer.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -116,12 +117,12 @@ void cli_handle_composition(struct cli *self, const char *arg)
 	while (c != '\0') {
 		struct option *option = cli_get_option(self, arg, index, false);
 		if (option == NULL) {
-			PRINTF_ERR("'%c' is not a known composable flag", c);
+			printf_err("'%c' is not a known composable flag", c);
 			self->config->procced = false;
 		} else if (option->type == COMPOSABLE) {
 			if (!option->parsing(self->config, NULL)) self->config->procced = false;
 		} else {
-			PRINTF_ERR("'%c' is not composable, you can't write as '%s'", c, arg);
+			printf_err("'%c' is not composable, you can't write as '%s'", c, arg);
 			self->config->procced = false;
 		}
 
@@ -138,7 +139,7 @@ size_t cli_handle_option(struct cli *self, struct option *option, const char *ar
 		return 0;
 	} else {
 		if (argc < 2) {
-			PRINTF_ERR("'%s' needs at least one argument", arg);
+			printf_err("'%s' needs at least one argument", arg);
 			self->config->procced = false;
 			return 0;
 		}
@@ -160,7 +161,7 @@ size_t cli_parse_arg(struct cli *self, const char *arg, const char **argv, size_
 	size_t arg_l = strlen(arg);
 	
 	if (arg_l < 2 || arg[0] != '-') {
-		PRINTF_ERR("'%s' is not handled by Code Report CLI", arg);
+		printf_err("'%s' is not handled by Code Report CLI", arg);
 		self->config->procced = false;
 		return 0;
 	}
@@ -168,7 +169,7 @@ size_t cli_parse_arg(struct cli *self, const char *arg, const char **argv, size_
 	bool long_ = arg[1] == '-';
 	struct option *option = cli_get_option(self, arg, 1, long_);
 	if (option == NULL) {
-		PRINTF_ERR("'%s' is not handled by Code Report CLI", arg);
+		printf_err("'%s' is not handled by Code Report CLI", arg);
 		self->config->procced = false;
 		return 0;
 	}

@@ -4,11 +4,11 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 struct printer {
 	size_t total_bytes_wrote;
-	size_t bytes_wrote_before_ln;
-	bool last_was_return_carry;
+	size_t bytes_on_line;
 	bool color;
 };
 
@@ -21,77 +21,140 @@ void printer_set_color(bool color)
 
 void print_err(const char *const err)
 {
-	if (printer.last_was_return_carry) putc('\n', stderr);
+	if (printer.bytes_on_line != 0) putc('\n', stdout);
 	if (printer.color) fputs(ANSI_ERR, stderr);
 	else fputs("[Error]: ", stderr);
 	fputs(err, stderr);
-	putc('\n', stderr);
+	fputs(ANSI_RESET "\n", stderr);
 
-	printer.last_was_return_carry = false;
+	printer.bytes_on_line = 0;
 }
 
 void printf_err(const char *const format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	if (printer.last_was_return_carry) putc('\n', stderr);
+	if (printer.bytes_on_line != 0) putc('\n', stdout);
 	if (printer.color) fputs(ANSI_ERR, stderr);
 	else fputs("[Error]: ", stderr);
 	vfprintf(stderr, format, args);
-	putc('\n', stderr);
+	fputs(ANSI_RESET "\n", stderr);
 
-	printer.last_was_return_carry = false;
+	printer.bytes_on_line = 0;
 }
 
 void println(const char *const text)
 {
-	printer.total_bytes_wrote += puts(text);
-	printer.bytes_wrote_before_ln = 0;
-	printer.last_was_return_carry = false;
+	puts(text);
+	printer.total_bytes_wrote += strlen(text);
+	printer.bytes_on_line = 0;
 }
 
 void print(const char *const text)
 {
-	size_t tmp = fputs(text, stdin);
-	printer.bytes_wrote_before_ln += tmp;
+	fputs(text, stdout);
+	size_t tmp = strlen(text);
 	printer.total_bytes_wrote += tmp;
-	printer.last_was_return_carry = false;
+	for (size_t i = tmp - 1; i >= 0 && i < tmp; i--) {
+		if (text[i] == '\n') {
+			printer.bytes_on_line = tmp - i - 1;
+			return;
+		}
+	}
+	printer.bytes_on_line += tmp;
 }
 
 void print_clean_line()
 {
-	putc('\r', stdin);
-	for (size_t i = 0; i < printer.bytes_wrote_before_ln; i++) putc(' ', stdin);
-	putc('\r', stdin);
-	printer.last_was_return_carry = true;
+	putc('\r', stdout);
+	for (size_t i = 0; i < printer.bytes_on_line; i++) putc(' ', stdout);
+	putc('\r', stdout);
+	printer.bytes_on_line = 0;
+}
+
+void print_cstr(const char *text, size_t length)
+{
+	size_t tmp = 0;
+	if (printer.color) printf(ANSI_GREEN);
+	tmp += printf("%*s", (int)length, text);
+	if (printer.color) tmp += printf(ANSI_RESET);
+
+	printer.bytes_on_line += tmp;
+	printer.total_bytes_wrote += tmp;
+}
+
+void print_string(struct string *text)
+{
+	size_t tmp = 0;
+	if (printer.color) tmp = printf(ANSI_GREEN);
+	string_print(text);
+	if (printer.color) tmp += printf(ANSI_RESET);
+
+	printer.bytes_on_line += text->length + tmp;
+	printer.total_bytes_wrote += text->length + tmp;
+}
+
+void print_pointer(void *ptr)
+{
+	size_t tmp = 0;
+	if (printer.color) tmp += printf(ANSI_MAGENTA);
+	tmp += printf("%p", ptr);
+	if (printer.color) tmp += printf(ANSI_RESET);
+
+	printer.bytes_on_line += tmp;
+	printer.total_bytes_wrote += tmp;
+}
+
+void print_char(char c)
+{
+	putc(c, stdout);
+	printer.total_bytes_wrote++;
+	if (c == '\n') printer.bytes_on_line = 0;
+	else printer.bytes_on_line++;
 }
 
 void print_size_t(size_t number)
 {
-	if (printer.color) printf(ANSI_YELLOW);
-	printf("%zu", number);
-	printer.last_was_return_carry = false;
+	size_t tmp = 0;
+	if (printer.color) tmp += printf(ANSI_YELLOW);
+	tmp += printf("%zu", number);
+	if (printer.color) tmp += printf(ANSI_RESET);
+
+	printer.bytes_on_line += tmp;
+	printer.total_bytes_wrote += tmp;
 }
 
 void print_ssize_t(size_t number)
 {
-	if (printer.color) fputs(ANSI_YELLOW, stdin);
-	printf("%zi", number);
-	printer.last_was_return_carry = false;
+	size_t tmp = 0;
+	if (printer.color) tmp += printf(ANSI_YELLOW);
+	tmp += printf("%zi", number);
+	if (printer.color) tmp += printf(ANSI_RESET);
+
+	printer.bytes_on_line += tmp;
+	printer.total_bytes_wrote += tmp;
 }
 
 void print_double(double number)
 {
-	if (printer.color) fputs(ANSI_BLUE, stdin);
-	printf("%f", number);
-	printer.last_was_return_carry = false;
+	size_t tmp = 0;
+	if (printer.color) tmp += printf(ANSI_BLUE);
+	tmp += printf("%f", number);
+	if (printer.color) tmp += printf(ANSI_RESET);
+
+	printer.bytes_on_line += tmp;
+	printer.total_bytes_wrote += tmp;
 }
 
 void print_bool(bool bool_)
 {
-	if (printer.color) fputs(ANSI_BLUE, stdin);
-	if (bool_) fputs("true", stdin);
-	else fputs("false", stdin);
-	printer.last_was_return_carry = false;
+	size_t tmp = 0;
+	if (printer.color) tmp += printf(ANSI_BLUE);
+	if (bool_) print("true");
+	else print("false");
+	if (printer.color) tmp += printf(ANSI_RESET);
+
+	printer.bytes_on_line += tmp;
+	printer.total_bytes_wrote += tmp;
 }
 

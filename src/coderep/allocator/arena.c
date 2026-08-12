@@ -2,8 +2,8 @@
 
 #include "coderep/allocator/allocator.h"
 #include "coderep/allocator/c_allocator.h"
-#include "coderep/consts.h"
 #include "coderep/macros.h"
+#include "coderep/printer/printer.h"
 
 #include <assert.h>
 #include <stdbool.h>
@@ -65,7 +65,7 @@ void *arena_allocate(struct arena *self, size_t size)
 
 void *arena_reallocate(struct arena *self, void *original_pointer, size_t new_size)
 {
-	PRINT_ERR("struct arena don't support realloc. If you need, consider default allocator");
+	print_err("struct arena don't support realloc. If you need, consider default allocator");
 	exit(ERROR_CODE_UNSUPPORTED);
 }
 

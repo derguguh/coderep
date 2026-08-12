@@ -78,7 +78,7 @@ static inline void report_expand(struct report *self)
 
 	return;
 defer:
-	PRINT_ERR("Couldn't reallocate memory to resize a struct report");
+	print_err("Couldn't reallocate memory to resize a struct report");
 	exit(ERROR_CODE_MEMORY_REALLOCATION);
 }
 
@@ -213,32 +213,12 @@ void report_push_statistics_size_t(struct report *self, const char *const name, 
 	report_push(self, entry);
 }
 
-void print_do_color(enum report_entry_type type)
-{
-	switch (type) {
-		case REPORT_ENTRY_TYPE_STRING:
-			printf(ANSI_CYAN);
-		break;
-		case REPORT_ENTRY_TYPE_DOUBLE:
-		case REPORT_ENTRY_TYPE_SSIZE_T:
-		case REPORT_ENTRY_TYPE_SIZE_T:
-			printf(ANSI_YELLOW);
-		break;
-		case REPORT_ENTRY_TYPE_BOOL:
-			printf(ANSI_BLUE);
-		break;
-		default:
-			printf(ANSI_MAGENTA);
-		break;
-	}
-}
-
 void report_entry_print(const struct report_entry *entry, struct string *filter, const struct data *output_options, bool do_color)
 {
 	if (filter->length > 0 && string_check_glob(entry->name, filter) == 0) return;
 
 	string_print(entry->name);
-	printf(": ");
+	print(": ");
 	
 	if (entry->type == REPORT_ENTRY_TYPE_FREQUENCY && output_options->frequency != OUTPUT_MODE_NONE) {
 		frequency_print(entry->frequency, output_options->frequency, do_color);
@@ -249,26 +229,22 @@ void report_entry_print(const struct report_entry *entry, struct string *filter,
 	} else if (entry->type == REPORT_ENTRY_TYPE_STATISTICS_SIZE_T && output_options->statistic != OUTPUT_MODE_NONE) {
 		statistics_size_t_print(&entry->statistics_size_t, output_options->statistic);
 	} else if (output_options->brute != OUTPUT_MODE_NONE) {
-		if ((output_options->brute & OUTPUT_MODE_RAW) == OUTPUT_MODE_RAW) printf("(brute) ");
-		if (do_color) print_do_color(entry->type);
+		if ((output_options->brute & OUTPUT_MODE_RAW) == OUTPUT_MODE_RAW) print("(brute) ");
 		switch (entry->type) {
-			case REPORT_ENTRY_TYPE_STRING:	string_print(entry->string);	break;
-			case REPORT_ENTRY_TYPE_DOUBLE:	printf("%.5f", entry->double_);	break;
-			case REPORT_ENTRY_TYPE_SSIZE_T:	printf("%zi", entry->ssize_t_);	break;
-			case REPORT_ENTRY_TYPE_SIZE_T:	printf("%zu", entry->size_t_);	break;
-			case REPORT_ENTRY_TYPE_BOOL:
-				if (entry->bool_ == true) printf("true");
-				else printf("false");
-			break;
+			case REPORT_ENTRY_TYPE_STRING:	print_string(entry->string);	break;
+			case REPORT_ENTRY_TYPE_DOUBLE:	print_double(entry->double_);	break;
+			case REPORT_ENTRY_TYPE_SSIZE_T:	print_ssize_t(entry->ssize_t_);	break;
+			case REPORT_ENTRY_TYPE_SIZE_T:	print_size_t(entry->size_t_);	break;
+			case REPORT_ENTRY_TYPE_BOOL:	print_bool(entry->bool_);	break;
 			default: break;
 		}
 	}
-	printf(ANSI_RESET "\n");
+	println("");
 }
 
 void report_print(const struct report *self, struct string *filter, const struct data *output_options, bool do_color)
 {
-	printf("\n");
+	println("");
 
 	for (size_t i = 0; i < self->entries_l; i++) report_entry_print(&self->entries[i], filter, output_options, do_color);
 }

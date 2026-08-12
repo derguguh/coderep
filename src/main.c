@@ -4,7 +4,7 @@
 #include "coderep/cli/cli.h"
 #include "coderep/cli/config.h"
 #include "coderep/cli/help.h"
-#include "coderep/macros.h"
+#include "coderep/printer/printer.h"
 #include "coderep/timer.h"
 
 #include <time.h>
@@ -29,7 +29,7 @@ int main(int argc, const char **argv)
 	if (config->procced) {
 		printer_set_color(config->do_color);
 		if (config->_backend != NULL) parse_backend(config, c_allocator);
-		else PRINT_ERR("Code Report needs a backend, use '--help' or '-h' to get a list of backends");
+		else print_err("Code Report needs a backend, use '--help' or '-h' to get a list of backends");
 	}
 
 	enum verbosity verbosity = config->verbosity;
@@ -37,6 +37,10 @@ int main(int argc, const char **argv)
 	cli_drop(&cli);
 	if (verbosity == VERBOSE) c_allocator_print(c_allocator);
 	c_allocator_drop(&c_allocator);
-	if (show_time) printf("Total time: %.5fs\n", timer_elapsed(&begin));
+	if (show_time) {
+		print("Total time: ");
+		print_double(timer_elapsed(&begin));
+		println("s");
+	}
 }
 

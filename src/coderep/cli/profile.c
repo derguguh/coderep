@@ -1,5 +1,5 @@
 #include "coderep/cli/profile.h"
-#include "coderep/macros.h"
+#include "coderep/printer/printer.h"
 #include <string.h>
 
 const struct profile_opt PROFILE_OPT[] = {
@@ -24,7 +24,7 @@ bool profile_parse(struct config *config, struct argument_list *_list)
 			return true;
 		}
 	}
-	PRINTF_ERR("'%s' is not a valid profile", _list->arguments[0]);
+	printf_err("'%s' is not a valid profile", _list->arguments[0]);
 	return false;
 }
 

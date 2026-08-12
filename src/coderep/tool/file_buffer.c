@@ -2,6 +2,7 @@
 
 #include "coderep/allocator/allocator.h"
 #include "coderep/macros.h"
+#include "coderep/printer/printer.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -32,7 +33,7 @@ bool file_buffer_open(struct file_buffer *self, const char *const file_path)
 defer:
 	if (file) fclose(file);
 
-	PRINTF_ERR("File \"%s\" don't meet the criteria. It needs to exist, be possible to read, and be not empty", file_path);
+	printf_err("File \"%s\" don't meet the criteria. It needs to exist, be possible to read, and be not empty", file_path);
 	self->_file_name = NULL;
 	self->_file = NULL;
 	self->char_ = EOF;
@@ -58,7 +59,7 @@ bool file_buffer_open_stream(struct file_buffer *self, FILE **stream)
 defer:
 	if (self->_file) fclose(self->_file);
 
-	PRINTF_ERR("File \"%s\" don't meet the criteria. It needs to exist, be possible to read, and be not empty", self->_file_name == NULL ? "" : self->_file_name);
+	printf_err("File \"%s\" don't meet the criteria. It needs to exist, be possible to read, and be not empty", self->_file_name == NULL ? "" : self->_file_name);
 	self->_file_name = NULL;
 	self->_file = NULL;
 	self->char_ = EOF;
@@ -116,16 +117,28 @@ char file_buffer_peek_n(const struct file_buffer *self, size_t n)
 
 void file_buffer_print(const struct file_buffer *self, bool trim_spaces)
 {
-	puts("File Buffer: {");
-	printf("\tCursor: %lu\n", self->buffer_cursor);
-	printf("\tLength: %lu\n", self->buffer_length);
-	printf("\tBlock: %lu\n", self->block);
-	printf("\tBuffer (4096, trimed: %d): [\n", trim_spaces);
+	println("File Buffer: {");
 
-	if (trim_spaces) for (size_t i = 0; i < self->buffer_length; i++) putchar(self->buffer[i]);
-	else printf("%4096s", self->buffer);
+	print("\tCursor: ");
+	print_size_t(self->buffer_cursor);
+	println("");
 
-	puts("]}\n");
+	print("\tLength: ");
+	print_size_t(self->buffer_length);
+	println("");
+
+	print("\tBlock: ");
+	print_size_t(self->block);
+	println("");
+
+	print("\tBuffer (4096, trimed: ");
+	print_bool(trim_spaces);
+	println("): [");
+
+	if (trim_spaces) for (size_t i = 0; i < self->buffer_length; i++) print_char(self->buffer[i]);
+	else print_cstr(self->buffer, BUFFER_SIZE);
+
+	println("]}");
 }
 
 void file_buffer_drop(struct file_buffer **self)

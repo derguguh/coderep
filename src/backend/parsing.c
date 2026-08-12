@@ -4,6 +4,7 @@
 #include "coderep/allocator/arena.h"
 #include "coderep/cli/config.h"
 #include "coderep/consts.h"
+#include "coderep/printer/printer.h"
 #include "coderep/report.h"
 #include "coderep/timer.h"
 #include "coderep/tool/file.h"
@@ -37,18 +38,21 @@ void backend_print_reading_files(size_t current, size_t total, bool do_color, bo
 	for (size_t i = 0; i < percent_complete; i++) bar_buffer[i] = '=';
 	for (size_t i = percent_complete; i < PROGRESS_BAR_SIZE; i++) bar_buffer[i] = ' ';
 
-	if (!in_new_line) printf("\r");
-	if (do_color) printf(ANSI_GREEN);
-	printf("[Reading files ["
-		"%*s"
-		"]", PROGRESS_BAR_SIZE, bar_buffer);
-	if (do_color) printf(ANSI_WHITE);
-	printf(" %lu/%lu", current, total);
-	if (do_color) printf(ANSI_GREEN);
-	printf("]");
-	if (do_color) printf(ANSI_RESET);
-	if (in_new_line) printf("\n");
-	else fflush(stdout);
+	if (!in_new_line) print_clean_line();
+	if (do_color) print(ANSI_GREEN);
+	print("[Reading files [");
+	print_cstr(bar_buffer, PROGRESS_BAR_SIZE);
+	if (do_color) print(ANSI_GREEN);
+	print("] ");
+	print_size_t(current);
+	if (do_color) print(ANSI_GREEN);
+	print("/");
+	print_size_t(total);
+	if (do_color) print(ANSI_GREEN);
+	print("]");
+	if (do_color) print(ANSI_RESET);
+	if (in_new_line) println("");
+	else fflush(stdin);
 }
 
 void parse_file(const struct config *config, struct backend_context *context, struct arena *temporary_arena)
@@ -76,7 +80,7 @@ void parse_file(const struct config *config, struct backend_context *context, st
 		statistics_size_t_push(&context->file_report.bytes_read, file->buffer->block * BUFFER_SIZE + file->buffer->buffer_length);
 		statistics_size_t_push(&context->file_report.total_line, file->line);
 	}
-	putchar('\n');
+	println("");
 
 	file_drop(&file);
 }
@@ -111,7 +115,7 @@ void parse_backend(const struct config *config, struct c_allocator *allocator)
 	statistics_double_push(&context.file_report.total_init_time, timer_elapsed(&timer));
 
 	if (config->_backend->binary) {
-		printf("Binary backends aren't done yet");
+		print_err("Binary backends aren't done yet");
 	} else parse_file(config, &context, temporary_arena);
 
 	timer_start(&timer);

@@ -1,6 +1,7 @@
 #include "coderep/cli/config.h"
 
-#include "coderep/macros.h"
+#include "coderep/consts.h"
+#include "coderep/printer/printer.h"
 
 void config_input_expand(struct config *config)
 {
@@ -13,6 +14,6 @@ void config_input_expand(struct config *config)
 
 	return;
 defer:
-	PRINT_ERR("Couldn't reallocate memory to handle all paths passed");
+	print_err("Couldn't reallocate memory to handle all paths passed");
 	exit(ERROR_CODE_MEMORY_REALLOCATION);
 }

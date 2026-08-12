@@ -3,8 +3,9 @@
 #include "coderep/allocator/allocator.h"
 #include "coderep/consts.h"
 #include "coderep/data_type/string.h"
-#include "coderep/tool/file_buffer.h"
 #include "coderep/macros.h"
+#include "coderep/tool/file_buffer.h"
+#include "coderep/printer/printer.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -103,7 +104,7 @@ void file_print_error(const struct file *self, const char *const error_text, siz
 		error_length = 1;
 	}
 
-	PRINTF_ERR("%zu;%zu in %-60s\n" PRINT_PREFIX_ "%s", self->line, self->column, self->buffer->_file_name, error_text);
+	printf_err("%zu;%zu in %-60s\n" PRINT_PREFIX_ "%s", self->line, self->column, self->buffer->_file_name, error_text);
 
 	size_t spaces = file_print_line_buffer(self) - error_length;
 
@@ -120,19 +121,24 @@ void file_print_error(const struct file *self, const char *const error_text, siz
 
 void file_print(const struct file *self, bool trim_spaces)
 {
-	puts("Source: {");
+	println("Source: {");
 
-	putchar('\t');
+	print_char('\t');
 	file_buffer_print(self->buffer, trim_spaces);
 
-	printf("\tLine Buffer: ");
-	string_print(self->line_buffer);
-	putchar('\n');
+	print("\tLine Buffer: ");
+	print_string(self->line_buffer);
+	println("");
 
-	printf("\tLine: %zu\n", self->line);
-	printf("\tColumn: %zu\n", self->column);
+	print("\tLine: ");
+	print_size_t(self->line);
+	println("");
 
-	puts("}\n");
+	print("\tColumn: ");
+	print_size_t(self->column);
+	println("");
+
+	println("}");
 }
 
 void file_drop(struct file **self)

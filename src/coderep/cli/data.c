@@ -3,7 +3,7 @@
 #include "coderep/consts.h"
 #include "coderep/data_type/output_mode.h"
 #include "coderep/data_type/string.h"
-#include "coderep/macros.h"
+#include "coderep/printer/printer.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -31,7 +31,7 @@ enum output_mode parse_flag(const struct string_slice slice)
 {
 	for (size_t i = 0; i < FLAGS_OPTS_L; i++) if (strncasecmp(slice.chars, FLAGS_OPTS[i].name, slice.length) == 0) return FLAGS_OPTS[i].flag;
 
-	fprintf(stderr, ANSI_ERR "\"%*s\" is not a valid '--data' flag" ANSI_RESET "\n", (int)slice.length, slice.chars);
+	printf_err("\"%*s\" is not a valid '--data' flag" ANSI_RESET "\n", (int)slice.length, slice.chars);
 
 	return OUTPUT_MODE_NONE;
 }
@@ -64,7 +64,7 @@ bool data_put_in(struct data *self, enum output_mode flag, const struct string_s
 	else if (strncasecmp("statistic", type.chars, 9) == 0) self->statistic = flag;
 	else if (strncasecmp("brute", type.chars, 5) == 0) self->brute = flag;
 	else {
-		fprintf(stderr, ANSI_ERR "\"%*s\" is not a valid '--data' group" ANSI_RESET "\n", (int)type.length, type.chars);
+		printf_err("\"%*s\" is not a valid '--data' group", (int)type.length, type.chars);
 		return false;
 	}
 
@@ -85,7 +85,7 @@ bool data_parse(struct config *config, struct argument_list *_list)
 
 		if (dot_loc == -1) {
 			success = false;
-			PRINTF_ERR("group \"%s\" don't have a flag, indicated by '.'", arg_cstr);
+			printf_err("group \"%s\" don't have a flag, indicated by '.'", arg_cstr);
 		} else {
 			struct string_slice output_mode_slice = string_slice(arg, dot_loc + 1, arg->length);
 			struct string_slice type_slice = string_slice(arg, 0, dot_loc);

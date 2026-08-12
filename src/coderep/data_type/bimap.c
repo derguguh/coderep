@@ -5,6 +5,7 @@
 #include "coderep/data_type/frequency.h"
 #include "coderep/data_type/node.h"
 #include "coderep/macros.h"
+#include "coderep/printer/printer.h"
 
 struct bimap {
 	struct allocator *allocator;
@@ -126,7 +127,7 @@ size_t bimap_get_id_of(const struct bimap *self, const struct string *value)
 struct node *bimap_get_node_of(const struct bimap *self, size_t id)
 {
 	if (id > self->element_count) {
-		PRINTF_ERR("Value '%zu' is out of boundary", id);
+		printf_err("Value '%zu' is out of boundary", id);
 		exit(ERROR_CODE_ACCESS_OUT_BOUNDARY);
 	}
 	size_t what_block = id / self->buckets_count;
@@ -134,7 +135,7 @@ struct node *bimap_get_node_of(const struct bimap *self, size_t id)
 	struct block *block = self->block;
 	for (size_t i = 0; i < what_block; i++) {
 		if (block->_next == NULL) {
-			PRINTF_ERR("Value '%zu' is out of boundary", id);
+			printf_err("Value '%zu' is out of boundary", id);
 			exit(ERROR_CODE_ACCESS_OUT_BOUNDARY);
 		} else block = block->_next;
 	}
@@ -149,27 +150,47 @@ struct string *bimap_get_value_of(const struct bimap *self, size_t id)
 
 void bimap_print(const struct bimap *self, bool do_color)
 {
-	const char *number_color = do_color ? ANSI_YELLOW : "";
-	printf("(struct bimap) {\n");
-	printf("\t.buckets:\n");
+	println("(struct bimap) {");
+	println("\t.buckets:");
 	for (size_t i = 0; i < self->buckets_count; i++) {
 		struct node *node = self->buckets[i];
 
-		printf("\t\t[%zu] = [", i);
+		print("\t\t[");
+		print_size_t(i);
+		print("] = [");
 
 		if (node != NULL) node_print(node, true, true, do_color);
-		else printf("(!)");
+		else print("(!)");
 
-		puts("]");
+		println("]");
 	}
-	puts("\t]");
-	printf("\t.buckets_count: %s%zu\n", number_color, self->buckets_count);
-	printf("\t.element_count: %s%zu\n", number_color, self->element_count);
-	printf("\t.block:   %p\n", self->block);
-	printf("\t.current: %p\n", self->current);
-	printf("\t.block_size:  %s%zub (%s%zu elements)\n", number_color, self->block_size, number_color, self->block_size / sizeof(struct node *));
-	printf("\t.block_count: %s%zu\n", number_color, self->block_count);
-	puts("}");
+	print("\t]");
+
+	print("\t.buckets_count:");
+	print_size_t(self->buckets_count);
+	println("");
+
+	print("\t.element_count:");
+	print_size_t(self->buckets_count);
+	println("");
+
+	print("\t.block:   ");
+	print_pointer(self->buckets);
+	println("");
+
+	print("\t.current: ");
+	print_pointer(self->current);
+	println("");
+
+	print("\t.block_size:  ");
+	print_size_t(self->block_size);
+	print("b (");
+	print_size_t(self->block_size / sizeof(struct node *));
+	println(" elements)");
+
+	print("\t.block_count: ");
+	print_size_t(self->block_count);
+	println("\n}");
 }
 
 void bimap_drop(struct bimap **self)

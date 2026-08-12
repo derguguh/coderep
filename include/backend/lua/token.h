@@ -1,6 +1,7 @@
 #ifndef BACKEND_LUA_TOKEN_H
 #define BACKEND_LUA_TOKEN_H
 
+#include "coderep/printer/printer.h"
 #include <stddef.h>
 #include <stdio.h>
 
@@ -84,7 +85,11 @@ struct lua_token {
 
 static inline void lua_token_print(const struct lua_token self)
 {
-	printf("Token: { .type=%d, .id=%lu }\n", self.type, self.id);
+	print("Token: { .type=");
+	print_ssize_t(self.type);
+	print(", .id=");
+	print_size_t(self.id);
+	println(" }");
 }
 
 #endif

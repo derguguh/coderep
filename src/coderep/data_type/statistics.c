@@ -2,6 +2,9 @@
 #include "coderep/data_type/output_mode.h"
 #include <stdio.h>
 
+/*
+ * This can ignore the new printing system, because this is just a placeholder until I make frequency supports other types than struct string
+ */
 #define DEFINE_STATISTICS_FOR(type, format) void statistics_##type##_push(struct statistics_##type *self, type value) { \
 	if (value < self->min || self->count == 0) self->min = value; \
 	if (value > self->max) self->max = value; \
