@@ -2,6 +2,7 @@
 #define CODEREP_MACROS_H
 
 #include "coderep/consts.h"
+#include "coderep/printer/printer.h"
 
 #include <stdio.h>
 
@@ -22,11 +23,16 @@
 #define LOGF(log, ...)
 #endif
 
-#define PRINT_ERR(err)		PRINT_ANSI(stderr, ANSI_ERR, err)
-#define PRINTF_ERR(err, ...)	PRINTF_ANSI(stderr, ANSI_ERR, err, __VA_ARGS__)
+/*
+ * I will keep these above ignoring the global "print color"
+ * These PRINT_ERR and PRINTF_ERR should not be used anymore
+ *	I will keep just enough until all current uses be from the normal functions
+ */
+#define PRINT_ERR(err)		print_err(err)
+#define PRINTF_ERR(err, ...)	printf_err(err, __VA_ARGS__)
 
 #define ALLOC_ERR_EXIT(name) do { \
-		PRINT_ERR("Couldn't allocate memory for " name); \
+		print_err("Couldn't allocate memory for " name); \
 		exit(ERROR_CODE_MEMORY_ALLOCATION); \
 		return NULL; \
 } while (0)

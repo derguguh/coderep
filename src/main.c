@@ -27,6 +27,7 @@ int main(int argc, const char **argv)
 	const struct config *config = cli_parse_args(cli, argv, argc);
 
 	if (config->procced) {
+		printer_set_color(config->do_color);
 		if (config->_backend != NULL) parse_backend(config, c_allocator);
 		else PRINT_ERR("Code Report needs a backend, use '--help' or '-h' to get a list of backends");
 	}
