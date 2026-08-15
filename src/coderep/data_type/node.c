@@ -82,7 +82,7 @@ void node_print(const struct node *self, bool show_value, bool show_frequency, b
 	}
 
 	if (self->_next != NULL) {
-		printf(", ");
+		print(", ");
 		node_print(self->_next, show_value, show_frequency, do_color);
 	}
 }

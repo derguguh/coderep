@@ -6,7 +6,7 @@
 #include <stddef.h>
 
 struct word_table {
-	const char *const word;
+	const char *word;
 	ssize_t id;
 };
 
