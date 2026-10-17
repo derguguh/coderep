@@ -9,7 +9,7 @@
 #include "coderep/data_type/frequency.h"
 #include "coderep/data_type/string.h"
 #include "coderep/report.h"
-#include "coderep/tool/common_readers.h"
+#include "coderep/tool/common_skips.h"
 
 size_t lua_request()
 {

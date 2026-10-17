@@ -14,8 +14,10 @@ struct string_handler {
 	handle_escape_sequence_fn _escape_handler;
 	char escape_char;
 	bool accept_new_line;
+	bool can_end_at_eof;
+	bool keep_end_sequence;
 };
 
-ssize_t string_handler_read(struct string_handler *self, struct file *file, struct string *_buffer, struct arena *tmp);
+ssize_t string_handler_read(struct string_handler *self, struct file *file, struct string *scratch_buffer, struct arena *temporary);
 
 #endif

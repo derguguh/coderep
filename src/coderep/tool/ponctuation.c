@@ -59,7 +59,6 @@ defer:
 
 size_t ponctuation_read(struct ponctuation *self, struct file *file)
 {
-
 }
 
 void ponctuation_drop(struct ponctuation **self)

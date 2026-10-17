@@ -22,11 +22,8 @@ void text_init(struct backend_context *data)
 	lexer->template_unknown_char = string_from_cstr(allocator, "Unknown: character");
 
 	lexer->character = frequency_alloc(allocator, data->profile.light);
-
 	lexer->number = frequency_alloc(allocator, data->profile.medium);
-
 	lexer->unknown = frequency_alloc(allocator, data->profile.minimal);
-
 	lexer->word = frequency_alloc(allocator, data->profile.extreme);
 }
 

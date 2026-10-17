@@ -44,7 +44,7 @@ bool help_print(struct config *ignore, struct argument_list *ignore_)
 	printf(SPACE "--color: adds color to the output\n");
 
 	printf("\n"  SPACE "--filter: add a filter to what data to output\n");
-	printf(SPACE SPACE "Filter option is not implemented yet\n\n");
+	printf(SPACE SPACE "It use a blob pattern to filter things\n\n");
 
 	printf(SPACE "--lang: select the language backend (a compiler front-end)\n");
 	printf(SPACE SPACE "Available backends:\n");

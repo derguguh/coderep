@@ -117,6 +117,7 @@ void file_print_error(const struct file *self, const char *const error_text, siz
 	}
 	for (size_t i = 1; i < error_length; i++) putc('~', stderr);
 	fprintf(stderr, "^" ANSI_RESET "\n\n");
+	exit(1);
 }
 
 void file_print(const struct file *self, bool trim_spaces)
