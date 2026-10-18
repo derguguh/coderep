@@ -43,8 +43,45 @@ const struct word_table LUA_KEYWORD_TABLE[] = {
 
 const size_t LUA_KEYWORD_TABLE_L = ARRAY_SIZE(LUA_KEYWORD_TABLE, struct word_table);
 
-// ------------ Skips ------------
+const struct word_table LUA_PONCTUATION_TABLE[] = {
+	{ "+",	LUA_TOKEN_TYPE_CHAR_PLUS },
+	{ "-",	LUA_TOKEN_TYPE_CHAR_MINUS },
+	{ "*",	LUA_TOKEN_TYPE_CHAR_MULT },
+	{ "%",	LUA_TOKEN_TYPE_CHAR_MODULE },
+	{ "^",	LUA_TOKEN_TYPE_CHAR_CARET },
+	{ "#",	LUA_TOKEN_TYPE_CHAR_HASH },
+	{ "&",	LUA_TOKEN_TYPE_CHAR_AMPERSAND },
+	{ ",",	LUA_TOKEN_TYPE_CHAR_COMMA },
+	{ ";",	LUA_TOKEN_TYPE_CHAR_SEMICOLON },
+	{ "|",	LUA_TOKEN_TYPE_CHAR_VBAR },
+	{ "(",	LUA_TOKEN_TYPE_CHAR_LPARENTHESIS },
+	{ ")",	LUA_TOKEN_TYPE_CHAR_RPARENTHESIS },
+	{ "[",	LUA_TOKEN_TYPE_CHAR_LBRACKET },
+	{ "]",	LUA_TOKEN_TYPE_CHAR_RBRACKET },
+	{ "{",	LUA_TOKEN_TYPE_CHAR_LBRACE },
+	{ "}",	LUA_TOKEN_TYPE_CHAR_RBRACE },
+	{ "<",	LUA_TOKEN_TYPE_CHAR_LESS_THAN },
+	{ "<<",	LUA_TOKEN_TYPE_CHAR_SHIFT_LEFT },
+	{ "<=",	LUA_TOKEN_TYPE_CHAR_LESS_OR_EQUALS_THAN },
+	{ ">",	LUA_TOKEN_TYPE_CHAR_GREATER_THAN },
+	{ ">>",	LUA_TOKEN_TYPE_CHAR_SHIFT_RIGHT },
+	{ ">=",	LUA_TOKEN_TYPE_CHAR_GREATER_OR_EQUALS_THAN },
+	{ ":",	LUA_TOKEN_TYPE_CHAR_COLON },
+	{ "::",	LUA_TOKEN_TYPE_CHAR_DOUBLE_COLON },
+	{ "/",	LUA_TOKEN_TYPE_CHAR_SLASH },
+	{ "//",	LUA_TOKEN_TYPE_CHAR_DOUBLE_SLASH },
+	{ "=",	LUA_TOKEN_TYPE_CHAR_ASSIGN },
+	{ "==",	LUA_TOKEN_TYPE_CHAR_EQUALS },
+	{ "~",	LUA_TOKEN_TYPE_CHAR_TILDE },
+	{ "~=",	LUA_TOKEN_TYPE_CHAR_NOT_EQUALS },
+	{ ".",	LUA_TOKEN_TYPE_CHAR_PERIOD },
+	{ "..",	LUA_TOKEN_TYPE_CHAR_CONCAT },
+	{ "...",LUA_TOKEN_TYPE_CHAR_EPSILON },
+};
 
+const size_t LUA_PONCTUATION_TABLE_L = ARRAY_SIZE(LUA_KEYWORD_TABLE, struct word_table);
+
+// ------------ Skips ------------
 bool lua_skip_block_comment(struct file *file, struct string *scratch_buffer, struct arena *tmp_allocator)
 {
 	string_clear(scratch_buffer);
@@ -139,6 +176,7 @@ struct lua_token lua_lexer_string(struct lua_lexer *self, struct file *file, str
 		._escape_handler = lua_escape_handler,
 		.escape_char = '\\',
 		.accept_new_line = false,
+		.keep_end_sequence = true,
 	};
 
 	if (string_handler_read(&handler, file, scratch_buffer, tmp_allocator) == -1) {
@@ -164,12 +202,12 @@ struct lua_token lua_lexer_block_string(struct file *file, struct string *scratc
 		._escape_handler = NULL,
 		.escape_char = '\0',
 		.accept_new_line = true,
+		.keep_end_sequence = true,
 	};
 	handler.end_sequence->chars[0] = ']';
 	handler.end_sequence->chars[handler.end_sequence->length - 1] = ']';
 
 	token.type = string_handler_read(&handler, file, scratch_buffer, tmp_allocator) == -1 ? LUA_TOKEN_TYPE_INVALID : LUA_TOKEN_TYPE_LIT_MULTI_LINE_STRING;
-	string_append(scratch_buffer, handler.end_sequence);
 
 	return token;
 }
@@ -224,88 +262,7 @@ struct lua_token lua_lexer_characters(struct lua_lexer *self, struct file *file,
 	struct lua_token token = { .type = LUA_TOKEN_TYPE_INVALID };
 	char peek = file_buffer_peek_n(file->buffer, 1);
 
-	switch (file->buffer->char_) {
-		case '+':	token.type = LUA_TOKEN_TYPE_CHAR_PLUS;		break;
-		case '-':	token.type = LUA_TOKEN_TYPE_CHAR_MINUS;		break;
-		case '*':	token.type = LUA_TOKEN_TYPE_CHAR_MULT;		break;
-		case '%':	token.type = LUA_TOKEN_TYPE_CHAR_MODULE;	break;
-		case '^':	token.type = LUA_TOKEN_TYPE_CHAR_CARET;		break;
-		case '#':	token.type = LUA_TOKEN_TYPE_CHAR_HASH;		break;
-		case '&':	token.type = LUA_TOKEN_TYPE_CHAR_AMPERSAND;	break;
-		case ',':	token.type = LUA_TOKEN_TYPE_CHAR_COMMA;		break;
-		case ';':	token.type = LUA_TOKEN_TYPE_CHAR_SEMICOLON;	break;
-		case '|':	token.type = LUA_TOKEN_TYPE_CHAR_VBAR;		break;
-		case '(':	token.type = LUA_TOKEN_TYPE_CHAR_LPARENTHESIS;	break;
-		case ')':	token.type = LUA_TOKEN_TYPE_CHAR_RPARENTHESIS;	break;
-		case '[':	token.type = LUA_TOKEN_TYPE_CHAR_LBRACKET;	break;
-		case ']':	token.type = LUA_TOKEN_TYPE_CHAR_RBRACKET;	break;
-		case '{':	token.type = LUA_TOKEN_TYPE_CHAR_LBRACE;	break;
-		case '}':	token.type = LUA_TOKEN_TYPE_CHAR_RBRACE;	break;
-		case '<':
-			if (peek == '<') {
-				token.type = LUA_TOKEN_TYPE_CHAR_SHIFT_LEFT;
-				push_and_advance(file, scratch_buffer);
-			} else if (peek == '=') {
-				token.type = LUA_TOKEN_TYPE_CHAR_LESS_OR_EQUALS_THAN;
-				push_and_advance(file, scratch_buffer);
-			} else token.type = LUA_TOKEN_TYPE_CHAR_LESS_THAN;
-		break;
-		case '>':
-			if (peek == '>') {
-				token.type = LUA_TOKEN_TYPE_CHAR_SHIFT_RIGHT;
-				push_and_advance(file, scratch_buffer);
-			} else if (peek == '=') {
-				token.type = LUA_TOKEN_TYPE_CHAR_GREATER_OR_EQUALS_THAN;
-				push_and_advance(file, scratch_buffer);
-			} else token.type = LUA_TOKEN_TYPE_CHAR_GREATER_THAN;
-		break;
-		case ':':
-			if (peek == ':') {
-				token.type = LUA_TOKEN_TYPE_CHAR_DOUBLE_COLON;
-				push_and_advance(file, scratch_buffer);
-			}
-			else token.type = LUA_TOKEN_TYPE_CHAR_COLON;
-		break;
-		case '/':
-			if (peek == '/') {
-				token.type = LUA_TOKEN_TYPE_CHAR_DOUBLE_SLASH;
-				push_and_advance(file, scratch_buffer);
-			}
-			else token.type = LUA_TOKEN_TYPE_CHAR_SLASH;
-		break;
-		case '=':
-			if (peek == '=') {
-				token.type = LUA_TOKEN_TYPE_CHAR_EQUALS;
-				push_and_advance(file, scratch_buffer);
-			}
-			else token.type = LUA_TOKEN_TYPE_CHAR_ASSIGN;
-		break;
-		case '~':
-			if (peek == '=') {
-				token.type = LUA_TOKEN_TYPE_CHAR_NOT_EQUALS;
-				push_and_advance(file, scratch_buffer);
-			}
-			else token.type = LUA_TOKEN_TYPE_CHAR_TILDE;
-		break;
-		case '.':
-			
-			if (peek == '.') {
-				push_and_advance(file, scratch_buffer);
-				peek = file_buffer_peek_n(file->buffer, 1);
-
-				if (peek == '.') {
-					push_and_advance(file, scratch_buffer);
-					token.type = LUA_TOKEN_TYPE_CHAR_EPSILON;
-				} else token.type = LUA_TOKEN_TYPE_CHAR_CONCAT;
-			} else token.type = LUA_TOKEN_TYPE_CHAR_PERIOD;
-		break;
-		default:
-			file_print_error(file, "Can't identify a character", 1);
-			token.type = LUA_TOKEN_TYPE_INVALID;
-		break;
-	};
-
-	push_and_advance(file, scratch_buffer);
+	// TODO: ponctuation logic
 
 	if (token.type == LUA_TOKEN_TYPE_INVALID) {
 		frequency_intern(self->invalid, scratch_buffer);
