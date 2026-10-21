@@ -1,6 +1,7 @@
 #ifndef BACKEND_LUA_LEXER_H
 #define BACKEND_LUA_LEXER_H
 
+#include "coderep/tool/punctuation.h"
 #include "coderep/tool/word_tree.h"
 
 #include "coderep/allocator/arena.h"
@@ -8,7 +9,7 @@
 
 struct lua_lexer {
 	struct word_tree *keyword_tree;
-	struct word_tree *character_tree;
+	struct punctuation *punctuation;
 	struct frequency *string;
 	struct frequency *block_string;
 	struct frequency *identifier;

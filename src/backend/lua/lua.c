@@ -37,6 +37,7 @@ void lua_init(struct backend_context *data)
 	context->identifier = frequency_alloc(allocator, data->profile.extreme);
 
 	context->keyword_tree = word_tree_from_table(allocator, LUA_KEYWORD_TABLE, LUA_KEYWORD_TABLE_L);
+	context->punctuation = punctuation_alloc(allocator, LUA_PONCTUATION_TABLE, LUA_PONCTUATION_TABLE_L);
 }
 
 void lua_parse_file(struct backend_context *data, struct arena *tmp_allocator, struct file *file)
@@ -54,11 +55,14 @@ void lua_deinit(struct backend_context *data)
 
 	report_push_frequency(data->report, "lexer.string", &context->string);
 	report_push_frequency(data->report, "lexer.block_string", &context->block_string);
-	report_push_frequency(data->report, "lexer.character", &context->identifier);
+	report_push_frequency(data->report, "lexer.identifier", &context->identifier);
 	report_push_frequency(data->report, "lexer.number", &context->number);
-	report_push_frequency(data->report, "lexer.string", &context->keyword);
-	report_push_frequency(data->report, "lexer.block_string", &context->character);
+	report_push_frequency(data->report, "lexer.keyword", &context->keyword);
+	report_push_frequency(data->report, "lexer.character", &context->character);
 	report_push_frequency(data->report, "lexer.invalid", &context->invalid);
 	report_push_frequency(data->report, "lexer.invalid.what", &context->what_invalid);
+
+	word_tree_drop(&context->keyword_tree);
+	punctuation_drop(&context->punctuation);
 }
 

@@ -107,10 +107,14 @@ void print_pointer(void *ptr)
 
 void print_char(char c)
 {
-	putc(c, stdout);
-	printer.total_bytes_wrote++;
+	size_t tmp = 0;
+	if (printer.color) tmp += printf(ANSI_GREEN);
+	tmp += putc(c, stdout);
+	if (printer.color) tmp += printf(ANSI_RESET);
+
+	printer.total_bytes_wrote += tmp;
 	if (c == '\n') printer.bytes_on_line = 0;
-	else printer.bytes_on_line++;
+	else printer.bytes_on_line += tmp;
 }
 
 void print_size_t(size_t number)

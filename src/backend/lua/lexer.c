@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 // ------------ Tables ------------
 
@@ -79,7 +80,7 @@ const struct word_table LUA_PONCTUATION_TABLE[] = {
 	{ "...",LUA_TOKEN_TYPE_CHAR_EPSILON },
 };
 
-const size_t LUA_PONCTUATION_TABLE_L = ARRAY_SIZE(LUA_KEYWORD_TABLE, struct word_table);
+const size_t LUA_PONCTUATION_TABLE_L = ARRAY_SIZE(LUA_PONCTUATION_TABLE, struct word_table);
 
 // ------------ Skips ------------
 bool lua_skip_block_comment(struct file *file, struct string *scratch_buffer, struct arena *tmp_allocator)
@@ -260,13 +261,13 @@ struct lua_token lua_lexer_maybe_special_number(struct lua_lexer *self, struct f
 struct lua_token lua_lexer_characters(struct lua_lexer *self, struct file *file, struct string *scratch_buffer)
 {
 	struct lua_token token = { .type = LUA_TOKEN_TYPE_INVALID };
-	char peek = file_buffer_peek_n(file->buffer, 1);
 
-	// TODO: ponctuation logic
+	token.id = punctuation_read(self->punctuation, file, scratch_buffer);
 
-	if (token.type == LUA_TOKEN_TYPE_INVALID) {
+	if (token.id == 0) {
 		frequency_intern(self->invalid, scratch_buffer);
 		frequency_intern(self->what_invalid, self->template_invalid_string);
+		token.id = LUA_TOKEN_TYPE_INVALID;
 	} else frequency_intern(self->character, scratch_buffer);
 
 	return token;
@@ -281,13 +282,13 @@ struct lua_token lua_lexer_handle_lbracket(struct lua_lexer *self, struct file *
 
 	size_t n = 0;
 	while (file_buffer_peek_n(file->buffer, n) == '=') n++;
-	if (file_buffer_peek_n(file->buffer, n) == '[') token = lua_lexer_block_string(file, scratch_buffer, tmp_allocator, n);
-
-	if (token.type == LUA_TOKEN_TYPE_INVALID) {
-		frequency_intern(self->invalid, scratch_buffer);
-		frequency_intern(self->what_invalid, self->template_invalid_string);
-	} else if (token.type == LUA_TOKEN_TYPE_CHAR_LBRACKET) frequency_intern(self->character, scratch_buffer);
-	else frequency_intern(self->block_string, scratch_buffer);
+	if (file_buffer_peek_n(file->buffer, n) == '[') {
+		token = lua_lexer_block_string(file, scratch_buffer, tmp_allocator, n);
+		if (token.type == LUA_TOKEN_TYPE_INVALID) {
+			frequency_intern(self->invalid, scratch_buffer);
+			frequency_intern(self->what_invalid, self->template_invalid_string);
+		} else frequency_intern(self->block_string, scratch_buffer);
+	} else frequency_intern(self->character, scratch_buffer);
 
 	return token;
 }

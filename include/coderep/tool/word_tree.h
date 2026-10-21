@@ -18,4 +18,6 @@ const struct string *word_tree_get_by_id(const struct word_tree *self, ssize_t i
 
 ssize_t word_tree_categorize(const struct word_tree *self, const struct string *word);
 
+void word_tree_drop(struct word_tree **self);
+
 #endif

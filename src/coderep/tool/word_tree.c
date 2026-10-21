@@ -79,6 +79,7 @@ void word_tree_drop(struct word_tree **self)
 
 	allocator->deallocate(allocator->state, (*self)->buckets);
 	(*self)->buckets = NULL;
+
 	allocator->deallocate(allocator->state, (*self));
 	*self = NULL;
 }
