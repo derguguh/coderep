@@ -4,8 +4,8 @@
 #include "coderep/cli/cli.h"
 #include "coderep/cli/config.h"
 #include "coderep/cli/help.h"
-#include "coderep/printer/printer.h"
 #include "coderep/timer.h"
+#include "coderep/tool/printer/printer.h"
 
 #include <time.h>
 #include <stdbool.h>

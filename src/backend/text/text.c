@@ -19,7 +19,7 @@ void text_init(struct backend_context *data)
 
 	*lexer = (struct text_lexer) { 0 };
 
-	lexer->template_unknown_char = string_from_cstr(allocator, "Unknown: character");
+	lexer->template_unknown_char = string_from_cstr(allocator, "Unknown: character", false);
 
 	lexer->character = frequency_alloc(allocator, data->profile.light);
 	lexer->number = frequency_alloc(allocator, data->profile.medium);

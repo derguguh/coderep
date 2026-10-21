@@ -1,4 +1,4 @@
-#ifndef CODEREP_TOOL_STRING_READER_H
+#ifndef coderep_tool_reader_string_h
 #define CODEREP_TOOL_STRING_READER_H
 
 #include "coderep/allocator/arena.h"
@@ -11,8 +11,10 @@ typedef bool (*handle_escape_sequence_fn)(struct file *file, struct string *_buf
 
 struct string_handler {
 	struct string *end_sequence;
+
 	handle_escape_sequence_fn _escape_handler;
 	char escape_char;
+
 	bool accept_new_line;
 	bool can_end_at_eof;
 	bool keep_end_sequence;

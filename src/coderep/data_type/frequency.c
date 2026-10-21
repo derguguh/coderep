@@ -5,10 +5,13 @@
 #include "coderep/data_type/output_mode.h"
 #include "coderep/macros.h"
 
+#include <bits/posix1_lim.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
+// ------------ Internal Structure ------------
 struct frequency {
 	struct allocator *allocator;
 	struct node **buckets;
@@ -25,12 +28,15 @@ struct stats {
 	ssize_t mode;
 	const struct node *mode_node;
 	float median;
-	const struct node *media_node_low;
-	const struct node *media_node_high;
+	const struct node *median_node_low;
+	const struct node *median_node_high;
 };
 
 const size_t FREQUENCY_DEFAULT_SIZE = 20;
 
+// ------------ Helpers ------------
+
+// ------------ Allocation ------------
 struct frequency *frequency_alloc(struct allocator *allocator, size_t initial_capacity)
 {
 	if (initial_capacity == 0) initial_capacity = FREQUENCY_DEFAULT_SIZE;
@@ -57,6 +63,7 @@ defer:
 	ALLOC_ERR_EXIT("struct frequency");
 }
 
+// ------------ Checks ------------
 bool frequency_has(struct frequency *self, const struct string *value)
 {
 	size_t bucket = string_hash(value) % self->buckets_count;
@@ -66,7 +73,8 @@ bool frequency_has(struct frequency *self, const struct string *value)
 	else return node_has(node, value);
 }
 
-bool frequency_increment(struct frequency *self, const struct string *value)
+// ------------ Pushing ------------
+bool frequency_try_increment(struct frequency *self, const struct string *value)
 {
 	size_t bucket = string_hash(value) % self->buckets_count;
 	struct node *node = self->buckets[bucket];
@@ -117,12 +125,13 @@ void frequency_push(struct frequency *self, struct string **value)
 	*value = NULL;
 }
 
+// ------------ Stats ------------
 struct stats frequency_calculate_stats(const struct frequency *self)
 {
 	if (self->element_count == 0) return (struct stats) { 0 };
 
 	struct stats stats = (struct stats) { 
-		.min = 0x7fffffff,
+		.min = SSIZE_MAX,
 	};
 
 	for (size_t i = 0; i < self->buckets_count; i++) {
@@ -148,6 +157,7 @@ struct stats frequency_calculate_stats(const struct frequency *self)
 	return stats;
 }
 
+// ------------ Printing ------------
 void frequency_print_stats(const struct frequency *self, enum output_mode output_mode, bool one_per_line, bool do_color)
 {
 	if (self->element_count == 0) return;
@@ -170,7 +180,7 @@ void frequency_print_stats(const struct frequency *self, enum output_mode output
 	if ((output_mode & OUTPUT_MODE_AVG) == OUTPUT_MODE_AVG) {
 		print(prefix);
 		print("avg = ");
-		print_size_t(stats.avg);
+		print_double(stats.avg);
 		print(suffix);
 	}
 	if ((output_mode & OUTPUT_MODE_MAX) == OUTPUT_MODE_MAX) {
@@ -267,6 +277,7 @@ void frequency_print(const struct frequency *self, enum output_mode output_mode,
 	else frequency_print_normal(self, output_mode, do_color);
 }
 
+// ------------ Deallocation ------------
 void frequency_drop(struct frequency **self)
 {
 	if (!self || !(*self)) return;

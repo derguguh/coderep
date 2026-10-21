@@ -4,7 +4,7 @@
 #include "coderep/allocator/arena.h"
 #include "coderep/cli/config.h"
 #include "coderep/consts.h"
-#include "coderep/printer/printer.h"
+#include "coderep/tool/printer/printer.h"
 #include "coderep/report.h"
 #include "coderep/timer.h"
 #include "coderep/tool/file.h"

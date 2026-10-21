@@ -11,6 +11,7 @@
 
 const size_t _DEFAULT_CAPACITY = 20;
 
+// ------------ Internal Structure ------------
 enum report_entry_type {
 	REPORT_ENTRY_TYPE_FREQUENCY,
 	REPORT_ENTRY_TYPE_STATISTICS_DOUBLE,
@@ -46,27 +47,7 @@ struct report {
 	size_t entries_c;
 };
 
-struct report *report_alloc(struct allocator *allocator)
-{
-	struct report_entry *entries = allocator->allocate(allocator->state, sizeof(struct report_entry) * _DEFAULT_CAPACITY);
-	struct report *self = allocator->allocate(allocator->state, sizeof(struct report));
-
-	if (!self || !entries) goto defer;
-
-	*self = (struct report) {
-		.allocator = allocator,
-		.entries = entries,
-		.entries_c = _DEFAULT_CAPACITY,
-	};
-
-	return self;
-defer:
-	free(self);
-	free(entries);
-
-	ALLOC_ERR_EXIT("struct report (backend outputs)");
-}
-
+// ------------ Helpers ------------
 static inline void report_expand(struct report *self)
 {
 	self->entries_c *= 2;
@@ -90,6 +71,139 @@ static inline void report_push(struct report *self, struct report_entry value)
 	self->entries_l++;
 }
 
+// ------------ Allocation ------------
+struct report *report_alloc(struct allocator *allocator)
+{
+	struct report_entry *entries = allocator->allocate(allocator->state, sizeof(struct report_entry) * _DEFAULT_CAPACITY);
+	struct report *self = allocator->allocate(allocator->state, sizeof(struct report));
+
+	if (!self || !entries) goto defer;
+
+	*self = (struct report) {
+		.allocator = allocator,
+		.entries = entries,
+		.entries_c = _DEFAULT_CAPACITY,
+	};
+
+	return self;
+defer:
+	free(self);
+	free(entries);
+
+	ALLOC_ERR_EXIT("struct report (backend outputs)");
+}
+
+// ------------ Pushing ------------
+//  Primitives
+void report_push_bool(struct report *self, const char *const name, bool value)
+{
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name, false),
+		.type = REPORT_ENTRY_TYPE_BOOL,
+		.bool_ = value,
+	};
+	report_push(self, entry);
+}
+
+void report_push_cstr(struct report *self, const char *const name, const char *const value)
+{
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name, false),
+		.type = REPORT_ENTRY_TYPE_STRING,
+		.string = string_from_cstr(self->allocator, value, false),
+	};
+	report_push(self, entry);
+}
+
+
+
+void report_push_double(struct report *self, const char *const name, double value)
+{
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name, false),
+		.type = REPORT_ENTRY_TYPE_DOUBLE,
+		.double_ = value,
+	};
+	report_push(self, entry);
+}
+
+void report_push_size_t(struct report *self, const char *const name, size_t value)
+{
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name, false),
+		.type = REPORT_ENTRY_TYPE_SIZE_T,
+		.size_t_ = value,
+	};
+	report_push(self, entry);
+}
+
+void report_push_ssize_t(struct report *self, const char *const name, ssize_t value)
+{
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name, false),
+		.type = REPORT_ENTRY_TYPE_SSIZE_T,
+		.ssize_t_ = value,
+	};
+	report_push(self, entry);
+}
+
+//  Coderep Specifics
+void report_push_string(struct report *self, const char *const name, struct string **value)
+{
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name, false),
+		.type = REPORT_ENTRY_TYPE_STRING,
+		.string = *value,
+	};
+	report_push(self, entry);
+	*value = NULL;
+}
+
+
+
+void report_push_frequency(struct report *self, const char *const name, struct frequency **value)
+{
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name, false),
+		.type = REPORT_ENTRY_TYPE_FREQUENCY,
+		.frequency = *value,
+	};
+	report_push(self, entry);
+	*value = NULL;
+}
+
+void report_push_statistics_double(struct report *self, const char *const name, struct statistics_double *value)
+{
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name, false),
+		.type = REPORT_ENTRY_TYPE_STATISTICS_DOUBLE,
+		.statistics_double = *value,
+	};
+	report_push(self, entry);
+}
+
+void report_push_statistics_size_t(struct report *self, const char *const name, struct statistics_size_t *value)
+{
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name, false),
+		.type = REPORT_ENTRY_TYPE_STATISTICS_SIZE_T,
+		.statistics_size_t = *value,
+	};
+	report_push(self, entry);
+}
+
+void report_push_statistics_ssize_t(struct report *self, const char *const name, struct statistics_ssize_t *value)
+{
+	struct report_entry entry = (struct report_entry){ 
+		.name = string_from_cstr(self->allocator, name, false),
+		.type = REPORT_ENTRY_TYPE_STATISTICS_SSIZE_T,
+		.statistics_ssize_t = *value,
+	};
+	report_push(self, entry);
+}
+
+
+
 void report_push_file_report(struct report *report, struct file_report *context, bool push_times)
 {
 	report_push_size_t(report, "files.read.total", context->total_reads);
@@ -110,116 +224,13 @@ void report_push_file_report(struct report *report, struct file_report *context,
 	}
 }
 
-void report_push_cstr(struct report *self, const char *const name, const char *const value)
-{
-	struct report_entry entry = (struct report_entry){ 
-		.name = string_from_cstr(self->allocator, name),
-		.type = REPORT_ENTRY_TYPE_STRING,
-		.string = string_from_cstr(self->allocator, value),
-	};
-	report_push(self, entry);
-}
-
-void report_push_string(struct report *self, const char *const name, struct string **value)
-{
-	struct report_entry entry = (struct report_entry){ 
-		.name = string_from_cstr(self->allocator, name),
-		.type = REPORT_ENTRY_TYPE_STRING,
-		.string = *value,
-	};
-	report_push(self, entry);
-	*value = NULL;
-}
-
-void report_push_bool(struct report *self, const char *const name, bool value)
-{
-	struct report_entry entry = (struct report_entry){ 
-		.name = string_from_cstr(self->allocator, name),
-		.type = REPORT_ENTRY_TYPE_BOOL,
-		.bool_ = value,
-	};
-	report_push(self, entry);
-}
-
-void report_push_ssize_t(struct report *self, const char *const name, ssize_t value)
-{
-	struct report_entry entry = (struct report_entry){ 
-		.name = string_from_cstr(self->allocator, name),
-		.type = REPORT_ENTRY_TYPE_SSIZE_T,
-		.ssize_t_ = value,
-	};
-	report_push(self, entry);
-}
-
-void report_push_size_t(struct report *self, const char *const name, size_t value)
-{
-	struct report_entry entry = (struct report_entry){ 
-		.name = string_from_cstr(self->allocator, name),
-		.type = REPORT_ENTRY_TYPE_SIZE_T,
-		.size_t_ = value,
-	};
-	report_push(self, entry);
-}
-
-void report_push_double(struct report *self, const char *const name, double value)
-{
-	struct report_entry entry = (struct report_entry){ 
-		.name = string_from_cstr(self->allocator, name),
-		.type = REPORT_ENTRY_TYPE_DOUBLE,
-		.double_ = value,
-	};
-	report_push(self, entry);
-}
-
-
-void report_push_frequency(struct report *self, const char *const name, struct frequency **value)
-{
-	struct report_entry entry = (struct report_entry){ 
-		.name = string_from_cstr(self->allocator, name),
-		.type = REPORT_ENTRY_TYPE_FREQUENCY,
-		.frequency = *value,
-	};
-	report_push(self, entry);
-	*value = NULL;
-}
-
-void report_push_statistics_double(struct report *self, const char *const name, struct statistics_double *value)
-{
-	struct report_entry entry = (struct report_entry){ 
-		.name = string_from_cstr(self->allocator, name),
-		.type = REPORT_ENTRY_TYPE_STATISTICS_DOUBLE,
-		.statistics_double = *value,
-	};
-	report_push(self, entry);
-}
-
-void report_push_statistics_ssize_t(struct report *self, const char *const name, struct statistics_ssize_t *value)
-{
-	struct report_entry entry = (struct report_entry){ 
-		.name = string_from_cstr(self->allocator, name),
-		.type = REPORT_ENTRY_TYPE_STATISTICS_SSIZE_T,
-		.statistics_ssize_t = *value,
-	};
-	report_push(self, entry);
-}
-
-void report_push_statistics_size_t(struct report *self, const char *const name, struct statistics_size_t *value)
-{
-	struct report_entry entry = (struct report_entry){ 
-		.name = string_from_cstr(self->allocator, name),
-		.type = REPORT_ENTRY_TYPE_STATISTICS_SIZE_T,
-		.statistics_size_t = *value,
-	};
-	report_push(self, entry);
-}
-
+// ------------ Printing ------------
 void report_entry_print(const struct report_entry *entry, struct string *filter, const struct data *output_options, bool do_color)
 {
 	if (filter->length > 0 && string_check_glob(entry->name, filter) == 0) return;
 
 	string_print(entry->name);
 	print(": ");
-	
 	if (entry->type == REPORT_ENTRY_TYPE_FREQUENCY && output_options->frequency != OUTPUT_MODE_NONE) {
 		frequency_print(entry->frequency, output_options->frequency, do_color);
 	} else if (entry->type == REPORT_ENTRY_TYPE_STATISTICS_DOUBLE && output_options->statistic != OUTPUT_MODE_NONE) {
@@ -249,6 +260,7 @@ void report_print(const struct report *self, struct string *filter, const struct
 	for (size_t i = 0; i < self->entries_l; i++) report_entry_print(&self->entries[i], filter, output_options, do_color);
 }
 
+// ------------ Deallocation ------------
 void report_drop(struct report **self)
 {
 	if (!self || !(*self)) return;

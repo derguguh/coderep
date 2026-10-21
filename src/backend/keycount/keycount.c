@@ -1,6 +1,6 @@
 #include "backend/keycount/keycount.h"
 
-#include "coderep/tool/common_readers.h"
+#include "coderep/tool/reader/common.h"
 #include "coderep/allocator/arena.h"
 #include "coderep/data_type/frequency.h"
 #include "coderep/report.h"
@@ -19,7 +19,7 @@ void keycount_init(struct backend_context *context)
 
 	*keycount = (struct keycount) { 0 };
 
-	keycount->shift_template = string_from_cstr(allocator, "shift");
+	keycount->shift_template = string_from_cstr(allocator, "shift", false);
 	keycount->key = string_alloc(allocator, 128);
 	keycount->control = frequency_alloc(allocator, context->profile.minimal);
 	keycount->single_keys = frequency_alloc(allocator, context->profile.minimal);

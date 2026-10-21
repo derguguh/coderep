@@ -12,7 +12,8 @@ struct word_tree {
 	size_t non_unique_hash;
 };
 
-struct word_tree *word_tree_from_table(struct allocator *allocator, const struct word_table *table_array, size_t table_array_l)
+// ------------ Allocation ------------
+struct word_tree *word_tree_alloc(struct allocator *allocator, const struct word_table *table_array, size_t table_array_l)
 {
 	struct node **buckets = allocator->allocate(allocator->state, sizeof(struct node *) * table_array_l);
 	struct word_tree *self = allocator->allocate(allocator->state, sizeof(struct word_tree));
@@ -27,7 +28,7 @@ struct word_tree *word_tree_from_table(struct allocator *allocator, const struct
 	};
 
 	for (size_t i = 0; i < table_array_l; i++) {
-		struct string *value = string_from_cstr(allocator, table_array[i].word);
+		struct string *value = string_from_cstr(allocator, table_array[i].word, false);
 		size_t index = string_hash(value) % table_array_l;
 		struct node *bucket = self->buckets[index];
 
@@ -48,6 +49,7 @@ defer:
 	ALLOC_ERR_EXIT("struct bimap");
 }
 
+// ------------ Usage ------------
 const struct string *word_tree_get_by_id(const struct word_tree *self, ssize_t id)
 {
 	for (size_t i = 0; i < self->buckets_count; i++) {
@@ -70,6 +72,7 @@ ssize_t word_tree_categorize(const struct word_tree *self, const struct string *
 	else return bucket->count;
 }
 
+// ------------ Deallocation ------------
 void word_tree_drop(struct word_tree **self)
 {
 	if (!self || !(*self)) return;

@@ -23,9 +23,9 @@ void lua_init(struct backend_context *data)
 
 	*context = (struct lua_lexer) { 0 };
 
-	context->template_invalid_number = string_from_cstr(allocator, "Invalid: number");
-	context->template_invalid_string = string_from_cstr(allocator, "Invalid: string");
-	context->template_invalid_char = string_from_cstr(allocator, "Invalid: character");
+	context->template_invalid_number = string_from_cstr(allocator, "Invalid: number", false);
+	context->template_invalid_string = string_from_cstr(allocator, "Invalid: string", false);
+	context->template_invalid_char = string_from_cstr(allocator, "Invalid: character", false);
 
 	context->what_invalid = frequency_alloc(allocator, 3);
 	context->character = frequency_alloc(allocator, 32);
@@ -36,7 +36,7 @@ void lua_init(struct backend_context *data)
 	context->number = frequency_alloc(allocator, data->profile.medium);
 	context->identifier = frequency_alloc(allocator, data->profile.extreme);
 
-	context->keyword_tree = word_tree_from_table(allocator, LUA_KEYWORD_TABLE, LUA_KEYWORD_TABLE_L);
+	context->keyword_tree = word_tree_alloc(allocator, LUA_KEYWORD_TABLE, LUA_KEYWORD_TABLE_L);
 	context->punctuation = punctuation_alloc(allocator, LUA_PONCTUATION_TABLE, LUA_PONCTUATION_TABLE_L);
 }
 

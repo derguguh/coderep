@@ -16,7 +16,7 @@
 #include "coderep/cli/verbose.h"
 #include "coderep/data_type/output_mode.h"
 #include "coderep/macros.h"
-#include "coderep/printer/printer.h"
+#include "coderep/tool/printer/printer.h"
 
 #include <stdlib.h>
 #include <string.h>

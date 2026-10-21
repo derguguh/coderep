@@ -5,66 +5,21 @@
 #include "coderep/data_type/string.h"
 #include "coderep/macros.h"
 #include "coderep/tool/file_buffer.h"
-#include "coderep/printer/printer.h"
+#include "coderep/tool/printer/printer.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 const size_t RING_LINE_BUFFER_SIZE = 40;
+
 #define PRINT_PREFIX_ "\t| "
 const char *const PRINT_PREFIX = PRINT_PREFIX_;
 
-struct file *file_alloc(struct allocator *allocator)
-{
-	struct file_buffer *buffer = file_buffer_alloc(allocator);
-	struct string *line_buffer = string_alloc(allocator, 100);
-	struct file *self = allocator->allocate(allocator->state, sizeof(struct file));
-	
-	if (!self) goto defer;
-
-	*self = (struct file) {
-		.buffer = buffer,
-		.line_buffer = line_buffer,
-		.line = 1,
-		.column = 1,
-	};
-
-	return self;
-defer:
-	ALLOC_ERR_EXIT("struct file_buffer");
-}
-
-bool file_open(struct file *self, const char *const file_path)
-{
-	string_clear(self->line_buffer);
-	self->line = 1;
-	self->column = 1;
-
-	return file_buffer_open(self->buffer, file_path);
-}
-
+// ------------ Helpers ------------
 void file_reset_line_buffer(struct file *self)
 {
 	memmove(self->line_buffer->chars, self->line_buffer->chars + RING_LINE_BUFFER_SIZE, RING_LINE_BUFFER_SIZE);
 	self->line_buffer->length = RING_LINE_BUFFER_SIZE;
-}
-
-void file_advance(struct file *self)
-{
-	if (self->buffer->char_ == '\n') {
-		string_clear(self->line_buffer);
-		self->line++;
-		self->column = 0;
-	}
-
-	file_buffer_advance(self->buffer);
-
-	if (self->buffer->char_ != '\n') {
-		if (self->line_buffer->length > RING_LINE_BUFFER_SIZE * 2) file_reset_line_buffer(self);
-
-		string_push(self->line_buffer, self->buffer->char_);
-	} else string_push(self->line_buffer, ' ');
-	self->column++;
 }
 
 size_t file_get_offset(const struct file *self)
@@ -88,6 +43,56 @@ size_t file_print_line_buffer(const struct file *self)
 	return fprintf(stderr, "%.*s\n", (int)length, self->line_buffer->chars + offset);
 }
 
+// ------------ Allocation ------------
+struct file *file_alloc(struct allocator *allocator)
+{
+	struct file_buffer *buffer = file_buffer_alloc(allocator);
+	struct string *line_buffer = string_alloc(allocator, 100);
+	struct file *self = allocator->allocate(allocator->state, sizeof(struct file));
+	
+	if (!self) goto defer;
+
+	*self = (struct file) {
+		.buffer = buffer,
+		.line_buffer = line_buffer,
+		.line = 1,
+		.column = 1,
+	};
+
+	return self;
+defer:
+	ALLOC_ERR_EXIT("struct file_buffer");
+}
+
+// ------------ Usage ------------
+bool file_open(struct file *self, const char *const file_path)
+{
+	string_clear(self->line_buffer);
+	self->line = 1;
+	self->column = 1;
+
+	return file_buffer_open(self->buffer, file_path);
+}
+
+void file_advance(struct file *self)
+{
+	if (self->buffer->char_ == '\n') {
+		string_clear(self->line_buffer);
+		self->line++;
+		self->column = 0;
+	}
+
+	file_buffer_advance(self->buffer);
+
+	if (self->buffer->char_ != '\n') {
+		if (self->line_buffer->length > RING_LINE_BUFFER_SIZE * 2) file_reset_line_buffer(self);
+
+		string_push(self->line_buffer, self->buffer->char_);
+	} else string_push(self->line_buffer, ' ');
+	self->column++;
+}
+
+// ------------ Printing ------------
 void file_print_error(const struct file *self, const char *const error_text, size_t error_length)
 {
 	if (error_length > self->column) {
@@ -142,6 +147,7 @@ void file_print(const struct file *self, bool trim_spaces)
 	println("}");
 }
 
+// ------------ Deallocation ------------
 void file_drop(struct file **self)
 {
 	if (!self || !(*self)) return;

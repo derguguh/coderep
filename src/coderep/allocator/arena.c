@@ -3,7 +3,7 @@
 #include "coderep/allocator/allocator.h"
 #include "coderep/allocator/c_allocator.h"
 #include "coderep/macros.h"
-#include "coderep/printer/printer.h"
+#include "coderep/tool/printer/printer.h"
 
 #include <assert.h>
 #include <stdbool.h>

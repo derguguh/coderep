@@ -1,9 +1,11 @@
-#include "coderep/tool/string_reader.h"
+#include "coderep/tool/reader/string.h"
 
 #include "coderep/data_type/string.h"
-#include "coderep/tool/common_readers.h"
+#include "coderep/tool/reader/common.h"
+
 #include <assert.h>
 
+// ------------ Helpers ------------
 bool string_handler_read_char(struct string_handler *self, struct file *file, struct string *scratch_buffer, struct arena *temporary)
 {
 	switch (file->buffer->char_) {
@@ -33,6 +35,7 @@ bool string_handler_check_end_sequence(struct string_handler *self, struct file 
 	return true;
 }
 
+// ------------ Reader itself ------------
 ssize_t string_handler_read(struct string_handler *self, struct file *file, struct string *scratch_buffer, struct arena *temporary)
 {
 	assert(self->end_sequence->length > 0 && "The end sequence must have at least one character (UB will be caused)");

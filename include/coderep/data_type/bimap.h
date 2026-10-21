@@ -4,6 +4,11 @@
 #include "coderep/allocator/allocator.h"
 #include "coderep/data_type/string.h"
 
+/*
+ * This is an experimental type, not tested
+ * Expect bugs on it
+ */
+
 struct bimap;
 
 struct bimap *bimap_alloc(struct allocator *allocator, size_t inital_capacity);

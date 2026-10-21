@@ -1,7 +1,7 @@
 #ifndef CODEREP_MACROS_H
 #define CODEREP_MACROS_H
 
-#include "coderep/printer/printer.h"
+#include "coderep/tool/printer/printer.h"
 #include "coderep/consts.h"
 
 #include <stdio.h>

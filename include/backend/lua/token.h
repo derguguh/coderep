@@ -1,7 +1,7 @@
 #ifndef BACKEND_LUA_TOKEN_H
 #define BACKEND_LUA_TOKEN_H
 
-#include "coderep/printer/printer.h"
+#include "coderep/tool/printer/printer.h"
 #include <stddef.h>
 #include <stdio.h>
 

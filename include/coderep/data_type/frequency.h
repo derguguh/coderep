@@ -22,20 +22,24 @@ extern const size_t FREQUENCY_DEFAULT_SIZE;
  * struct frequency *frequency_alloc(struct allocator *allocator, enum frequency_type type, size_t initial_capacity);
  *
  */
+// ------------ Allocation ------------
 struct frequency *frequency_alloc(struct allocator *allocator, size_t initial_capacity);
 
+// ------------ Checks ------------
 bool frequency_has(struct frequency *self, const struct string *value);
 
-bool frequency_increment(struct frequency *self, const struct string *value);
-
+// ------------ Pushing ------------
+bool frequency_try_increment(struct frequency *self, const struct string *value);
 bool frequency_intern(struct frequency *self, const struct string *value);
-
 void frequency_push_string(struct frequency *self, struct string **value);
 
+// ------------ Stats ------------
 struct stats frequency_calculate_stats(const struct frequency *self);
 
+// ------------ Allocation ------------
 void frequency_print(const struct frequency *self, enum output_mode output_mode, bool do_color);
 
+// ------------ Allocation ------------
 void frequency_drop(struct frequency **self);
 
 #endif

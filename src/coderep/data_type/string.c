@@ -2,7 +2,7 @@
 
 #include "coderep/allocator/allocator.h"
 #include "coderep/macros.h"
-#include "coderep/printer/printer.h"
+#include "coderep/tool/printer/printer.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -11,6 +11,7 @@
 
 const size_t STRING_DEFAULT_INITIAL_CAPACITY = 8;
 
+// ------------ Allocation ------------
 struct string *string_alloc(struct allocator *allocator, size_t initial_capacity)
 {
 	if (initial_capacity == 0) initial_capacity = STRING_DEFAULT_INITIAL_CAPACITY;
@@ -37,13 +38,24 @@ defer:
 	ALLOC_ERR_EXIT("struct string");
 }
 
-struct string *string_from_cstr(struct allocator *allocator, const char *const cstr)
+
+
+struct string *string_from_cstr(struct allocator *allocator, const char *const cstr, bool include_null)
 {
-	size_t cstr_l = strlen(cstr) + 1;
+	size_t cstr_l = strlen(cstr);
+	if (include_null) cstr_l++;
 	struct string *self = string_alloc(allocator, cstr_l);
 
 	memcpy(self->chars, cstr, cstr_l);
-	self->length = cstr_l - 1;
+	self->length = cstr_l;
+
+	return self;
+}
+
+struct string *string_from_double(struct allocator *allocator, double value)
+{
+	struct string *self = string_alloc(allocator, sizeof(double) * 8);
+	self->length = snprintf(self->chars, sizeof(double) * 8, "%.5lf", value);
 
 	return self;
 }
@@ -64,13 +76,7 @@ struct string *string_from_ssize_t(struct allocator *allocator, ssize_t value)
 	return self;
 }
 
-struct string *string_from_double(struct allocator *allocator, double value)
-{
-	struct string *self = string_alloc(allocator, sizeof(double) * 8);
-	self->length = snprintf(self->chars, sizeof(double) * 8, "%.5lf", value);
 
-	return self;
-}
 
 struct string *string_clone(struct allocator *allocator, const struct string *self, bool trimmed)
 {
@@ -81,6 +87,7 @@ struct string *string_clone(struct allocator *allocator, const struct string *se
 	return new;
 }
 
+// ------------ Resizing ------------
 void string_resize(struct string *self, size_t new_capacity)
 {
 	char *tmp = self->allocator->reallocate(self->allocator->state, self->chars, new_capacity);
@@ -98,6 +105,7 @@ defer:
 	exit(ERROR_CODE_MEMORY_REALLOCATION);
 }
 
+// ------------ Modifying ------------
 char string_pop(struct string *self)
 {
 	if (self->length > 0) {
@@ -124,7 +132,7 @@ void string_append(struct string *self, const struct string *str)
 
 void string_append_cstr(struct string *self, const char *const cstr)
 {
-	int cstr_s = strlen(cstr) + 1;
+	int cstr_s = strlen(cstr);
 	const struct string str = {
 		.chars	  = (char *const) cstr,
 		.length	 = cstr_s,
@@ -133,6 +141,40 @@ void string_append_cstr(struct string *self, const char *const cstr)
 
 	string_append(self, &str);
 }
+
+
+
+void string_clear(struct string *self)
+{
+	self->length = 0;
+}
+
+// ------------ From it ------------
+unsigned long string_hash(const struct string *self)
+{
+	unsigned long hash = 5381;
+	for (size_t i = 0; i < self->length; i++)
+		hash = ((hash << 5) + hash) + self->chars[i];
+	return hash;
+}
+
+
+
+size_t string_find(const struct string *self, char char_)
+{
+	for (size_t i = 0; i < self->length; i++) if (self->chars[i] == char_) return i;
+	return -1;
+}
+
+int string_count(const struct string *self, char char_)
+{
+	int count = 0;
+	for (size_t i = 0; i < self->length; i++) if (self->chars[i] == char_) count++;
+	
+	return count;
+}
+
+
 
 bool string_is_empty(const struct string *self)
 {
@@ -150,36 +192,7 @@ bool string_check_glob(struct string *self, struct string *glob)
 	return fnmatch(string_to_cstr(glob), string_to_cstr(self), 0) == 0;
 }
 
-unsigned long string_hash(const struct string *self)
-{
-	unsigned long hash = 5381;
-	for (size_t i = 0; i < self->length; i++)
-		hash = ((hash << 5) + hash) + self->chars[i];
-	return hash;
-}
-
-int string_count(const struct string *self, char char_)
-{
-	int count = 0;
-	for (size_t i = 0; i < self->length; i++) if (self->chars[i] == char_) count++;
-	
-	return count;
-}
-
-size_t string_find(const struct string *self, char char_)
-{
-	for (size_t i = 0; i < self->length; i++) if (self->chars[i] == char_) return i;
-	return -1;
-}
-
-struct string_slice string_slice(const struct string *self, size_t from, size_t to)
-{
-	if (from > to || from > self->length) return (struct string_slice) { self->chars, 0, 0 };
-	if (to > self->length) to = self->length;
-
-	return (struct string_slice) { (self->chars) + from, to - from, from };
-}
-
+//  Safe access
 char string_get(const struct string *self, size_t index)
 {
 	if (self->length > index) return self->chars[index];
@@ -188,20 +201,17 @@ char string_get(const struct string *self, size_t index)
 
 char *string_to_cstr(struct string *self)
 {
-	if (self->chars[self->length - 1] != '\0') string_push(self, '\0');
+	if (self->length > 0 && self->chars[self->length - 1] != '\0') string_push(self, '\0');
 	return self->chars;
 }
 
-void string_clear(struct string *self)
-{
-	self->length = 0;
-}
-
+// ------------ Printing ------------
 void string_print(const struct string *self)
 {
 	for (size_t i = 0; i < self->length; i++) putchar(self->chars[i]);
 }
 
+// ------------ Deallocation ------------
 void string_drop(struct string **self)
 {
 	if (!self || !(*self)) return;

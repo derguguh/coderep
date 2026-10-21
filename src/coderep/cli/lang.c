@@ -1,5 +1,6 @@
 #include "coderep/cli/lang.h"
-#include "coderep/printer/printer.h"
+
+#include "coderep/tool/printer/printer.h"
 
 #include <string.h>
 

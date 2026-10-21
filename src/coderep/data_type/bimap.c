@@ -5,7 +5,7 @@
 #include "coderep/data_type/frequency.h"
 #include "coderep/data_type/node.h"
 #include "coderep/macros.h"
-#include "coderep/printer/printer.h"
+#include "coderep/tool/printer/printer.h"
 
 struct bimap {
 	struct allocator *allocator;
@@ -29,7 +29,7 @@ struct bimap *bimap_alloc(struct allocator *allocator, size_t initial_capacity)
 
 	*self = (struct bimap) {
 		.allocator = allocator,
-		.block_size = initial_capacity * sizeof(size_t),
+		.block_size = initial_capacity * sizeof(struct node *),
 		.buckets_count = initial_capacity,
 		.buckets = buckets,
 		.block = block,
@@ -126,7 +126,7 @@ size_t bimap_get_id_of(const struct bimap *self, const struct string *value)
 
 struct node *bimap_get_node_of(const struct bimap *self, size_t id)
 {
-	if (id > self->element_count) {
+	if (id >= self->element_count) {
 		printf_err("Value '%zu' is out of boundary", id);
 		exit(ERROR_CODE_ACCESS_OUT_BOUNDARY);
 	}
@@ -171,7 +171,7 @@ void bimap_print(const struct bimap *self, bool do_color)
 	println("");
 
 	print("\t.element_count:");
-	print_size_t(self->buckets_count);
+	print_size_t(self->element_count);
 	println("");
 
 	print("\t.block:   ");

@@ -1,5 +1,5 @@
-#ifndef CODEREP_DATA_TYPE_LIST_H
-#define CODEREP_DATA_TYPE_LIST_H
+#ifndef CODEREP_DATA_TYPE_NODE_H
+#define CODEREP_DATA_TYPE_NODE_H
 
 #include "coderep/allocator/allocator.h"
 #include <stdbool.h>

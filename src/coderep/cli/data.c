@@ -3,7 +3,8 @@
 #include "coderep/consts.h"
 #include "coderep/data_type/output_mode.h"
 #include "coderep/data_type/string.h"
-#include "coderep/printer/printer.h"
+#include "coderep/data_type/string_slice.h"
+#include "coderep/tool/printer/printer.h"
 
 #include <stdio.h>
 #include <string.h>

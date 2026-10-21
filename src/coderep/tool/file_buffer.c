@@ -2,7 +2,7 @@
 
 #include "coderep/allocator/allocator.h"
 #include "coderep/macros.h"
-#include "coderep/printer/printer.h"
+#include "coderep/tool/printer/printer.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -10,6 +10,7 @@
 
 const size_t BUFFER_SIZE = BUFFER_SIZE_;
 
+// ------------ Allocation ------------
 struct file_buffer *file_buffer_alloc(struct allocator *allocator)
 {
 	struct file_buffer *self = allocator->allocate(allocator->state, sizeof(struct file_buffer));
@@ -23,6 +24,7 @@ struct file_buffer *file_buffer_alloc(struct allocator *allocator)
 	return self;
 }
 
+// ------------ Usage ------------
 bool file_buffer_open(struct file_buffer *self, const char *const file_path)
 {
 	FILE *file = fopen(file_path, "r");
@@ -67,6 +69,8 @@ defer:
 	return false;
 }
 
+
+
 void file_buffer_advance(struct file_buffer *self)
 {
 	assert(self->_file != NULL && "struct file_buffer: is not possible to advance in a null file\n");
@@ -94,6 +98,8 @@ void file_buffer_advance(struct file_buffer *self)
 	}
 }
 
+
+
 char file_buffer_peek_n(const struct file_buffer *self, size_t n)
 {
 	assert(self->_file != NULL && "struct file_buffer: is not possible to advance in a null file\n");
@@ -115,6 +121,7 @@ char file_buffer_peek_n(const struct file_buffer *self, size_t n)
 	}
 }
 
+// ------------ Printing ------------
 void file_buffer_print(const struct file_buffer *self, bool trim_spaces)
 {
 	println("File Buffer: {");
@@ -141,6 +148,7 @@ void file_buffer_print(const struct file_buffer *self, bool trim_spaces)
 	println("]}");
 }
 
+// ------------ Deallocation ------------
 void file_buffer_drop(struct file_buffer **self)
 {
 	if (!self || !(*self)) return;

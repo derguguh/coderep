@@ -23,8 +23,8 @@ void statistics_##type##_print(const struct statistics_##type *self, enum output
 		printf("(struct statistics_" #type ") {\n"); \
 		printf("\t.min = " format ",\n", self->min); \
 		if ((mode & OUTPUT_MODE_AVG) == OUTPUT_MODE_AVG) printf("\tavg = " format ",\n", avg); \
-		printf("\t.max = " format ", \n", self->max); \
-		printf("\t.total = " format ", \n", self->total); \
+		printf("\t.max = " format ",\n", self->max); \
+		printf("\t.total = " format ",\n", self->total); \
 		printf("\t.count = %zu,\n", self->count); \
 		printf("}"); \
 	} else { \

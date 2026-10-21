@@ -1,6 +1,6 @@
 #include "backend/lua/lexer.h"
 
-#include "coderep/tool/common_readers.h"
+#include "coderep/tool/reader/common.h"
 #include "backend/lua/token.h"
 
 #include "coderep/data_type/frequency.h"
@@ -8,7 +8,7 @@
 #include "coderep/macros.h"
 #include "coderep/tool/file_buffer.h"
 #include "coderep/tool/file.h"
-#include "coderep/tool/string_reader.h"
+#include "coderep/tool/reader/string.h"
 
 #include <ctype.h>
 #include <stdio.h>

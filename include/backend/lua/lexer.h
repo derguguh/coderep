@@ -1,7 +1,7 @@
 #ifndef BACKEND_LUA_LEXER_H
 #define BACKEND_LUA_LEXER_H
 
-#include "coderep/tool/punctuation.h"
+#include "coderep/tool/reader/punctuation.h"
 #include "coderep/tool/word_tree.h"
 
 #include "coderep/allocator/arena.h"
